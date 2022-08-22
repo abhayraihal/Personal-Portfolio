@@ -1,51 +1,691 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<!-- Web Ideas -->
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abhay Singh Raihal - Personal Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <!-------------- Local Stylesheet Link -------------->
+    <link rel="stylesheet" href="/style.css">
+    <!-------------- Font Awesome Link -------------->
+    <script src="https://kit.fontawesome.com/de270889e1.js" crossorigin="anonymous"></script>
+    <!-------------- Owl Carousel Links -------------->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"
+        integrity="sha512-tS3S5qG0BlhnQROyJXvNjeEM4UpMXHrQfTGmbQ1gKmelCxlSEBUaxhRBj/EFTzpbP4RVSrpEikbmdJobCvhE3g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css"
+        integrity="sha512-sMXtMNL1zRzolHYKEujM2AqCLUR9F2C4/05cdbxjjLSRvMQIciEPCQZo++nk7go3BtSuK9kfa/s+a4f4i5pLkw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-------------- AOS Link -------------->
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 </head>
 
 <body>
-    <div class="container">
-        <div class="sidebar sidebarGo">
-            <!-- Abhay -->
-            <nav>
-                <li><a href="./index.html">Home</a></li>
-                <li><a href="./intro.html">My Intro</a></li>
-                <li><a href="./blog.html">Blog</a></li>
-                <li><a href="./contact.html">Contact Me</a></li>
-            </nav>
+
+
+    <!-------------- Navbar -------------->
+    <header>
+        <nav id="navbar" data-aos="fade-up" data-aos-duration="1200" data-aos-delay="1800">
+            <div class="logo">
+                <img src="/Images/Logo.png" alt="">
+            </div>
+            <!-- Hamurger -->
+            <input type="checkbox" class="checkbox">
+            <div class="hamburger-lines">
+                <span class="line line1"></span>
+                <span class="line line2"></span>
+                <span class="line line3"></span>
+            </div>
+
+            <ul class="nav-items">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">My Interests</a></li>
+                <li><a href="#resume">Resume</a></li>
+                <li><a href="#portfolio">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-------------- Home Section -------------->
+    <section id="home">
+    <div id = "particles-js">
+        <div class="text-holder">
+            <h1 data-aos="fade-up" data-aos-duration="1200" data-aos-delay="1000">Abhay <span>Singh </span> Raihal</h1>
+            <h3 data-aos="fade-up" data-aos-duration="1200" data-aos-delay="1200"><span>Frontend Developer</span> IIT Mandi</h3>
+            <div class="button" data-aos="fade-up" data-aos-duration="1200" data-aos-delay="1500">
+                <button class="btn">
+                    <a href="#portfolio">View My Projects</a>
+                </button>
+            </div>
         </div>
-        <div class="main">
-            <div class="hamburger">
-                <img class="ham" src="./images/hamburger.png" alt="" width="23">
-                <img class="cross" src="./images/close.png" alt="" width="23">
-            </div>
-            <div class="infoContainer">
-                <div class="devInfo">
-                    <div class="hello">Hi I am</div>
-                    <div class="name">Abhay Singh Raihal</div>
-                    <div class="about">Developer, Learning Enthusiast</div>
-                    <div class="moreabout">I am a developer, and I love to try different things. I love coding</div>
-                    <div class="buttons">
-                        <a href="./cv.txt" target="_blank">
-                            <button class="btn">Download CV</button></a>
-                        <a href="./contact.html">
-                            <button class="btn">Contact Me</button>
-                        </a>
-                    </div>
-                </div>
-                <div class="devPic">
-                    <img src="./images/dev.jfif" alt="Abhay Singh Raihal">
-                </div>
-            </div>
+        <div class="social-icons" data-aos="fade-up" data-aos-duration="1200" data-aos-delay="2000" 
+        data-aos-anchor-placement="bottom-bottom">
+            <a href="https://www.facebook.com/abhay.raihal/" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="https://www.instagram.com/abhayraihal/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://twitter.com/Abhay8899123" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+            <a href="https://www.linkedin.com/in/abhay-singh-raihal-065b0221a/" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+            <a href="https://github.com/abhayraihal" target="_blank"><i class="fa-brands fa-github"></i></a>
+        </div>
+        <div class="scroll-txt" data-aos="fade-up" data-aos-duration="1200" data-aos-delay="2000" 
+        data-aos-anchor-placement="bottom-bottom">
+            <a href="#about">Scroll</a>
         </div>
     </div>
-<script src="./script.js"></script>
+    </section>
+
+    <!-------------- About Section -------------->
+    <section id="about">
+        <div class="container">
+            <div class="about-img" data-aos="fade-right" data-aos-duration="1200">
+                <img src="/Images/HERO-ABOUT-IMG.jfif" alt="">
+            </div>
+            <div class="text-wrapper" data-aos="fade-right" data-aos-duration="1200">
+                <h4>Abhay Singh Raihal</h4>
+                <h5>A <span>Student</span> from <span>IIT Mandi</span></h5>
+                <p> I am a Frontend developer, trying my best to improve my skills everyday. I love coding. Most of the time, I indulge myself in doing coding.
+                    I also love Football. I try to be active in all events.
+                </p>
+                <div class="about-list">
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Birthday</label>
+                        <p>6th Nov. 2002</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>E-mail</label>
+                        <p>asr@gmail.com</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Age</label>
+                        <p>19 Yr</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Phone</label>
+                        <p>931-933-7883</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Residence</label>
+                        <p>IIT Mandi</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Gender</label>
+                        <p>Male</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Address</label>
+                        <p>Delhi, India</p>
+                    </div>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <div class="list-item">
+                        <label>Status</label>
+                        <p>Single</p>
+                    </div>
+                    <!-- List Item End -->
+                </div>
+                <button class="btn"><a href="https://drive.google.com/file/d/1X-hKTb_mWiL-J3oyOGxjBf-mQcP3N-3Y/view?usp=sharing" target="_blank">Download CV</a></button>
+            </div>
+        </div>
+    </section>
+
+    <!-------------- Services Section -------------->
+    <section id="services">
+        <div class="heading-wrapper">
+            <div class="heading">
+                <h2>My Interests</h2>
+            </div>
+            <div class="animate-bar"></div>
+            <div class="sub-heading">
+                <p>I love to do a lot of things. Some of the things are:</p>
+            </div>
+        </div>
+        <div class="container">
+
+            <!-- Service Card Start -->
+            <div class="service-card" data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-in-out">
+                <div class="card-content">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <h5>Developement</h5>
+                    <p>I love to do development (expecially frontend). In fact, I learned doing basic frontend development during my first year in college.</p>
+                </div>
+            </div>
+            <!-- Service Card End -->
+
+            <!-- Service Card Start -->
+            <div class="service-card"  data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-in-out">
+                <div class="card-content">
+                    <i class="fa-solid fa-pen-ruler"></i>
+                    <h5>Coding</h5>
+                    <p>I love coding. Most of the time, I indulge myself in coding. This all started during my first year at college.
+                        At that time, it was new, but I loved it!
+                    </p>
+                </div>
+            </div>
+            <!-- Service Card End -->
+
+            <!-- Service Card Start -->
+            <div class="service-card" data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-in-out">
+                <div class="card-content">
+                    <i class="fa-brands fas fa-bug"></i>
+                    <h5>Hackathons</h5>
+                    <p>I haven't participated in a lot of Hackathons, but among those in which I participated, I enjoyed a lot. Those 48Hrs were lively!</p>
+                </div>
+            </div>
+            <!-- Service Card End -->
+
+            <!-- Service Card Start -->
+            <div class="service-card" data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-in-out">
+                <div class="card-content">
+                    <i class="fa-solid far fa-file-code"></i>
+                    <h5>Competetive Coding</h5>
+                    <p>I love doing Competetive Coding as it enchances problem solving skills. Currently, I am specialist on <a href="https://codeforces.com/profile/yooy" target="_blank" style="text-decoration:none">Codeforces</a>, 4* on <a href="https://www.codechef.com/users/abhayraihal" target="_blank" style="text-decoration:none">Codechef</a>.</p>
+                </div>
+            </div>
+            <!-- Service Card End -->
+
+            <!-- Service Card Start -->
+            <div class="service-card" data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-in-out">
+                <div class="card-content">
+                    <i class="fa-solid fa fa-bicycle"></i>
+                    <h5>Sports</h5>
+                    <p>I love to play. I play football whenever there is a chance. I also learned table-tennis when I joined college because of my interest in it.</p>
+                </div>
+            </div>
+            <!-- Service Card End -->
+
+            <!-- Service Card Start -->
+            <div class="service-card" data-aos="fade-right" data-aos-duration="1200" data-aos-easing="ease-in-out">
+                <div class="card-content">
+                    <i class="fa-solid fas fa-users"></i>
+                    <h5>Extra-curricular Events</h5>
+                    <p>I also love to participate in a lot of extra-curricular events that my college organizes. Such events freshes our mind and helps in coordinating with teammates.</p>
+                </div>
+            </div>
+            <!-- Service Card End -->
+        </div>
+    </section>
+
+    <!-------------- Resume Section -------------->
+    <section id="resume">
+        <div class="heading-wrapper">
+            <div class="heading">
+                <h2>Resume</h2>
+            </div>
+            <div class="animate-bar"></div>
+            <div class="sub-heading">
+                <p>Here are some of my educational details.</p>
+            </div>
+        </div>
+        <div class="container">
+
+            <!-------------- Experience Part -------------->
+            <div class="experience"  data-aos="fade-right" data-aos-duration="1200">
+                <div class="title">
+                    <h4>Experience</h4>
+                </div>
+
+                <!-- Resume Item Start -->
+                <div class="resume-item">
+                    <div class="item-arrow"></div>
+                    <h5>Team Lead</h5>
+                    <span>FrostHack / 2022</span>
+                </div>
+                <!-- Resume Item End -->
+
+                <!-- Resume Item Start -->
+                <div class="resume-item">
+                    <div class="item-arrow"></div>
+                    <h5>Team Lead</h5>
+                    <span>KP Winter-Project / 2021</span>
+                </div>
+                <!-- Resume Item End -->
+
+                <!-- Resume Item Start -->
+                <div class="resume-item">
+                    <div class="item-arrow"></div>
+                    <h5>Frontend Developer</h5>
+                    <span>Personal Projects</span>
+                </div>
+                <!-- Resume Item End -->
+            </div>
+
+            <!-------------- Education Part -------------->
+            <div class="education" data-aos="fade-right" data-aos-duration="1200">
+                <div class="title">
+                    <h4>Education</h4>
+                </div>
+
+                <!-- Resume Item Start -->
+                <div class="resume-item">
+                    <div class="item-arrow"></div>
+                    <h5>Data Science & Engineering</h5>
+                    <span>IIT Mandi / 2020 - present</span>
+                </div>
+                <!-- Resume Item End -->
+
+                <!-- Resume Item Start -->
+                <div class="resume-item">
+                    <div class="item-arrow"></div>
+                    <h5>Senior-Secondary High School</h5>
+                    <span>K.V. Pitampura / 2018 - 2020</span>
+                </div>
+                <!-- Resume Item End -->
+
+                <!-- Resume Item Start -->
+                <div class="resume-item">
+                    <div class="item-arrow"></div>
+                    <h5>Secondary High School</h5>
+                    <span>K.V. Pitampura / 2008 - 2018</span>
+                </div>
+                <!-- Resume Item End -->
+            </div>
+        </div>
+
+        <!-------------- Skills Section -------------->
+        <section id="skills">
+            <div class="heading-wrapper">
+                <div class="heading">
+                    <h2>My Skills</h2>
+                </div>
+                <div class="animate-bar"></div>
+            </div>
+
+            <div class="container">
+
+                <!-- Progress Item Start -->
+                <div class="progress-item" data-aos="fade-up" data-aos-duration="1200">
+                    <div class="text">
+                        <h5>Html</h5>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-line html"></div>
+                    </div>
+                </div>
+                <!-- Progress Item End -->
+
+                <!-- Progress Item Start -->
+                <div class="progress-item" data-aos="fade-up" data-aos-duration="1200">
+                    <div class="text">
+                        <h5>CSS</h5>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-line react"></div>
+                    </div>
+                </div>
+                <!-- Progress Item End -->
+
+                <!-- Progress Item Start -->
+                <div class="progress-item" data-aos="fade-up" data-aos-duration="1200">
+                    <div class="text">
+                        <h5>C++</h5>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-line css"></div>
+                    </div>
+                </div>
+                <!-- Progress Item End -->
+
+                <!-- Progress Item Start -->
+                <div class="progress-item" data-aos="fade-up" data-aos-duration="1200">
+                    <div class="text">
+                        <h5>Python</h5>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-line js"></div>
+                    </div>
+                </div>
+                <!-- Progress Item End -->
+
+                <!-- Progress Item Start -->
+                <div class="progress-item" data-aos="fade-up" data-aos-duration="1200">
+                    <div class="text">
+                        <h5>SQL</h5>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-line python"></div>
+                    </div>
+                </div>
+                <!-- Progress Item End -->
+
+                <!-- Progress Item Start -->
+                <div class="progress-item" data-aos="fade-up" data-aos-duration="1200">
+                    <div class="text">
+                        <h5>Javascript</h5>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-line django"></div>
+                    </div>
+                </div>
+                <!-- Progress Item End -->
+            </div>
+        </section>
+    </section>
+
+    <!-------------- Portfolio Section -------------->
+    <section id="portfolio">
+        <div class="heading-wrapper">
+            <div class="heading">
+                <h2>Projects</h2>
+            </div>
+            <div class="animate-bar"></div>
+            <div class="sub-heading">
+                <p>Here are the projects that I created.</p>
+            </div>
+        </div>
+
+        <!-------------- Gallery -------------->
+        <div class="gallery-wrapper">
+            <div class="gallery-nav">
+                <div class="gallery-filter">
+                    <span class="filter-item active" data-filter="all">All</span>
+                    <span class="filter-item" data-filter="brand">Developement</span>
+                    <span class="filter-item" data-filter="design">Python</span>
+                </div>
+            </div>
+            <div class="content-wrapper">
+
+                <!-- Gallery Item Start -->
+                <div class="gallery-item design" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-3.png" alt="design">
+                        <div class="overlay">
+                            <h5>TowerDefense AI</h5>
+                            <p>More Info : <a href="https://github.com/abhayraihal/Tower_defense_ai1" target="_blank" style="text-decoration:none">Github</a></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gallery Item End -->
+
+                <!-- Gallery Item Start -->
+                <div class="gallery-item brand" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-2.png" alt="brand">
+                        <div class="overlay">
+                            <h5>GuruKool</h5>
+                            <p>More Info : <a href="https://github.com/abhayraihal/GuruKool" target="_blank" style="text-decoration:none">Github</a></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gallery Item End -->
+                
+                <!-- Gallery Item Start -->
+                <div class="gallery-item brand" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-4.png" alt="brand">
+                        <div class="overlay">
+                            <h5>Personal Portfolio</h5>
+                            <p>More Info : <a href="https://github.com/abhayraihal/Personal-Portfolio" target="_blank" style="text-decoration:none">Github</a></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gallery Item End -->
+
+                <!-- Gallery Item Start -->
+                <!-- <div class="gallery-item photos" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-4.jpg" alt="photos">
+                        <div class="overlay">
+                            <h5>Photo #1</h5>
+                            <p>More Info</p>
+                        </div>
+                    </div>
+                </div> -->
+                <!-- Gallery Item End -->
+
+                <!-- Gallery Item Start -->
+                <div class="gallery-item design" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-1.png" alt="design">
+                        <div class="overlay">
+                            <h5>Space Shooters Game</h5>
+                            <p>More Info : <a href="https://github.com/abhayraihal/Space-Shooters-Game-using-Pygame" target="_blank" style="text-decoration:none">Github</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item design" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-11.png" alt="design">
+                        <div class="overlay">
+                            <h5>Hit-the-Ball Game</h5>
+                            <p>More Info : <a href="https://github.com/abhayraihal/Hit-The-Ball-game-Using-Pygame" target="_blank" style="text-decoration:none">Github</a></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gallery Item End -->
+
+                <!-- Gallery Item Start -->
+                <!-- <div class="gallery-item photos" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="gallery-item-inner">
+                        <img src="/Images//portfolio-img-6.jpg" alt="photos">
+                        <div class="overlay">
+                            <h5>Photo #2</h5>
+                            <p>More Info</p>
+                        </div>
+                    </div>
+                </div> -->
+                <!-- Gallery Item End -->
+            </div>
+        </div>
+
+    </section>
+    <!-------------- Reviews Section -------------->
+    <section id="reviews">
+
+        <!-------------- Carousel -------------->
+        <div class="owl-carousel owl-theme">
+
+            <!-- Review Item Start -->
+            <div class="item" data-aos="fade-up">
+                <div class="img-box">
+                    <img src="/Images/Review-img-1.jpg" alt="">
+                </div>
+                <div class="text-holder">
+                    <p class="details">
+                        A great person with good knowledge and expertise in every field. Always likes 
+                        to do coding. Helpful with friends. 
+                    </p>
+                    <h6 class="name">Ujjwal Shaw</h6>
+                    <div class="rating">
+                        <i class="fa-regular fa-star"></i>
+                        <span>5.0</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Review Item End -->
+
+            <!-- Review Item Start -->
+            <div class="item" data-aos="fade-up">
+                <div class="img-box">
+                    <img src="/Images/Review-img-2.jpg" alt="">
+                </div>
+                <div class="text-holder">
+                    <p class="details">
+                        Great skills in all types of fields. Always helpful and cheerful at all times. Energetic at all times.
+                    </p>
+                    <h6 class="name">Ankit Kumar</h6>
+                    <div class="rating">
+                        <i class="fa-regular fa-star"></i>
+                        <span>4.9</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Review Item End -->
+
+            <!-- Review Item Start -->
+            <div class="item" data-aos="fade-up">
+                <div class="img-box">
+                    <img src="/Images/Review-img-3.jpg" alt="">
+                </div>
+                <div class="text-holder">
+                    <p class="details">
+                        A good friend who always has a good advice in mind. Always helpful in problems and likes to help others.
+                    </p>
+                    <h6 class="name">Ujjawal</h6>
+                    <div class="rating">
+                        <i class="fa-regular fa-star"></i>
+                        <span>4.8</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Review Item End -->
+        </div>
+    </section>
+
+    <!-------------- Contact Section -------------->
+    <section id="contact">
+        <div class="heading-wrapper">
+            <div class="heading">
+                <h2>Get in touch</h2>
+            </div>
+            <div class="animate-bar"></div>
+        </div>
+
+        <div class="container">
+            <form action="https://formsubmit.co/abhaysinghraihal1@gmail.com" method="POST" data-aos="fade-right" data-aos-duration="1200">
+                <div class="title">
+                    <h4>Message Me</h4>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-data">
+                        <input type="text" placeholder="Name" required>
+                    </div>
+                    <div class="input-data">
+                        <input type="text" placeholder="Email" required>
+                    </div>
+                </div>
+                <div class="input-data">
+                    <input type="text" placeholder="Subject" required>
+                </div>
+                <div class="input-data">
+                    <textarea name="Message" placeholder="Message" required></textarea>
+                </div>
+                <div class="form-row">
+                    <input type="submit" value="Send Your Message" class="btn">
+                </div>
+            </form>
+
+            <div class="contact-info" data-aos="fade-right" data-aos-duration="1200">
+                <div class="title">
+                    <h4>Contact-info</h4>
+                </div>
+                <div class="subtitle">
+                    <p>Always ready for new challenges. Feel free to contact me!</p>
+                </div>
+
+                <ul class="contact-list">
+
+                    <!-- List Item Start -->
+                    <li class="list-item">
+                        <div class="icon">
+                            <i class="fa-brands fa-hive"></i>
+                        </div>
+                        <div class="details">
+                            <label for="#">Name</label>
+                            <p>Abhay Singh Raihal</p>
+                        </div>
+                    </li>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <li class="list-item">
+                        <div class="icon">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <div class="details">
+                            <label for="#">Location</label>
+                            <p>India</p>
+                        </div>
+                    </li>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <li class="list-item">
+                        <div class="icon">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div class="details">
+                            <label for="#">Call Me</label>
+                            <p>+91 9319 337883</p>
+                        </div>
+                    </li>
+                    <!-- List Item End -->
+
+                    <!-- List Item Start -->
+                    <li class="list-item">
+                        <div class="icon">
+                            <i class="fa-solid fa-at"></i>
+                        </div>
+                        <div class="details">
+                            <label for="#">Email</label>
+                            <p>abhaysinghraihal1@gmail.com</p>
+                        </div>
+                    </li>
+                    <!-- List Item End -->
+                </ul>
+            </div>
+        </div>
+    </section>
+
+
+    <!-------------- Footer -------------->
+    <footer>
+        <p>&copy All Rights Reserved</p>
+    </footer>
+
+
+
+
+
+
+
+
+
+    <!-------------- Jquery Scripts -------------->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-------------- Owl Carousel Scripts -------------->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+        integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-------------- AOS Scripts -------------->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+
+    <!-------------- Local Script -------------->
+    <script src="/script.js"></script>
+    <script src="/particles.js"></script>
+    <script src="/app.js"></script>
 </body>
 
 </html>
