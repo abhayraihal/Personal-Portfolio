@@ -75,12 +75,13 @@ function useBehindFade(x: number, z: number) {
   const mats = useRef<(Material | null)[]>([]);
   const k = useRef(1);
   useFrame((_, delta) => {
-    if (!carNearZone()) return;
+    const near = carNearZone();
     const cz = carZ();
-    const behind = Math.abs(carX() - x) < BOARD_W / 2 + 1.6 && cz < z - BOARD_DEPTH && cz > z - HIDES - 1;
+    const behind = near && Math.abs(carX() - x) < BOARD_W / 2 + 1.6 && cz < z - BOARD_DEPTH && cz > z - HIDES - 1;
     const goal = behind ? FADED : 1;
     if (k.current === goal) return;
-    const next = k.current + (goal - k.current) * Math.min(1, delta * 8);
+    // fade while the car is around; snap back once it has left (a teleport out, say)
+    const next = near ? k.current + (goal - k.current) * Math.min(1, delta * 8) : goal;
     k.current = Math.abs(goal - next) < 0.01 ? goal : next;
     for (const m of mats.current) {
       if (!m) continue;
