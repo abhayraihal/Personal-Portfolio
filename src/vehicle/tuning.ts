@@ -111,9 +111,16 @@ export const LIGHTS = {
   headIntensity: 2.2,
   tailGlowSize: 0.9, // m, additive halo sprite
   headGlowSize: 1.3,
-  spotIntensity: 130, // cd
+  // Beam: a pool ahead of the car that stays below white, so road paint and labels in it stay readable.
+  spotIntensity: 55, // cd
   spotDistance: 30,
-  spotAngle: 0.46, // rad, half angle; with penumbra 0.6 the bright core misses the bumper area
+  spotAngle: 0.5, // rad, half angle
+  spotPenumbra: 0.8,
+  spotDecay: 1.2,
+  // Beam origin and aim point in body-model units (x1.5 for metres). Aimed down about 9 degrees, so
+  // the pool starts just past the bumper.
+  spotFrom: [0, 0.45, 1.3] as [number, number, number],
+  spotAim: [0, -0.8, 9] as [number, number, number],
 };
 
 // Visual body lean on a spring (the physics chassis does not move): nose up under acceleration,
