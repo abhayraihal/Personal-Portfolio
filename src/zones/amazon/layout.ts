@@ -11,7 +11,7 @@ export const OFFICE = { u: 0, v: 20.8, scale: 0.64 }; // building-office scaled 
 export const MAIN_PAD: [number, number] = [0, 12.8];
 // Camera target while parked on the overview pad: aimed 8 m up the facade so the rooftop sign fits.
 export const MAIN_FRAME = { at: [0, 15.2, 8.0], fit: 15.5, portraitAt: [0, 14.2, 5.0] } as const;
-export const TROPHY = { u: 0, v: 0, padV: -5.9 };
+export const TROPHY = { u: 0, v: 0, padV: -6.7 };
 
 export type StationId = Extract<PanelId, `amazon-${string}`>;
 
