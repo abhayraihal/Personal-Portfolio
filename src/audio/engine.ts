@@ -10,6 +10,7 @@ export type EngineInput = {
   throttle: number; // -1..1
   boost: boolean;
   slip: number; // m/s sideways
+  braking: boolean; // player brake (space or opposite throttle)
   airborne: boolean;
   active: number; // 0 = silent (card up), 1 = driving, in between while a panel is open
 };
@@ -138,7 +139,8 @@ export class Engine {
 
     const wind = Math.min(speed / BOOST_SPEED, 1);
     this.windGain.gain.setTargetAtTime(on * 0.08 * wind * wind, t, 0.2);
-    const scrub = Math.min(1, Math.max(0, (p.slip - 2) / 6));
+    const skid = p.braking && load < 0.1 ? Math.min(1, Math.max(0, (speed - 6) / 10)) * 0.6 : 0;
+    const scrub = Math.max(skid, Math.min(1, Math.max(0, (p.slip - 2) / 6)));
     this.scrubGain.gain.setTargetAtTime(on * 0.07 * scrub, t, 0.06);
   }
 

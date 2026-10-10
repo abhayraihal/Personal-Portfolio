@@ -117,7 +117,7 @@ export class AudioManager {
       const s = useStore.getState();
       const driving = (s.phase === 'play' || s.phase === 'intro') && car.ready && !s.classicOpen;
       const active = driving ? (s.panel ? 0.3 : 1) : 0;
-      this.engine.update({ speed: car.speed, throttle: car.throttle, boost: car.boosting, slip: car.slip, airborne: car.airborne, active });
+      this.engine.update({ speed: car.speed, throttle: car.throttle, boost: car.boosting, slip: car.slip, braking: car.braking && car.brakeLight, airborne: car.airborne, active });
     };
     this.raf = requestAnimationFrame(tick);
   }
