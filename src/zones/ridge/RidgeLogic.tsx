@@ -28,7 +28,7 @@ const GATE_S = MILESTONES.map((m) => sContest(m.index));
 // Works out whether the car is on the ridge road and which contest it is over, then drives the
 // camera override, the readout strip, the gates and the summit celebration.
 export function RidgeLogic() {
-  const st = useRef({ on: false, offFor: 0, index: -1, lastS: 0, summit: false, gates: MILESTONES.map(() => false) });
+  const st = useRef({ on: false, offFor: 0, index: -1, lastS: 0, summit: false, gates: MILESTONES.map(() => false), buried: 0 });
 
   useEffect(
     () => () => {
@@ -58,6 +58,15 @@ export function RidgeLogic() {
       if (along > (r.on ? -1 : 1) && along < S_END + 1) {
         const sc = Math.min(Math.max(along, 0), S_END);
         inside = Math.abs(z) < hwAt(sc) + 0.4 && car.y > deckY(sc) + 0.3;
+        // Whole chassis under the deck: the car is inside the landform (a flip recovery sets it
+        // down at ground height). Send it back to the foot.
+        const buried = !car.recovering && Math.abs(z) < hwAt(sc) - 0.3 && car.y < deckY(sc) - 0.6;
+        r.buried = buried ? r.buried + delta : 0;
+        if (r.buried > 0.5) {
+          r.buried = 0;
+          store.teleport('ridge');
+          playSound('whoosh', 0.6);
+        }
       }
     }
     r.offFor = inside ? 0 : r.offFor + delta;
