@@ -59,6 +59,7 @@ function Joystick() {
         const base = baseRef.current;
         if (s.id !== -1 || !zone || !base) return;
         e.preventDefault();
+        if (useUi.getState().map) useUi.getState().setMap(false, false); // the map would sit under the thumb
         zone.setPointerCapture(e.pointerId);
         const r = zone.getBoundingClientRect();
         s.id = e.pointerId;

@@ -267,7 +267,7 @@ function Programming({ interactive }: { interactive: boolean }) {
       <ul className="cv-bullets">
         {otherPlatforms.map((o) => (
           <li key={o.platform}>
-            <CvLink link={{ label: o.platform, url: o.url, kind: 'profile' }} printUrl={false} /> ({o.handle}): {o.stat}
+            <CvLink link={{ label: o.platform, url: o.url, kind: 'profile' }} printUrl={false} /> ({o.handle}): {o.stat}.
           </li>
         ))}
         {other.bullets?.filter((b) => !otherPlatforms.some((o) => b.startsWith(o.platform))).map((b) => (

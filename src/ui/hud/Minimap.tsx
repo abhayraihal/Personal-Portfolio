@@ -33,7 +33,7 @@ function ZoneMark({ zone, visited, current, onPick }: { zone: ZoneDef; visited: 
   const cx = zone.center[0] + nu;
   const cy = -(zone.center[1] + nv);
   const onKey = (e: KeyboardEvent<SVGGElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === 'Enter') {
       e.preventDefault();
       onPick(zone);
     }

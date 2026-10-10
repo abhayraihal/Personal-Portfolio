@@ -95,8 +95,9 @@ function Fireflies({ plan, count }: { plan: Plan; count: number }) {
     [geometry, material],
   );
   // About 0.45 m across on screen, whatever the viewport.
-  material.uniforms.uScale.value = (0.45 * size.height * dpr) / (2 * Math.tan((CAMERA.fov * Math.PI) / 360));
-  useFrame(() => {
+  useFrame(({ camera }) => {
+    const fov = 'fov' in camera ? (camera.fov as number) : CAMERA.fov;
+    material.uniforms.uScale.value = (0.45 * size.height * dpr) / (2 * Math.tan((fov * Math.PI) / 360));
     if (ref.current) ref.current.visible = env.night.value > 0.05;
   });
   return <points ref={ref} geometry={geometry} material={material} frustumCulled={false} />;

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ZONES } from '../config/layout.ts';
+import { ZONES, ZONE_BY_ID } from '../config/layout.ts';
 import { playSound } from '../state/events.ts';
 import { useStore } from '../state/store.ts';
 import { closeClassic, toggleClassic } from './classic/route.ts';
@@ -81,6 +81,13 @@ export function useGlobalKeys(): void {
         return;
       }
       if (DRIVE_CODES.has(e.code)) {
+        // Driving hands focus back to the world: otherwise Space (the brake) would press whichever
+        // HUD button was focused last.
+        const active = document.activeElement;
+        if (s.phase === 'play' && !s.panel && !s.classicOpen && !ui.help && active instanceof HTMLElement && active.closest('.hud')) {
+          active.blur();
+          if (e.code === 'Space') e.preventDefault();
+        }
         if (e.repeat) return;
         if (s.phase === 'ready' && START_CODES.has(e.code) && !s.classicOpen) s.start();
         else if (s.phase === 'play' && !s.panel && !s.classicOpen) ui.countDriveInput();
@@ -98,6 +105,7 @@ export function useGlobalKeys(): void {
         else if (s.phase !== 'play') return;
         else if (s.panel) s.closePanel();
         else if (s.focus) s.interact();
+        else if (s.zone) s.openPanel(ZONE_BY_ID[s.zone].panel); // off a pad, Enter reads about the zone
         return;
       }
       if (e.key === '?') {

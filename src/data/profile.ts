@@ -74,8 +74,8 @@ export type Job = { panel: PanelId; company: string; role: string; dates: string
 // Newest first, as on the resume.
 export const jobs: Job[] = [
   { panel: 'amazon', company: 'Amazon', role: 'Software Development Engineer', dates: 'May 2025 – now', place: 'Bengaluru', color: '#ff9900' },
-  { panel: 'limeroad', company: 'Limeroad', role: 'Software Development Engineer', dates: 'Nov 2024 – Apr 2025', place: 'Gurgaon', color: '#e9435d' },
-  { panel: 'razorpay', company: 'Razorpay', role: 'SDE Intern, X Payouts', dates: 'Jun – Aug 2023', place: 'Bengaluru', color: '#3395ff' },
+  { panel: 'limeroad', company: 'LimeRoad', role: 'Software Development Engineer', dates: 'Nov 2024 – Apr 2025', place: 'Gurgaon', color: '#e9435d' },
+  { panel: 'razorpay', company: 'Razorpay', role: 'SDE Intern, RazorpayX Payouts', dates: 'Jun – Aug 2023', place: 'Bengaluru', color: '#3395ff' },
 ];
 
 export type Project = { panel: PanelId; title: string; year: number; tagline: string; stack: string[]; image?: string; links: Link[] };
@@ -151,9 +151,9 @@ export const panels: Record<PanelId, Panel> = {
     title: profile.name,
     kicker: profile.roleLine,
     body: [
-      "I'm a software engineer at Amazon in Bengaluru, on the team that lets customers pay with rewards points. I write Java and Python on AWS: payment options, region migrations, data retention, and an AI agent that root-causes oncall tickets.",
-      'Before Amazon I worked at Limeroad on lead generation and a logistics integration, and before that I interned on the Razorpay X Payouts team. I studied Data Science and Engineering at IIT Mandi, in the Kamand valley in the Himalayas.',
-      "I've done competitive programming since 2021 and I'm an Expert on Codeforces. I play football and table tennis, and at IIT Mandi I led rides for the mountain biking club.",
+      "I'm a software engineer at Amazon in Bengaluru, on the team that lets customers pay with rewards points. I write Java and Python on AWS. The work covers payment options, region migrations, data retention and an AI agent that root-causes oncall tickets.",
+      'Before Amazon I worked at LimeRoad on lead generation and a logistics integration, and before that I interned on the RazorpayX Payouts team. I studied Data Science and Engineering at IIT Mandi, in the Kamand valley in the Himalayas.',
+      "I've done competitive programming since 2021 and I'm an Expert on Codeforces. I play football and table tennis, and at IIT Mandi I led rides for the Mountain Biking Club.",
     ],
     image: profile.photo,
     links: [L.email, L.linkedin, L.github],
@@ -176,20 +176,20 @@ export const panels: Record<PanelId, Panel> = {
   },
   career: {
     title: 'Career road',
-    kicker: 'Work, in order',
+    kicker: 'Work, oldest first',
     bullets: [
-      'Razorpay, SDE Intern on X Payouts, Jun – Aug 2023',
-      'Limeroad, Software Development Engineer, Nov 2024 – Apr 2025',
+      'Razorpay, SDE Intern on RazorpayX Payouts, Jun – Aug 2023',
+      'LimeRoad, Software Development Engineer, Nov 2024 – Apr 2025',
       'Amazon, Software Development Engineer, May 2025 – now',
     ],
     related: ['razorpay', 'limeroad', 'amazon'],
   },
   razorpay: {
     title: 'Razorpay',
-    kicker: 'SDE Intern · X Payouts team · Bengaluru',
+    kicker: 'SDE Intern · RazorpayX Payouts team · Bengaluru',
     meta: ['Jun – Aug 2023', 'Java', 'Spring'],
     bullets: [
-      'Built production admin actions for specific payout use cases.',
+      'Designed and deployed production admin actions for payouts.',
       'Mapped and documented the code flow of the payout-creation route.',
       'Improved data retrieval speed by 90% with Redis GET, SET and queue operations.',
       'Added authorization checks.',
@@ -198,12 +198,12 @@ export const panels: Record<PanelId, Panel> = {
     related: ['limeroad', 'amazon'],
   },
   limeroad: {
-    title: 'Limeroad',
+    title: 'LimeRoad',
     kicker: 'Software Development Engineer · Gurgaon',
     meta: ['Nov 2024 – Apr 2025', 'Java', 'MySQL', 'MongoDB'],
     bullets: [
       'Reworked edge-case handling in mcout, the lead-generation system for shoppers who abandon their cart or checkout, so more of its errors were caught and resolved.',
-      'Integrated BlueDart as a logistics partner: APIs for waybill creation, cancellation and status tracking, with both push and pull updates.',
+      'Integrated Blue Dart as a logistics partner: APIs for waybill creation, cancellation and status tracking, with both push and pull updates.',
     ],
     links: [{ label: 'limeroad.com', url: 'https://www.limeroad.com/', kind: 'web' }],
     related: ['amazon', 'razorpay'],
@@ -212,14 +212,14 @@ export const panels: Record<PanelId, Panel> = {
     title: 'Amazon',
     kicker: 'Software Development Engineer · Bengaluru',
     meta: ['May 2025 – now', 'Java', 'Python', 'AWS', 'CI/CD'],
-    body: ['I work on the team behind paying with rewards points on Amazon. Each pad on this plaza is one piece of that work.'],
+    body: ['I work on the team behind paying with rewards points on Amazon. Each of the six exhibits around this plaza is one piece of that work.'],
     bullets: [
       'Rewards points as a payment option for Prime Video in Japan, the US and Brazil.',
       'An AI oncall agent that saves about 30 minutes of log-digging per ticket.',
-      'A region migration across Spain, France, the UK and Italy with no customer impact.',
+      'A region migration that moved traffic for Spain, France, the UK and Italy with no customer impact.',
       'A 29-day retention limit and a 21M-row purge that cut stored data by 96%.',
-      'A partner connector migration, from no playbook to the SOP the team now uses.',
-      'Oncall through Black Friday, New Year and Prime Day: 30+ high-severity tickets.',
+      'A partner connector migration with no playbook, and the SOP the team now follows.',
+      'Production oncall, including Black Friday / Cyber Monday, New Year and Prime Day, with 30+ high-severity tickets resolved.',
     ],
     related: ['amazon-rewards', 'amazon-oncall-agent', 'amazon-migration', 'amazon-retention', 'amazon-connectors', 'amazon-oncall'],
   },
@@ -227,9 +227,9 @@ export const panels: Record<PanelId, Panel> = {
     title: 'Rewards points for Prime Video',
     kicker: 'Amazon · payments',
     bullets: [
-      'Added rewards-points accounts from non-bank partners as a payment option for Prime Video rentals and purchases in Japan, the US and Brazil.',
-      'Wrote 2 low-level designs covering the payment preference page, the buy-box widget and accounting.',
-      'Shipped the widget changes and verified the flow end to end in Japan.',
+      'Built rewards-points accounts from non-bank partners as a payment option for Prime Video rentals and purchases in Japan, the US and Brazil.',
+      'Wrote 2 low-level designs covering the payment preference page and the buy-box widget.',
+      'Completed the widget changes and the accounting work, and verified the flow end to end in Japan.',
     ],
     related: ['amazon-oncall-agent', 'amazon'],
   },
@@ -248,9 +248,9 @@ export const panels: Record<PanelId, Panel> = {
     title: 'Region migration',
     kicker: 'Amazon · infrastructure',
     bullets: [
-      'Moved a rewards service to two new EU AWS regions, replicating its infrastructure, alarms and endpoints.',
+      'Moved a rewards service from Dublin to two other EU AWS regions, replicating its infrastructure, alarms and endpoints.',
       'Ramped traffic to 100% across Spain, France, the UK and Italy through shadow testing and DNS shifts, with no customer impact.',
-      'Scaled the old Dublin fleet down to zero hosts.',
+      'Scaled the Dublin fleet down to zero hosts.',
     ],
     related: ['amazon-retention', 'amazon'],
   },
@@ -258,7 +258,7 @@ export const panels: Record<PanelId, Panel> = {
     title: '29-day data retention',
     kicker: 'Amazon · data protection',
     bullets: [
-      'Cut how long an enrollment table in DynamoDB keeps customer IDs to 29 days, using TTL.',
+      'Cut the retention of customer IDs in a DynamoDB enrollment table to 29 days with TTL.',
       'Purged 21M existing rows across 6 AWS accounts and 3 environments with an EMR + Spark job.',
       'Met 8 data-retention obligations without a 4–6 week onboarding to a separate deletion platform, and cut stored data by 96%.',
     ],
@@ -269,7 +269,7 @@ export const panels: Record<PanelId, Panel> = {
     title: 'Partner connector migration',
     kicker: 'Amazon · integrations',
     bullets: [
-      "Migrated all 4 of a rewards partner's message connectors to a new messaging platform, with no existing playbook.",
+      "Migrated all 4 of a rewards partner's message connectors to another internal platform, with no existing playbook.",
       'Worked out the connector model and the external resource setup from scratch.',
       'Took all 4 to 100% through a staged A/B dial-up with no customer impact, and wrote the SOP the team now uses for these migrations.',
     ],
@@ -304,7 +304,7 @@ export const panels: Record<PanelId, Panel> = {
     bullets: [
       "Geometry comes from Meta's MapAnything model (photos and video) or the LiDAR depth; damage from Grounding DINO boxes and SAM 2.1 masks.",
       '11 rules flag likely concealed damage, for example a crack within 0.3 m of a door or window corner.',
-      'On a real bedroom, 8 of 8 photo-tier wall lengths came within 8% of tape measurements.',
+      'In a real bedroom, 8 of 8 photo-tier wall lengths came within 8% of tape measurements.',
       'A 215 s LiDAR recording came out as 7 rooms linked by 7 doorways.',
       'Built in about 30 hours for an applied-AI case study, directing Claude Code agents.',
     ],
@@ -341,9 +341,9 @@ export const panels: Record<PanelId, Panel> = {
     related: ['project-weather', 'projects'],
   },
   'project-weather': {
-    title: 'Real-time weather monitor',
+    title: 'Weather monitor',
     kicker: '2024 · React',
-    body: ['Polls OpenWeatherMap every 5 minutes for Delhi, Mumbai, Chennai, Bangalore, Kolkata and Hyderabad and keeps one running daily summary per city in Firestore.'],
+    body: ['Polls OpenWeatherMap every 5 minutes for Delhi, Mumbai, Chennai, Bangalore, Kolkata and Hyderabad, and keeps one running daily summary per city in Firestore.'],
     bullets: [
       'Each summary keeps sums, counts, the minimum, the maximum and a count per condition, so averages and the dominant condition come out without storing raw readings.',
       'Email alerts fire after 3 consecutive readings breach a threshold such as 35°C (sending is mocked).',
@@ -394,7 +394,7 @@ export const panels: Record<PanelId, Panel> = {
       { label: 'Solved on Codeforces', value: '952' },
       { label: 'First contest', value: 'Feb 2021' },
     ],
-    body: ['The ridge road is my Codeforces rating, one contest every few metres, from 362 in February 2021 to 1719 in January 2025.'],
+    body: ['The ridge road is my Codeforces rating, one contest every 1.5 m, from 362 in February 2021 to 1719 in January 2025.'],
     bullets: [
       'Pupil in December 2021, Specialist in July 2022, Expert in August 2024.',
       'Most-solved tags: greedy, math, implementation, constructive algorithms, brute force and dp.',
@@ -406,7 +406,7 @@ export const panels: Record<PanelId, Panel> = {
     title: 'Other platforms',
     kicker: 'Competitive programming',
     bullets: [
-      'LeetCode (b20144): 309 solved, 41 easy, 181 medium and 87 hard.',
+      'LeetCode (b20144): 309 solved (41 easy, 181 medium, 87 hard).',
       'CodeChef (abhayraihal): 4 star, highest rating 1985.',
       'Across all platforms: 2000+ problems solved.',
     ],
@@ -432,9 +432,9 @@ export const panels: Record<PanelId, Panel> = {
   paper: {
     title: paper.short,
     kicker: 'ICPR 2024 · co-author',
-    body: ['Attention-aware entropy distillation for anomaly detection. A DCAM attention module, used only during training, improves multi-class anomaly detection by 3.92% over the baseline at the same inference latency.'],
+    body: ['A distributed convolutional attention module (DCAM), used only during training, improves multi-class anomaly detection by 3.92% over the baseline at the same inference latency.'],
     bullets: [
-      `Published in ${paper.venue}.`,
+      'Published in the ICPR 2024 proceedings, Springer LNCS (Pattern Recognition), pp. 254–270.',
       `Authors: ${paper.authors.join(', ')}.`,
     ],
     links: [

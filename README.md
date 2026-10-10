@@ -14,7 +14,7 @@ If you'd rather read than drive, the page opens with a plain HTML summary, and t
 | Brake / boost | `Space` / `Shift` | Buttons on the right |
 | Read about the thing you're parked on | `Enter` or `E` | Tap the prompt |
 | Jump to a zone | `1` to `7`, or click the minimap | Tap the minimap |
-| Reset the car / horn | `R` / `H` | |
+| Reset the car / horn | `R` / `H` | Horn button, left of Brake |
 | Classic view, sound, night | `C`, `M`, `N` | Toolbar |
 
 ## How it's built

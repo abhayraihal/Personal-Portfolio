@@ -38,7 +38,7 @@ export function RidgeZone() {
         <Pad id="ridge-codeforces" label="Open Codeforces stats" action={{ kind: 'panel', panel: 'codeforces' }} position={[-21, 0, 14.6]} icon="Codeforces" color={RANK_SHADE.Expert} />
         <Board
           title="Rating ridge"
-          lines={['Height follows my Codeforces rating', `${N} rated contests, ${monthYear(contests[0].date)} to ${monthYear(contests[N - 1].date)}`, `One contest every ${DS} m of road`]}
+          lines={['Height follows my Codeforces rating', `${N} rated contests, ${monthYear(contests[0].date)} – ${monthYear(contests[N - 1].date)}`, `One contest every ${DS} m of road`]}
           width={8.9}
           titleSize={0.72}
           lineSize={0.38}

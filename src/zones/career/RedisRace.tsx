@@ -18,7 +18,7 @@ import { ZONE, p } from './plan.ts';
 import { RACER, racerGeometry } from './ToyRacer.ts';
 
 // A short drag strip beside the road. Two toy cars race when the player drives past the start;
-// the one labelled "with Redis" always wins.
+// the one labelled "With Redis" always wins.
 
 const U0 = 8.45; // track edges (screen u)
 const U1 = 13.85;
@@ -48,8 +48,8 @@ function newRace() {
   return { phase: 'ready' as Phase, t: 0, lastV: Number.NaN, a, b, both: [a, b] };
 }
 
-const REDIS = { color: COLORS.razorpay, label: 'with Redis' };
-const PLAIN = { color: '#9aa1ae', label: 'without Redis' };
+const REDIS = { color: COLORS.razorpay, label: 'With Redis' };
+const PLAIN = { color: '#9aa1ae', label: 'Without Redis' };
 
 function trackGeometry() {
   const parts: Part[] = [

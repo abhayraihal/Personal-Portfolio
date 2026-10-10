@@ -10,7 +10,7 @@ export function Platforms({ position }: { position: [number, number, number] }) 
   return (
     <>
       <Board title="Other platforms" lines={lines} width={9} titleSize={0.62} lineSize={0.37} accent={COLORS.accent} lift={1.0} position={position} />
-      <Pad id="ridge-platforms" label="Open other platforms" action={{ kind: 'panel', panel: 'cp-platforms' }} position={[x, y, z + 4.4]} icon="LeetCode · CodeChef" />
+      <Pad id="ridge-platforms" label="Read about LeetCode and CodeChef" action={{ kind: 'panel', panel: 'cp-platforms' }} position={[x, y, z + 4.4]} icon="LeetCode · CodeChef" />
     </>
   );
 }

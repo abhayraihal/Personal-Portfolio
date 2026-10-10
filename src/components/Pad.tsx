@@ -81,7 +81,7 @@ export function Pad({ id, label, action, position = [0, 0, 0], radius = 2.6, col
             <meshBasicMaterial color={color} transparent opacity={0.14} depthWrite={false} toneMapped={false} />
           </mesh>
           {icon && (
-            <Label flat font="bodyBold" size={radius * 0.28} color={color} position={[0, 0.05, 0]} maxWidth={radius * 1.6} textAlign="center">
+            <Label flat font="bodyBold" size={radius * 0.28} color={color} position={[0, 0.05, 0]} maxWidth={radius * 1.6} textAlign="center" outlineWidth="7%" outlineColor="#ffffff" outlineOpacity={0.9}>
               {icon}
             </Label>
           )}

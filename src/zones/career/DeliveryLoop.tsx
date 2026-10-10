@@ -18,8 +18,8 @@ import { box, paint, paintMaterial } from './kit/paint.ts';
 import { Sign } from './kit/sign.tsx';
 import { ZONE, p } from './plan.ts';
 
-// A delivery van that loops on a side lane next to the Limeroad gantry and stops for the player,
-// a stack of parcels to knock over, and the BlueDart board.
+// A delivery van that loops on a side lane next to the LimeRoad gantry and stops for the player,
+// a stack of parcels to knock over, and the Blue Dart board.
 
 const LOOP = { u: 11.5, v: 74.6, half: 6, r: 2.45, lane: 2.8 };
 const [CX, , CZ] = p(LOOP.u, LOOP.v);
@@ -200,7 +200,7 @@ export function DeliveryLoop() {
       </mesh>
       <Van />
       <DynamicInstances geometry={parcel} material={paintMaterial} items={stack} collider={collider} impact="soft" linearDamping={0.3} angularDamping={0.4} />
-      <Sign title="BlueDart" lines={['Status updates by push and pull']} width={7.2} titleSize={0.62} lineSize={0.4}
+      <Sign title="Blue Dart" lines={['Status updates by push and pull']} width={7.2} titleSize={0.62} lineSize={0.4}
         accent={COLORS.limeroad} position={boardPos} lift={1.0} />
     </group>
   );

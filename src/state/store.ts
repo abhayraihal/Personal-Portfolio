@@ -25,7 +25,7 @@ export type CameraOverride = {
   id: string; // owner, so only the owner clears it
   azimuth?: number; // radians, same convention as CAMERA.azimuth
   elevation?: number;
-  distance?: number;
+  distance?: number; // landscape metres; the camera rig scales it for tall screens like its follow distance
   target?: [number, number, number]; // world point to look at instead of the car
   blend?: number; // seconds to ease in (default 1)
 };

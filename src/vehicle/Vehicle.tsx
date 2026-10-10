@@ -68,6 +68,7 @@ export function Vehicle() {
     recovering: false,
     recT: 0,
     from: new Vector3(),
+    endY: 0,
     q0: new Quaternion(),
     q1: new Quaternion(),
     tiltFor: 0,
@@ -149,6 +150,9 @@ export function Vehicle() {
     const t = body.translation();
     const r = body.rotation();
     f.from.set(t.x, t.y, t.z);
+    // Set the car down on whatever is under it: the ridge deck is up to 10 m above the valley floor.
+    const hit = world.castRay(new rapier.Ray({ x: t.x, y: t.y + 1, z: t.z }, { x: 0, y: -1, z: 0 }), 30, true, rapier.QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, body);
+    f.endY = (hit ? t.y + 1 - hit.timeOfImpact : 0) + RECOVERY.endY;
     f.q0.set(r.x, r.y, r.z, r.w);
     yawQuat(groundHeading(f.q0), f.q1);
     if (f.q0.dot(f.q1) < 0) f.q1.set(-f.q1.x, -f.q1.y, -f.q1.z, -f.q1.w);
@@ -161,7 +165,7 @@ export function Vehicle() {
     f.minVy = 0;
     car.recovering = true;
     playSound('whoosh', 0.7);
-  }, []);
+  }, [world, rapier]);
 
   // Vertical kick, plus an optional push along the chassis and a yaw spin (both in m/s, rad/s).
   const kick = useCallback((up: number, push = 0, spin = 0) => {
@@ -294,7 +298,7 @@ export function Vehicle() {
       f.recT += PHYSICS_DT;
       const k = Math.min(f.recT / RECOVERY.duration, 1);
       const e = smoothstep(k);
-      const y = f.from.y + (RECOVERY.endY - f.from.y) * e + RECOVERY.lift * Math.sin(Math.PI * k);
+      const y = f.from.y + (f.endY - f.from.y) * e + RECOVERY.lift * Math.sin(Math.PI * k);
       _q.slerpQuaternions(f.q0, f.q1, e);
       body.setTranslation({ x: f.from.x, y, z: f.from.z }, true);
       body.setRotation(_q, true);

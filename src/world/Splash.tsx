@@ -79,9 +79,9 @@ export function Splash() {
     mesh.name = 'valley-splash-rings';
     return mesh;
   }, []);
-  material.uniforms.uScale.value = (0.38 * size.height * dpr) / (2 * Math.tan((CAMERA.fov * Math.PI) / 360));
-
-  useFrame((_, delta) => {
+  useFrame(({ camera }, delta) => {
+    const fov = 'fov' in camera ? (camera.fov as number) : CAMERA.fov;
+    material.uniforms.uScale.value = (0.38 * size.height * dpr) / (2 * Math.tan((fov * Math.PI) / 360));
     const dt = Math.min(delta, 0.05);
     const pos = geometry.attributes.position as BufferAttribute;
     const life = geometry.attributes.aLife as BufferAttribute;

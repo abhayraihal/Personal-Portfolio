@@ -41,7 +41,7 @@ const ROLE_SIZE = fitSize(ROLE_LINES, 0.75);
 export const CONTROL_LINES: { text: string; keys: string[] }[] = [
   { text: 'W A S D or arrows to drive', keys: ['W A S D', 'arrows'] },
   { text: 'Space brake · Shift boost · R reset', keys: ['Space', 'Shift', 'R '] },
-  { text: 'Enter to read · 1-7 jump to a zone', keys: ['Enter', '1-7'] },
+  { text: 'Enter to read · 1–7 jump to a zone', keys: ['Enter', '1–7'] },
 ];
 const CONTROL_SIZE = fitSize(CONTROL_LINES.map((l) => l.text), 0.52);
 const CONTROL_PITCH = CONTROL_SIZE * 1.58;

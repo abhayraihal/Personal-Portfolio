@@ -285,20 +285,20 @@
   transition: width calc(var(--motion) * 400ms + 50ms) ease;
 }
 .start[data-ready='true'] {
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
-  box-shadow: 0 5px 0 var(--accent-strong);
+  box-shadow: 0 5px 0 #8f2a4b;
   cursor: pointer;
 }
 .start[data-ready='true'] .start__fill {
   display: none;
 }
 .start[data-ready='true']:hover {
-  background: #e7628a;
+  background: #a5304f;
 }
 .start[data-ready='true']:active {
   transform: translateY(3px);
-  box-shadow: 0 2px 0 var(--accent-strong);
+  box-shadow: 0 2px 0 #8f2a4b;
 }
 .start__key {
   border-color: transparent;

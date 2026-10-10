@@ -47,7 +47,7 @@ function headTags(): string {
   const title = `${profile.name} · ${profile.role} at ${profile.employer}`;
   const team = profile.teamLine.toLowerCase();
   const description = `${profile.name} is a ${profile.role} at ${profile.employer} in ${city}, working on ${team}. Drive a jeep around a small 3D valley to see his work, or read everything in the classic view.`;
-  const social = `${profile.role} at ${profile.employer}, ${city}. Drive around a small 3D valley to see his work, projects and Codeforces rating.`;
+  const social = `${profile.role} at ${profile.employer}, ${city}. Drive around a small 3D valley to see his career, projects and Codeforces rating.`;
   const person = {
     '@context': 'https://schema.org',
     '@type': 'Person',

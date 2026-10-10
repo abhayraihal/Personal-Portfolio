@@ -343,7 +343,7 @@ export function Research() {
       <AnomalyField />
       <Pad
         id="campus-paper"
-        label="Read the ICPR 2024 paper"
+        label="Read about the ICPR 2024 paper"
         action={{ kind: 'panel', panel: 'paper' }}
         position={[RESEARCH.pad[0], Y.pad, RESEARCH.pad[1]]}
         radius={2.3}

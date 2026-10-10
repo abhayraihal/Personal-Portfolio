@@ -33,11 +33,11 @@ export const ZONES: ZoneDef[] = [
     center: [0, 6], area: circle(0, 6, 26), respawn: { u: 0, v: -8, du: 0, dv: 1 }, panel: 'about',
   },
   {
-    id: 'career', key: '2', title: 'Career road', subtitle: 'Razorpay and Limeroad', color: '#3395ff',
+    id: 'career', key: '2', title: 'Career road', subtitle: 'Razorpay and LimeRoad', color: '#3395ff',
     center: [0, 66], area: rect(-16, 36, 16, 97), respawn: { u: 0, v: 38, du: 0, dv: 1 }, panel: 'career',
   },
   {
-    id: 'amazon', key: '3', title: 'Amazon', subtitle: 'SDE, May 2025 to now', color: '#ff9900',
+    id: 'amazon', key: '3', title: 'Amazon', subtitle: 'SDE, May 2025 – now', color: '#ff9900',
     center: [0, 122], area: circle(0, 122, 26), respawn: { u: 0, v: 106, du: 0, dv: 1 }, panel: 'amazon',
   },
   {
@@ -45,12 +45,12 @@ export const ZONES: ZoneDef[] = [
     center: [80, 26], area: circle(80, 26, 28), respawn: { u: 60, v: 26, du: 1, dv: 0 }, panel: 'projects',
   },
   {
-    id: 'ridge', key: '5', title: 'Rating ridge', subtitle: 'Codeforces, 2021 to 2025', color: '#2b59c3',
-    center: [-104, 30], area: rect(-182, 8, -30, 56), respawn: { u: -26, v: 26, du: -1, dv: 0 }, panel: 'codeforces',
+    id: 'ridge', key: '5', title: 'Rating ridge', subtitle: 'Codeforces, 2021 – 2025', color: '#2b59c3',
+    center: [-104, 30], area: rect(-182, 8, -22, 56), respawn: { u: -26, v: 26, du: -1, dv: 0 }, panel: 'codeforces',
   },
   {
     id: 'campus', key: '6', title: 'IIT Mandi', subtitle: 'B.Tech, research, hackathons', color: '#2f6b55',
-    center: [-58, -50], area: circle(-58, -50, 30), respawn: { u: -40, v: -36, du: -1, dv: -1 }, panel: 'education',
+    center: [-58, -50], area: circle(-58, -50, 30), respawn: { u: -52, v: -40.5, du: -1, dv: 0 }, panel: 'education',
   },
   {
     id: 'sports', key: '7', title: 'Sports ground', subtitle: 'Football and table tennis', color: '#4caf50',

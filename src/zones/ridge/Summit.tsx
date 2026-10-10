@@ -108,7 +108,7 @@ export function Summit() {
       <Pennant />
       <Board
         title={`${codeforces.rank} · max ${codeforces.maxRating}`}
-        lines={[`${codeforces.ratedContests} rated contests · ${codeforces.distinctSolved} problems solved`]}
+        lines={[`${codeforces.ratedContests} rated contests · ${codeforces.distinctSolved} solved on Codeforces`]}
         width={10.6}
         titleSize={0.8}
         lineSize={0.42}

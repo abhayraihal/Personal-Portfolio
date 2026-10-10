@@ -287,7 +287,7 @@ export function Bay({ bay, onParked }: { bay: BayDef; onParked?: (parked: boolea
       <Lectern bay={bay} z={row.lectern} />
       <Pad
         id={`projects-${p.panel}`}
-        label={`Read about ${p.title}`}
+        label={p.title}
         action={{ kind: 'panel', panel: p.panel }}
         position={[bay.x, 0, row.pad]}
         onEnter={onParked ? () => onParked(true) : undefined}

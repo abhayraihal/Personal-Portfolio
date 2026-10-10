@@ -771,3 +771,10 @@
 .ui[data-night] .fade {
   background: #1c1f26;
 }
+
+/* Landscape phones: keep the open map short so it never covers the joystick area. */
+@media (pointer: coarse) and (max-height: 540px) {
+  .minimap__svg {
+    max-height: calc(100dvh - 150px);
+  }
+}

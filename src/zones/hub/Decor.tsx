@@ -14,9 +14,8 @@ import { hubAt, SPOT, TOUCH } from './layout.ts';
 type Spot = [u: number, v: number, turn: number, scale: number];
 
 const TREES: { name: ModelName; spots: Spot[] }[] = [
-  { name: 'tree-deodar-tall', spots: [[-22.8, 15.4, 0.3, 1], [22.6, 16.2, 1.9, 0.95]] },
-  { name: 'tree-deodar', spots: [[-18.9, 19.9, 2.2, 1], [12.2, 19.7, 0.8, 1.05], [-24.6, 10.2, 1.1, 0.9]] },
-  { name: 'tree-pine-cone', spots: [[16.6, 20.1, 0.4, 0.9], [-9.8, 17, 2.7, 0.8]] },
+  { name: 'tree-deodar-tall', spots: [[22.6, 16.2, 1.9, 0.95]] },
+  { name: 'tree-deodar', spots: [[-24.6, 10.2, 1.1, 0.9]] },
 ];
 
 const ROCKS: { name: ModelName; spots: Spot[] }[] = [
