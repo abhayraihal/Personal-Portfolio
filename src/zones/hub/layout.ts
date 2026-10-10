@@ -22,9 +22,9 @@ export const SPOT = {
   // Painted on the road, sized to fit its 8 m width.
   roleV: -3.3, // centre of the role line block, between the car and the letters
   controlsV: -11.25, // first of the three control lines, just behind the car
-  // On the grass wedge between the spine and the campus road, left of the control lines; the
-  // whole cluster stays 0.5 m clear of both roads.
-  keycaps: [-6.4, -12.6] as const, // the W key; A S D sit below it
+  // On the grass wedge between the spine and the sports road, right of the control lines (the map
+  // panel covers the bottom left of the screen); the cluster stays 0.4 m clear of both roads.
+  keycaps: [6.4, -12.6] as const, // the W key; A S D sit below it
   // Left of the spine.
   photo: [-10.6, 1.4] as const,
   photoPad: [-11.2, -2.2] as const, // 0.4 m clear of the campus road's upper edge

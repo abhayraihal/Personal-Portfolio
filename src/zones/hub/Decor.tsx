@@ -6,7 +6,7 @@ import { modelScale, modelSize, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
 import { ROADS, ROUNDABOUT, ZONE_BY_ID } from '../../config/layout.ts';
 import { useStore } from '../../state/store.ts';
-import { hubAt, SPOT } from './layout.ts';
+import { hubAt, SPOT, TOUCH } from './layout.ts';
 
 // Deodars and pines at the back corners (tall things go at the back), rocks along the edges, and
 // poppies and grass tufts. One InstancedMesh per model.
@@ -26,7 +26,7 @@ const ROCKS: { name: ModelName; spots: Spot[] }[] = [
 ];
 
 const POPPIES: Spot[] = [
-  [-14.6, -0.6, 0.4, 0.8], [-7.6, -16.3, 1.2, 0.7], [7.3, -14.4, 2.4, 0.7], [-11, 18.6, 0.2, 0.75],
+  [-14.6, -0.6, 0.4, 0.8], [-7.6, -16.3, 1.2, 0.7], [-6.9, -12.8, 2.4, 0.7], [-11, 18.6, 0.2, 0.75],
   [-16, 17.3, 1.7, 0.7], [21.9, 0.9, 0.9, 0.7], [-24.2, 1.9, 2.9, 0.65], [14.4, 16.4, 1.3, 0.7],
 ];
 const TALL_FLOWERS: Spot[] = [[22.1, 7.7, 0.5, 0.9], [-13.3, 4.7, 1.9, 0.85], [-6.6, 11.5, 2.8, 0.8], [6.6, 12.4, 0.7, 0.8]];
@@ -61,7 +61,8 @@ function clear(u: number, v: number) {
   if (ring < ROUNDABOUT.r + ROUNDABOUT.width / 2 + 1.2) return false;
   // Name rows, painted text, keycaps and the skill wall.
   if (Math.abs(u) < 8 && v > -16 && v < 9.5) return false;
-  if (u > -9.5 && u < -4 && v > -15 && v < -11.5) return false;
+  const [wu, wv] = SPOT.keycaps; // the W key
+  if (!TOUCH && u > wu - 2.4 && u < wu + 2.4 && v > wv - 2.4 && v < wv + 0.9) return false;
   if (u < -12.5 && v > 4.5 && v < 9) return false;
   for (const [ku, kv, kr] of KEEP_OUT) if (Math.hypot(u - ku, v - kv) < kr) return false;
   return true;
