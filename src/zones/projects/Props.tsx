@@ -49,14 +49,14 @@ const CRATE = modelSize('crate-wood')[0];
 const BANDED = modelSize('crate-wood-banded')[0];
 const [CONE_W, CONE_H] = modelSize('traffic-cone');
 
-// A small pyramid near the entrance, a pair of banded crates by the arcade, cones in a slalom.
+// A small pyramid near the entrance and a banded crate by the arcade, both in the lane away from
+// the camera so they never cover the car; cones in a slalom.
 const CRATES: Place[] = [
-  { x: -6.4, y: 0, z: 2.0, yaw: 0.05 },
-  { x: -6.4 + CRATE + 0.02, y: 0, z: 2.0, yaw: -0.04 },
-  { x: -6.4 + CRATE / 2, y: CRATE + 0.01, z: 2.0, yaw: 0.2 },
+  { x: -5.2, y: 0, z: -2.2, yaw: 0.05 },
+  { x: -5.2 + CRATE + 0.02, y: 0, z: -2.2, yaw: -0.04 },
+  { x: -5.2 + CRATE / 2, y: CRATE + 0.01, z: -2.2, yaw: 0.2 },
 ];
 const BANDED_CRATES: Place[] = [{ x: 16.9, y: 0, z: -1.9, yaw: 0.3 }];
-const TOP_CRATES: Place[] = [{ x: 16.9, y: BANDED + 0.01, z: -1.9, yaw: -0.2 }];
 const CONES: Place[] = [0, 3.2, 6.4, 9.6, 12.8].map((x, i) => ({ x, y: 0, z: i % 2 ? 0.9 : -0.9 }));
 
 // Garage lamps: [x, z, yaw]; the arm points along the lamp's local +X.
@@ -115,7 +115,7 @@ function Lamps() {
 export function Props() {
   return (
     <group>
-      <Knockables name="crate-wood" spots={[...CRATES, ...TOP_CRATES]} collider={<CuboidCollider args={[CRATE / 2, CRATE / 2, CRATE / 2]} position={[0, CRATE / 2, 0]} density={5} />} />
+      <Knockables name="crate-wood" spots={CRATES} collider={<CuboidCollider args={[CRATE / 2, CRATE / 2, CRATE / 2]} position={[0, CRATE / 2, 0]} density={5} />} />
       <Knockables name="crate-wood-banded" spots={BANDED_CRATES} collider={<CuboidCollider args={[BANDED / 2, BANDED / 2, BANDED / 2]} position={[0, BANDED / 2, 0]} density={6} />} />
       <Knockables name="traffic-cone" spots={CONES} idle={8}
         collider={<ConeCollider args={[CONE_H / 2, CONE_W * 0.42]} position={[0, CONE_H / 2, 0]} density={18} />} />
