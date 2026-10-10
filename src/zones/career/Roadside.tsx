@@ -3,23 +3,19 @@ import { ConeCollider } from '@react-three/rapier';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { useStore } from '../../state/store.ts';
+import { addLamps } from '../../world/plan.ts';
 import type { V3 } from './kit/frame.ts';
 import { DynamicInstances, FixedBoxes, InstancedModel, useScaledMerged } from './kit/instances.tsx';
 import type { BoxCollider, Placement } from './kit/instances.tsx';
-import { NightGlow } from './NightGlow.tsx';
 import { PLAN, ROAD_HALF, p } from './plan.ts';
 
 const LAMP_U = ROAD_HALF + 1.2;
 // Tall things lean outwards on screen and cover what is behind them, so no lamp stands in front
 // of a board, a pad or the race lane. side -1 = left of the road.
 const LAMPS: [side: number, v: number][] = [[1, 64.2], [-1, 81.2]];
-// lamp-post-street: pole at the origin, head 1.35-1.8 m out along the model's -Z, 5.9 m up.
-const HEAD_OUT = 1.58;
-const HEAD_Y = 5.8;
-
-// The arm points along the model's -Z; turn it over the road.
-const lamps: Placement[] = LAMPS.map(([side, v]) => ({ position: p(side * LAMP_U, v), rotationY: side * Math.PI / 2 }));
-const bulbs: V3[] = LAMPS.map(([side, v]) => p(side * (LAMP_U - HEAD_OUT), v, HEAD_Y));
+// The valley draws them with its own lamps (post, collider, and at night the bulb, halo and light
+// pool), arms reaching over the road.
+addLamps(LAMPS.map(([side, v]) => ({ kind: 'street', u: side * LAMP_U, v, toward: [-side, 0] })));
 
 const benches: Placement[] = [
   { position: p(-11.6, 63.2) },
@@ -63,10 +59,7 @@ const poppies: Placement[] = [
   { position: p(-14.4, 72.6), rotationY: 1.3 },
 ];
 
-const fixed: BoxCollider[] = [
-  ...LAMPS.map(([side, v]) => ({ position: p(side * LAMP_U, v, 3), half: [0.16, 3, 0.16] as V3 })),
-  ...benches.map((b) => ({ position: [b.position[0], 0.5, b.position[2]] as V3, half: [1.15, 0.5, 0.55] as V3, rotationY: b.rotationY })),
-];
+const fixed: BoxCollider[] = benches.map((b) => ({ position: [b.position[0], 0.5, b.position[2]] as V3, half: [1.15, 0.5, 0.55] as V3, rotationY: b.rotationY }));
 
 export function Roadside() {
   const low = useStore((s) => s.quality === 'low');
@@ -74,8 +67,6 @@ export function Roadside() {
   const coneCollider = useMemo(() => <ConeCollider args={[0.5, 0.36]} position={[0, 0.5, 0]} mass={1.6} friction={0.8} restitution={0.2} />, []);
   return (
     <>
-      <InstancedModel name="lamp-post-street" items={lamps} />
-      <NightGlow positions={bulbs} radius={0.28} squash={0.45} />
       <InstancedModel name="bench-wood" items={benches} shadows={!low} />
       {!low && (
         <>
