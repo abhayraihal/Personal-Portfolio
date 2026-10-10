@@ -12,8 +12,8 @@ import { mergeParts } from '../geom.ts';
 import type { Part } from '../geom.ts';
 import { astSignal } from './signals.ts';
 
-// The rule "age > 30 AND department = 'Sales'" as the project stores it: one operator node over
-// two comparison leaves. The leaves hang from the operator on rods and sway a little; parking on
+// The rule "age > 30 AND department = 'Sales'" in the form the project simplifies rules to: an
+// operator node over comparison leaves. The leaves hang from the operator on rods and sway a little; parking on
 // the rule engine pad runs an evaluation glow from the leaves up to the root.
 
 const ROOT_Y = 4.0; // centre of the operator node

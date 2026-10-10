@@ -1,9 +1,8 @@
 import { use, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Euler, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, SphereGeometry, SRGBColorSpace, Vector3 } from 'three';
-import type { Texture } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { BoxGeometry, CylinderGeometry, PlaneGeometry, SphereGeometry, SRGBColorSpace } from 'three';
+import type { BufferGeometry, Texture } from 'three';
 import { mergeParts } from './geom.ts';
 import type { Part } from './geom.ts';
 import { Label } from '../../components/Label.tsx';
@@ -29,49 +28,29 @@ const AWNING_FRONT = 1.75; // how far the awning reaches in front of the wall
 const years = [...new Set(earlyProjects.map((p) => p.year))].toSorted((a, b) => a - b);
 const YEARS = years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : String(years[0]);
 
-const _m = new Matrix4();
-const _q = new Quaternion();
-const _e = new Euler();
-
-function part(g: BufferGeometry, hex: string, pos: [number, number, number], rot: [number, number, number] = [0, 0, 0]): BufferGeometry {
-  _q.setFromEuler(_e.set(...rot));
-  g.applyMatrix4(_m.compose(new Vector3(...pos), _q, new Vector3(1, 1, 1)));
-  const c = new Color(hex);
-  const out = g.index ? g.toNonIndexed() : g;
-  const n = out.attributes.position.count;
-  const arr = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) arr.set([c.r, c.g, c.b], i * 3);
-  out.setAttribute('color', new Float32BufferAttribute(arr, 3));
-  out.deleteAttribute('uv');
-  return out;
-}
-
 // One cabinet as a single vertex-coloured geometry. Origin at the floor, front faces +Z.
 function cabinetGeometry(side: string): BufferGeometry {
-  const s = side;
   const ink = COLORS.ink;
   const half = CAB_W / 2;
-  const parts = [
-    part(new BoxGeometry(0.12, CAB_H, CAB_D), s, [-half + 0.06, CAB_H / 2, 0]),
-    part(new BoxGeometry(0.12, CAB_H, CAB_D), s, [half - 0.06, CAB_H / 2, 0]),
-    part(new BoxGeometry(CAB_W - 0.24, CAB_H - 0.1, CAB_D - 0.1), ink, [0, CAB_H / 2 - 0.05, -0.04]),
-    part(new BoxGeometry(CAB_W - 0.24, 0.96, 0.05), s, [0, 0.48, CAB_D / 2 - 0.05]),
-    part(new BoxGeometry(0.36, 0.42, 0.03), '#3a3f4b', [0, 0.56, CAB_D / 2 - 0.01]),
-    part(new BoxGeometry(0.16, 0.04, 0.02), '#f2c230', [0, 0.66, CAB_D / 2 + 0.01]),
+  const front = CAB_D / 2;
+  return mergeParts([
+    { g: new BoxGeometry(0.12, CAB_H, CAB_D), color: side, at: [-half + 0.06, CAB_H / 2, 0] },
+    { g: new BoxGeometry(0.12, CAB_H, CAB_D), color: side, at: [half - 0.06, CAB_H / 2, 0] },
+    { g: new BoxGeometry(CAB_W - 0.24, CAB_H - 0.1, CAB_D - 0.1), color: ink, at: [0, CAB_H / 2 - 0.05, -0.04] },
+    { g: new BoxGeometry(CAB_W - 0.24, 0.96, 0.05), color: side, at: [0, 0.48, front - 0.05] },
+    { g: new BoxGeometry(0.36, 0.42, 0.03), color: '#3a3f4b', at: [0, 0.56, front - 0.01] },
+    { g: new BoxGeometry(0.16, 0.04, 0.02), color: '#f2c230', at: [0, 0.66, front + 0.01] },
     // control deck with a joystick and two buttons
-    part(new BoxGeometry(CAB_W - 0.06, 0.14, 0.5), COLORS.inkSoft, [0, 1.03, CAB_D / 2 + 0.12], [0.22, 0, 0]),
-    part(new CylinderGeometry(0.028, 0.028, 0.24, 8), ink, [-0.36, 1.2, CAB_D / 2 + 0.14]),
-    part(new SphereGeometry(0.075, 10, 8), COLORS.accent, [-0.36, 1.32, CAB_D / 2 + 0.14]),
-    part(new CylinderGeometry(0.065, 0.065, 0.05, 12), '#f2c230', [0.14, 1.11, CAB_D / 2 + 0.17], [0.22, 0, 0]),
-    part(new CylinderGeometry(0.065, 0.065, 0.05, 12), '#5ee07a', [0.4, 1.12, CAB_D / 2 + 0.12], [0.22, 0, 0]),
+    { g: new BoxGeometry(CAB_W - 0.06, 0.14, 0.5), color: COLORS.inkSoft, at: [0, 1.03, front + 0.12], rot: [0.22, 0, 0] },
+    { g: new CylinderGeometry(0.028, 0.028, 0.24, 8), color: ink, at: [-0.36, 1.2, front + 0.14] },
+    { g: new SphereGeometry(0.075, 10, 8), color: COLORS.accent, at: [-0.36, 1.32, front + 0.14] },
+    { g: new CylinderGeometry(0.065, 0.065, 0.05, 12), color: '#f2c230', at: [0.14, 1.11, front + 0.17], rot: [0.22, 0, 0] },
+    { g: new CylinderGeometry(0.065, 0.065, 0.05, 12), color: '#5ee07a', at: [0.4, 1.12, front + 0.12], rot: [0.22, 0, 0] },
     // screen bezel and marquee
-    part(new BoxGeometry(SCREEN.w + 0.16, SCREEN.h + 0.16, 0.05), '#111216', [0, SCREEN.y, SCREEN.z], [SCREEN.tilt, 0, 0]),
-    part(new BoxGeometry(CAB_W - 0.14, 0.46, 0.26), '#fff3c9', [0, CAB_H - 0.26, CAB_D / 2 - 0.16]),
-    part(new BoxGeometry(CAB_W + 0.04, 0.1, CAB_D + 0.06), s, [0, CAB_H + 0.02, 0]),
-  ];
-  const g = mergeGeometries(parts);
-  g.computeVertexNormals();
-  return g;
+    { g: new BoxGeometry(SCREEN.w + 0.16, SCREEN.h + 0.16, 0.05), color: '#111216', at: [0, SCREEN.y, SCREEN.z], rot: [SCREEN.tilt, 0, 0] },
+    { g: new BoxGeometry(CAB_W - 0.14, 0.46, 0.26), color: '#fff3c9', at: [0, CAB_H - 0.26, front - 0.16] },
+    { g: new BoxGeometry(CAB_W + 0.04, 0.1, CAB_D + 0.06), color: side, at: [0, CAB_H + 0.02, 0] },
+  ]);
 }
 
 function Screen({ map }: { map: Texture }) {

@@ -2,11 +2,11 @@ import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { ConeCollider, CuboidCollider, CylinderCollider, InstancedRigidBodies, RigidBody } from '@react-three/rapier';
 import type { InstancedRigidBodyProps, RapierRigidBody } from '@react-three/rapier';
-import { BoxGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Matrix4 } from 'three';
+import { BoxGeometry, ConeGeometry, CylinderGeometry, DoubleSide, Matrix4 } from 'three';
 import type { BufferGeometry } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COLORS } from '../../config/palette.ts';
 import { ZONE } from './frame.ts';
+import { mergeParts } from './geom.ts';
 import type { InstancedMesh } from 'three';
 import { modelScale, modelSize, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
@@ -69,28 +69,14 @@ export const LAMPS: Spot[] = [
 const LAMP_H = 4.6;
 const ARM = 0.95;
 
-function colored(g: BufferGeometry, hex: string): BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  const c = new Color(hex);
-  const n = out.attributes.position.count;
-  const arr = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) arr.set([c.r, c.g, c.b], i * 3);
-  out.setAttribute('color', new Float32BufferAttribute(arr, 3));
-  out.deleteAttribute('uv');
-  return out;
-}
-
 function lampGeometry(): BufferGeometry {
-  const parts = [
-    colored(new CylinderGeometry(0.26, 0.3, 0.3, 12).translate(0, 0.15, 0), COLORS.inkSoft),
-    colored(new CylinderGeometry(0.085, 0.1, LAMP_H, 10).translate(0, LAMP_H / 2, 0), '#3a3f4b'),
-    colored(new BoxGeometry(ARM + 0.1, 0.09, 0.09).translate(ARM / 2, LAMP_H - 0.05, 0), '#3a3f4b'),
-    colored(new ConeGeometry(0.42, 0.34, 14, 1, true).translate(ARM, LAMP_H - 0.24, 0), ZONE.color),
-    colored(new CylinderGeometry(0.1, 0.1, 0.12, 8).translate(ARM, LAMP_H - 0.03, 0), '#3a3f4b'),
-  ];
-  const g = mergeGeometries(parts);
-  g.computeVertexNormals();
-  return g;
+  return mergeParts([
+    { g: new CylinderGeometry(0.26, 0.3, 0.3, 12), color: COLORS.inkSoft, at: [0, 0.15, 0] },
+    { g: new CylinderGeometry(0.085, 0.1, LAMP_H, 10), color: '#3a3f4b', at: [0, LAMP_H / 2, 0] },
+    { g: new BoxGeometry(ARM + 0.1, 0.09, 0.09), color: '#3a3f4b', at: [ARM / 2, LAMP_H - 0.05, 0] },
+    { g: new ConeGeometry(0.42, 0.34, 14, 1, true), color: ZONE.color, at: [ARM, LAMP_H - 0.24, 0] },
+    { g: new CylinderGeometry(0.1, 0.1, 0.12, 8), color: '#3a3f4b', at: [ARM, LAMP_H - 0.03, 0] },
+  ]);
 }
 
 function Lamps() {

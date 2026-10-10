@@ -2,9 +2,8 @@ import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody, useBeforePhysicsStep } from '@react-three/rapier';
 import type { RapierRigidBody } from '@react-three/rapier';
-import { BoxGeometry, BufferGeometry, Color, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, Vector3 } from 'three';
-import type { InstancedMesh } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { BoxGeometry, Color, Matrix4, PlaneGeometry, Quaternion, Vector3 } from 'three';
+import type { BufferGeometry, InstancedMesh } from 'three';
 import { COLORS } from '../../../config/palette.ts';
 import { car } from '../../../state/car.ts';
 import { useStore } from '../../../state/store.ts';
@@ -68,32 +67,14 @@ const _rot = { x: 0, y: 0, z: 0, w: 1 };
 const YELLOW = new Color('#f2c230');
 const DARK = new Color(COLORS.ink);
 
-function colored(g: BufferGeometry, hex: string): BufferGeometry {
-  const c = new Color(hex);
-  const n = g.attributes.position.count;
-  const arr = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) arr.set([c.r, c.g, c.b], i * 3);
-  g.setAttribute('color', new Float32BufferAttribute(arr, 3));
-  return g;
-}
-
 // One merged toy-car geometry (body, cabin, wheels) with vertex colours; forward is -Z.
 function carGeometry(): BufferGeometry {
-  const parts: BufferGeometry[] = [];
-  const body = new BoxGeometry(CAR_W, CAR_H * 0.55, CAR_L);
-  body.translate(0, 0.12 + CAR_H * 0.275, 0);
-  parts.push(colored(body, '#2f6fd6'));
-  const cabin = new BoxGeometry(CAR_W * 0.82, CAR_H * 0.38, CAR_L * 0.5);
-  cabin.translate(0, 0.12 + CAR_H * 0.55 + CAR_H * 0.19, 0.06);
-  parts.push(colored(cabin, '#a9c8f5'));
-  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-    const w = new BoxGeometry(0.1, 0.22, 0.24);
-    w.translate(x * (CAR_W / 2), 0.11, z * (CAR_L * 0.32));
-    parts.push(colored(w, COLORS.ink));
-  }
-  const g = mergeGeometries(parts.map((p) => p.toNonIndexed()));
-  g.computeBoundingSphere();
-  return g;
+  const parts: Part[] = [
+    { g: new BoxGeometry(CAR_W, CAR_H * 0.55, CAR_L), color: '#2f6fd6', at: [0, 0.12 + CAR_H * 0.275, 0] },
+    { g: new BoxGeometry(CAR_W * 0.82, CAR_H * 0.38, CAR_L * 0.5), color: '#a9c8f5', at: [0, 0.12 + CAR_H * 0.74, 0.06] },
+  ];
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) parts.push({ g: new BoxGeometry(0.1, 0.22, 0.24), color: COLORS.ink, at: [x * (CAR_W / 2), 0.11, z * (CAR_L * 0.32)] });
+  return mergeParts(parts);
 }
 
 // Slab test on one axis: narrows [range.t0, range.t1]; false when the ray misses.
@@ -261,7 +242,7 @@ export function SelfDrivingToy() {
         if (here < 3.4) {
           let best = c.lane;
           let bestFree = here + 0.4;
-          for (const l of [c.lane - 1, c.lane + 1]) {
+          for (let l = c.lane - 1; l <= c.lane + 1; l += 2) {
             if (l < 0 || l > 2) continue;
             const f = laneFree(i, l);
             if (f > bestFree) {

@@ -143,7 +143,7 @@ export function Scan2ScopeToy({ position, pad }: { position: [number, number, nu
   const arcs = useRef<MeshBasicMaterial[]>([]);
   const sheetMap = useMemo(sheetTexture, []);
   const quad = useMemo(() => new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), []);
-  const st = useRef({ t: -1, fade: 0, wasParked: false });
+  const st = useRef({ t: -1, fade: 0, wasParked: false, drawn: 0 });
 
   const segs = useMemo(() => {
     let acc = 0;
@@ -203,7 +203,6 @@ export function Scan2ScopeToy({ position, pad }: { position: [number, number, nu
     s.wasParked = parked;
     if (s.t < 0 || !carNearZone()) return;
 
-    const before = s.t;
     s.t = Math.min(s.t + dt, TOTAL + 100);
     const scanK = Math.min(s.t / SCAN_S, 1);
     if (sheet.current) {
@@ -212,9 +211,9 @@ export function Scan2ScopeToy({ position, pad }: { position: [number, number, nu
       (sheet.current.material as MeshBasicMaterial).opacity = Math.min(1, Math.sin(scanK * Math.PI) * 1.6);
     }
     const drawK = Math.min(Math.max((s.t - DRAW_START) / DRAW_S, 0), 1);
-    if (before < DRAW_START + DRAW_S + 0.05) {
-      const tip = pen.current?.position;
-      writeWalls(walls.current, drawK * segs.total, tip);
+    if (drawK !== s.drawn) {
+      s.drawn = drawK;
+      writeWalls(walls.current, drawK * segs.total, pen.current?.position);
       if (pen.current) pen.current.visible = drawK > 0 && drawK < 1;
     }
 
@@ -225,6 +224,7 @@ export function Scan2ScopeToy({ position, pad }: { position: [number, number, nu
     if (walls.current) (walls.current.material as MeshBasicMaterial).opacity = s.fade;
     if (s.fade <= 0) {
       s.t = -1;
+      s.drawn = 0;
       writeWalls(walls.current, 0);
       if (walls.current) (walls.current.material as MeshBasicMaterial).opacity = 1;
     }
