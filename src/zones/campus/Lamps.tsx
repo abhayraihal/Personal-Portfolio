@@ -5,14 +5,13 @@ import { AdditiveBlending, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { InstancedMesh, Mesh } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { modelScale } from '../../components/Model.tsx';
-import { ZONE_BY_ID } from '../../config/layout.ts';
+import { ZONE_BY_ID, toZoneLocal } from '../../config/layout.ts';
 import { COLORS } from '../../config/palette.ts';
 import { CAMERA, screenToWorld } from '../../config/world.ts';
 import { coursework } from '../../data/profile.ts';
 import { car } from '../../state/car.ts';
 import { events, playSound } from '../../state/events.ts';
 import { useStore } from '../../state/store.ts';
-import type { P2 } from './geometry.ts';
 import { glowTexture, normals } from './geometry.ts';
 import { InstancedModel } from './Instanced.tsx';
 import { JUNCTION, LAMP_RING, LOOP } from './layout.ts';
@@ -38,25 +37,47 @@ const RING_R = LOOP.r - 3.4; // corner radius of the lamp ring
 // a little lower than their own lamp.
 const LABEL = { gap: 0.95, sideGap: 1.55, sideDrop: 1.4 };
 
-// Nine lamps over the top half of the lawn, evenly spaced and symmetric about the top centre. The
-// spacing puts the gap between two lamps where the hub road's line meets the ring, so a car driving
-// straight in from the road passes between them.
+// Where a car going straight in crosses the lamp ring's top-right corner (arc length from the ring's
+// start at the top of its right side): along the hub road's line, and from the zone's respawn along
+// its heading. Falls back to the road's line if the respawn heading misses the corner.
+function entryArc(): number {
+  const [cx, cz] = [LOOP.hx - LOOP.r, -(LOOP.hz - LOOP.r)];
+  const arc = (x: number, z: number) => Math.atan2(cz - z, x - cx) * RING_R;
+  const road = arc(JUNCTION[0], JUNCTION[1]);
+  const { u, v, du, dv } = ZONE_BY_ID.campus.respawn;
+  const [px, pz] = toZoneLocal('campus', u, v);
+  const l = Math.hypot(du, dv) || 1;
+  const [dx, dz] = [du / l, -dv / l];
+  // Ray p + t d against the corner circle.
+  const ox = px - cx, oz = pz - cz;
+  const b = ox * dx + oz * dz;
+  const disc = b * b - (ox * ox + oz * oz - RING_R * RING_R);
+  if (disc < 0) return road;
+  const t = -b - Math.sqrt(disc);
+  const hit = arc(px + dx * t, pz + dz * t);
+  return hit > 0 && hit < (Math.PI / 2) * RING_R ? (road + hit) / 2 : road;
+}
+
+const ENTRY_GAP = 4.3; // m along the ring, between the two lamps either side of the way in
+
+// Nine lamps over the top half of the lawn. The two either side of the way in from the hub road
+// stand ENTRY_GAP apart; the rest are evenly spaced so the end lamps mirror each other.
 function lampSpots(): LampSpot[] {
   const ring = LAMP_RING;
   const ns = normals(ring, true);
   const n = ring.length;
   const step = 0.25;
-  // Arc lengths from the ring's start (top of its right side), counter-clockwise on screen.
-  const top = (Math.PI / 2) * RING_R + (LOOP.hx - LOOP.r);
-  const corner: P2 = [LOOP.hx - LOOP.r, -(LOOP.hz - LOOP.r)];
-  const road = Math.atan2(corner[1] - JUNCTION[1], JUNCTION[0] - corner[0]) * RING_R;
-  const half = (coursework.length - 1) / 2;
-  const spacing = (top - road) / (half - 1.5);
+  const top = (Math.PI / 2) * RING_R + (LOOP.hx - LOOP.r); // arc length to the top centre
+  const entry = entryArc();
+  const count = coursework.length;
+  const spacing = (2 * (top - entry)) / (count - 4);
+  // Lamp 0 is lowest on the right side; the way in falls between lamps 1 and 2.
+  const arcAt = (i: number) => (i < 2 ? entry - ENTRY_GAP / 2 - (1 - i) * spacing : entry + ENTRY_GAP / 2 + (i - 2) * spacing);
   return coursework.map((course, i) => {
-    const k = ((Math.round((top + (i - half) * spacing) / step) % n) + n) % n;
+    const k = ((Math.round(arcAt(i) / step) % n) + n) % n;
     const [x, z] = ring[k];
     const [nx, nz] = ns[k]; // left of travel = towards the lawn
-    const ax = nx > 0.5 ? 'left' : nx < -0.5 ? 'right' : 'center';
+    const ax = nx > 0.7 ? 'left' : nx < -0.7 ? 'right' : 'center';
     if (ax !== 'center') return { x, z, lx: x + nx * LABEL.sideGap, lz: z + LABEL.sideDrop, anchor: { x: ax, y: 'top' }, course };
     const ay = nz > 0.5 ? 'top' : nz < -0.5 ? 'bottom' : 'middle';
     return { x, z, lx: x + nx * LABEL.gap, lz: z + nz * LABEL.gap, anchor: { x: ax, y: ay }, course };
