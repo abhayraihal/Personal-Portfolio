@@ -10,7 +10,7 @@ export const PAD_COLOR = '#e47c00'; // a shade darker than COLORS.amazon so pad 
 export const OFFICE = { u: 0, v: 20.8, scale: 0.64 }; // building-office scaled to 16 m wide
 export const MAIN_PAD: [number, number] = [0, 12.8];
 // Camera target while parked on the overview pad: aimed 8 m up the facade so the rooftop sign fits.
-export const MAIN_FRAME = { at: [0, 15.2, 8.0], fit: 15.5, portraitAt: [0, 14.2, 5.0] } as const;
+export const MAIN_FRAME = { at: [0, 15.2, 8.0], fit: 17, portraitAt: [0, 14.2, 5.0] } as const;
 export const TROPHY = { u: 0, v: 0, padV: -6.7 };
 
 export type StationId = Extract<PanelId, `amazon-${string}`>;
@@ -37,8 +37,10 @@ export const STATIONS: StationDef[] = [
   { id: 'amazon-oncall', icon: 'Oncall', center: [16.3, -7.6], size: [9, 6.5], pad: [9.0, -4.6], frame: [14.2, -4.6] },
 ];
 
+// Portrait: aimed in front of the exhibit and a little right of it, so the exhibit sits above the
+// prompt button and clear of the toolbar on the right edge.
 export const stationFraming = (def: StationDef): Framing => ({
   at: def.frame,
-  fit: def.size[0] + 1.2,
-  portraitAt: [def.center[0], def.center[1] + 1.2, 1.4],
+  fit: def.size[0] + 1.6,
+  portraitAt: [def.center[0] + 0.5, def.center[1] - 4, 0.8],
 });
