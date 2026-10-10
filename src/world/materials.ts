@@ -51,7 +51,7 @@ const DITHER_MAIN = /* glsl */ `
   float tt = dot(cp, ca) / max(dot(ca, ca), 1e-3);
   if (tt > 0.05 && tt < 0.97) {
     float d = length(cp - ca * tt);
-    float fade = (1.0 - smoothstep(1.6, 3.6, d)) * 0.82;
+    float fade = (1.0 - smoothstep(1.1, 2.7, d)) * 0.72;
     if (fade > vw_bayer(gl_FragCoord.xy)) discard;
   }
 }

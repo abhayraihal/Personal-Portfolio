@@ -104,6 +104,9 @@ function buildLamps(): Lamp[] {
       const tu = du / len;
       const tv = dv / len;
       for (const side of [1, -1]) {
+        // Lamps on the camera side of a road would cross it on screen, so roads that run across
+        // the screen only get lamps on their far side.
+        if (side * tu < 0 && Math.abs(tu) > 0.3) continue;
         let last = side === 1 ? -Infinity : -spacing / 2; // stagger the two sides
         for (let d = 0; d < len; d += 0.5) {
           if (d - last < spacing) continue;
@@ -126,7 +129,7 @@ function buildLamps(): Lamp[] {
       }
     }
   };
-  add('street', ASPHALT, 13, 1.3);
+  add('street', ASPHALT, 11, 1.3);
   add('lantern', DIRT, 11, 1.1);
   // Lanterns on the bridge abutments, one per side.
   for (const k of [-1, 1]) {
@@ -227,8 +230,8 @@ function buildDarchog(r: () => number): Item[] {
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + r();
       out.push({
-        name: names[i % names.length], u: spot[0] + Math.cos(a) * 1.3, v: spot[1] + Math.sin(a) * 1.3, y: 0,
-        s: range(r, 0.85, 1.05), ry: range(r, -0.5, 0.5), keep: 0,
+        name: names[i % names.length], u: spot[0] + Math.cos(a) * 1.1, v: spot[1] + Math.sin(a) * 1.1, y: 0,
+        s: range(r, 0.62, 0.78), ry: range(r, -0.5, 0.5), keep: 0,
       });
     }
   }
@@ -263,8 +266,10 @@ function build(): Plan {
       if (!isClear(u, v, TREE_CLEAR, 1.2)) continue;
       const hubD = Math.hypot(u - HUB[0], v - HUB[1]);
       const edge = -outside(u, v);
-      const grove = smoothstep(0.34, 0.62, fbm(u / 46 + 3.1, v / 46 - 7.7, 3));
-      let density = (0.03 + 0.24 * smoothstep(34, 120, hubD) + 0.16 * (1 - smoothstep(0, 36, edge))) * (0.15 + 1.05 * grove);
+      // Forest along the valley walls, a few distinct groves, and lone trees on the meadows.
+      const wall = (1 - smoothstep(6, 40, edge + (vnoise(u / 30, v / 30) - 0.5) * 24)) * 0.46;
+      const grove = smoothstep(0.54, 0.7, fbm(u / 38 + 3.1, v / 38 - 7.7, 3)) * 0.5;
+      let density = Math.max(wall, grove) * smoothstep(28, 70, hubD) + 0.025;
       density *= smoothstep(4, 11, roadDist(u, v)) * 0.6 + 0.4;
       if (roll > clamp(density, 0, 0.8)) continue;
       const name = treeType(r, edge);
@@ -350,10 +355,10 @@ function build(): Plan {
     if (kind < 0.45) {
       if (!spacing.free(u, v, 1.6)) continue;
       spacing.add(u, v, 1.4);
-      const name: ModelName = r() < 0.5 ? 'log' : 'log-small';
+      const name: ModelName = 'log';
       const s = range(r, 0.9, 1.15);
       const ry = r() * Math.PI;
-      props.push({ name, u, v, y: name === 'log' ? 0.18 : -0.05, s, ry, keep: hash2(Math.round(u * 5), Math.round(v * 5)) });
+      props.push({ name, u, v, y: 0.18, s, ry, keep: hash2(Math.round(u * 5), Math.round(v * 5)) });
     } else {
       if (!spacing.free(u, v, 0.9)) continue;
       spacing.add(u, v, 0.7);
@@ -434,7 +439,7 @@ function build(): Plan {
     const rr = ISLAND_R - 0.95;
     cover.push({ name: i % 2 ? 'flowers-blue-poppy' : 'flowers-tall', u: RING.u + Math.cos(a) * rr, v: RING.v + Math.sin(a) * rr, y: ISLAND_Y, s: 0.5, ry: a * 3, keep: 0 });
   }
-  // Mushrooms and leafy plants under trees.
+  // Mushrooms under some trees.
   for (const t of trees) {
     const x = r();
     if (x > 0.24) continue;
@@ -443,7 +448,8 @@ function build(): Plan {
     const u = t.u + Math.cos(a) * d;
     const v = t.v + Math.sin(a) * d;
     if (!coverOk(u, v)) continue;
-    cover.push({ name: x < 0.1 ? 'mushrooms' : 'plant-leafy', u, v, y: 0, s: x < 0.1 ? range(r, 0.55, 0.8) : range(r, 0.5, 0.75), ry: r() * 6.28, keep: t.keep });
+    if (x > 0.12) continue;
+    cover.push({ name: 'mushrooms', u, v, y: 0, s: range(r, 0.55, 0.8), ry: r() * 6.28, keep: t.keep });
   }
 
   // ---- trees and rocks on the hills, where the camera can see them

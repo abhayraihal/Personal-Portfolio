@@ -47,18 +47,21 @@ export function ModelInstances({ name, items, cast = true, receive = true, varia
 
 const CHUNK = 96; // metres; lets the frustum skip far parts of the valley
 
-// Instances grouped by model and by a coarse grid, one InstancedMesh per group.
+// Instances grouped by model and by a coarse grid, one InstancedMesh per group. chunk = 0 keeps a
+// model in a single mesh (light or rare models, where an extra draw call costs more than the
+// vertices it would save).
 export function InstancedItems({ items, cast = true, receive = true, variant, chunk = CHUNK }: {
   items: Item[];
   cast?: boolean;
   receive?: boolean;
   variant?: (name: ModelName) => Variant | undefined;
-  chunk?: number;
+  chunk?: number | ((name: ModelName) => number);
 }) {
   const groups = useMemo(() => {
     const map = new Map<string, { name: ModelName; items: Item[] }>();
     for (const it of items) {
-      const key = `${it.name}|${Math.floor(it.u / chunk)}|${Math.floor(it.v / chunk)}`;
+      const c = typeof chunk === 'number' ? chunk : chunk(it.name);
+      const key = c > 0 ? `${it.name}|${Math.floor(it.u / c)}|${Math.floor(it.v / c)}` : it.name;
       const g = map.get(key);
       if (g) g.items.push(it);
       else map.set(key, { name: it.name, items: [it] });

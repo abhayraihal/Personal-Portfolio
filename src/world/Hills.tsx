@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
-import { BufferAttribute, BufferGeometry, Color, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Color, MeshStandardMaterial, Vector4 } from 'three';
+import type { DataTexture } from 'three';
 import { BOUNDS } from '../config/layout.ts';
 import { COLORS } from '../config/palette.ts';
 import { streamEdgeAt } from './field.ts';
 import { hillHeight, outside } from './geo.ts';
 import { NOISE, SCREEN } from './glsl.ts';
+import { MASK_RECT, STREAM_ENC } from './mask.ts';
 import { hash2 } from './rand.ts';
 
 // Low-poly valley walls just outside BOUNDS: meadow at the foot, pine-green slopes, terraced
@@ -59,12 +61,24 @@ function buildGeometry(): BufferGeometry {
 }
 
 const PARS = /* glsl */ `
+uniform sampler2D uMask;
+uniform vec4 uMaskRect;
 uniform vec3 uMeadow;
 uniform vec3 uPine;
 uniform vec3 uRock;
 uniform vec3 uSnow;
 varying vec3 vWorld;
 ${NOISE}
+`;
+
+// The stream runs through the hills in a gorge; the channel itself is cut out like the ground.
+const CUT = /* glsl */ `
+#include <clipping_planes_fragment>
+{
+  vec2 cp = vec2(0.70710678 * (vWorld.x + vWorld.z), 0.70710678 * (vWorld.x - vWorld.z));
+  float ce = texture2D(uMask, (cp - uMaskRect.xy) * uMaskRect.zw).r * ${STREAM_ENC.range.toFixed(1)} - ${STREAM_ENC.offset.toFixed(1)};
+  if (ce < 0.9 && vWorld.y < 3.0) discard;
+}
 `;
 
 const COLOR = /* glsl */ `
@@ -91,9 +105,11 @@ const COLOR = /* glsl */ `
 }
 `;
 
-function makeMaterial() {
+function makeMaterial(mask: DataTexture) {
   const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0, flatShading: true });
   const uniforms = {
+    uMask: { value: mask },
+    uMaskRect: { value: new Vector4(...MASK_RECT) },
     uMeadow: { value: new Color(COLORS.groundEdge) },
     uPine: { value: new Color(COLORS.pine) },
     uRock: { value: new Color(COLORS.rock) },
@@ -106,14 +122,15 @@ function makeMaterial() {
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${PARS}`)
+      .replace('#include <clipping_planes_fragment>', CUT)
       .replace('#include <normal_fragment_maps>', COLOR);
   };
   m.customProgramCacheKey = () => 'valley-hills-v1';
   return m;
 }
 
-export function Hills() {
+export function Hills({ mask }: { mask: DataTexture }) {
   const geometry = useMemo(buildGeometry, []);
-  const material = useMemo(makeMaterial, []);
+  const material = useMemo(() => makeMaterial(mask), [mask]);
   return <mesh name="valley-hills" geometry={geometry} material={material} receiveShadow />;
 }

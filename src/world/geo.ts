@@ -233,9 +233,9 @@ export function hillHeight(u: number, v: number, streamEdge: number): number {
   // Gorge for the stream; it closes again far outside the valley, hiding the stream's ends.
   const open = 1 - smoothstep(30, 46, s);
   if (open > 0) {
-    const g = smoothstep(1.2, 26, streamEdge);
+    const g = smoothstep(3, 28, streamEdge);
     h *= 1 - open * (1 - g);
-    h = h + (-1.6 - h) * open * (1 - smoothstep(-0.5, 2.2, streamEdge));
+    h = h + (-1.6 - h) * open * (1 - smoothstep(1, 6.5, streamEdge));
   }
   return h;
 }

@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { BallCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import type { MeshStandardMaterial } from 'three';
+import { MODELS } from '../config/models.ts';
 import type { ModelName } from '../config/models.ts';
 import { InstancedItems } from './Instances.tsx';
 import type { Variant } from './Instances.tsx';
 import { swayMaterial } from './materials.ts';
 import { collidersFor } from './plan.ts';
-import type { Plan } from './plan.ts';
+import type { Item, Plan } from './plan.ts';
 
 // Trees sway a little and turn see-through when they stand between the camera and the car.
 const TREE: Variant = (base) => swayMaterial(base as MeshStandardMaterial, { height: 1.9, amp: 0.16, dither: true });
@@ -17,14 +18,25 @@ const FLOWER: Variant = (base) => swayMaterial(base as MeshStandardMaterial, { h
 const coverVariant = (name: ModelName) =>
   name.startsWith('grass') ? GRASS : name.startsWith('flowers') ? FLOWER : undefined;
 
+// Heavy models (many triangles in total) are split into 96 m chunks so the frustum can skip far
+// ones; light or rare models stay in one mesh, where a draw call costs more than their vertices.
+function chunker(items: Item[]) {
+  const tris = new Map<ModelName, number>();
+  for (const it of items) tris.set(it.name, (tris.get(it.name) ?? 0) + MODELS[it.name].tris);
+  return (name: ModelName) => ((tris.get(name) ?? 0) > 9000 ? 96 : 0);
+}
+
 export function Scatter({ plan }: { plan: Plan }) {
+  // Rocks and props share models, so they share instanced meshes too.
+  const solids = useMemo(() => [...plan.rocks, ...plan.props], [plan]);
+  const solidChunk = useMemo(() => chunker(solids), [solids]);
+  const coverChunk = useMemo(() => chunker(plan.cover), [plan]);
   return (
     <group name="valley-scatter">
-      <InstancedItems items={plan.trees} variant={() => TREE} />
-      <InstancedItems items={plan.hillTrees} variant={() => HILL_TREE} />
-      <InstancedItems items={plan.rocks} />
-      <InstancedItems items={plan.props} />
-      <InstancedItems items={plan.cover} cast={false} variant={coverVariant} chunk={120} />
+      <InstancedItems items={plan.trees} variant={() => TREE} chunk={96} />
+      <InstancedItems items={plan.hillTrees} variant={() => HILL_TREE} chunk={96} />
+      <InstancedItems items={solids} chunk={solidChunk} />
+      <InstancedItems items={plan.cover} cast={false} variant={coverVariant} chunk={coverChunk} />
     </group>
   );
 }

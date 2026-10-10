@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { CircleGeometry, Color, MeshStandardMaterial, PlaneGeometry, Vector2, Vector4 } from 'three';
+import { CircleGeometry, Color, LatheGeometry, MeshStandardMaterial, PlaneGeometry, Vector2, Vector4 } from 'three';
 import type { DataTexture } from 'three';
 import { BOUNDS, ZONE_BY_ID } from '../config/layout.ts';
 import { COLORS } from '../config/palette.ts';
@@ -77,6 +77,18 @@ vec2 jit = vec2(vw_hash12(cell), vw_hash12(cell + 19.7)) * 0.7 + 0.15;
 float dot1 = smoothstep(0.32, 0.12, length(fract(sp) - jit));
 float shade = vw_hash12(cell + 3.1);
 col *= 1.0 + ((clump - 0.5) * 0.12 + dot1 * (shade - 0.45) * 0.16) * fine;
+
+// wildflower specks in some patches of the meadow
+vec2 fp = p * 1.15;
+vec2 fc = floor(fp);
+float fpatch = smoothstep(0.5, 0.78, vw_noise(p * 0.045 + 9.0));
+if (vw_hash12(fc + 41.0) < 0.4 * fpatch && fine > 0.0) {
+  vec2 fj = vec2(vw_hash12(fc + 5.0), vw_hash12(fc + 9.0)) * 0.7 + 0.15;
+  float petal = smoothstep(0.085, 0.045, length(fract(fp) - fj));
+  float pick = vw_hash12(fc + 13.0);
+  vec3 fcol = pick < 0.35 ? vec3(0.86, 0.85, 0.8) : pick < 0.62 ? vec3(0.92, 0.62, 0.08) : pick < 0.82 ? vec3(0.42, 0.33, 0.82) : vec3(0.9, 0.34, 0.5);
+  col = mix(col, fcol, petal * fine);
+}
 
 // ---- riverside: lusher and darker towards the water
 float lush = 1.0 - smoothstep(0.9, 7.0, se + (n2 - 0.5) * 2.5);
@@ -228,6 +240,16 @@ function makeMaterial(mask: DataTexture) {
   return { material: m, uniforms };
 }
 
+// Raised stone kerb around the roundabout island (a lathe of a rounded kerb profile).
+function islandKerb() {
+  const R = ISLAND_R;
+  const pts = [
+    [R - 0.2, -0.05], [R - 0.2, ISLAND_Y + 0.06], [R - 0.15, ISLAND_Y + 0.11], [R + 0.13, ISLAND_Y + 0.11],
+    [R + 0.19, ISLAND_Y + 0.05], [R + 0.2, -0.05],
+  ].map(([x, y]) => new Vector2(x, y));
+  return new LatheGeometry(pts, 72);
+}
+
 export function Ground({ mask, low }: { mask: DataTexture; low: boolean }) {
   const { material, uniforms } = useMemo(() => makeMaterial(mask), [mask]);
   useEffect(() => {
@@ -235,13 +257,16 @@ export function Ground({ mask, low }: { mask: DataTexture; low: boolean }) {
   }, [low, uniforms]);
   useEffect(() => () => material.dispose(), [material]);
   const plane = useMemo(() => new PlaneGeometry(1500, 1500, 24, 24).rotateX(-Math.PI / 2), []);
-  const island = useMemo(() => new CircleGeometry(ISLAND_R + 0.02, 48).rotateX(-Math.PI / 2), []);
+  const island = useMemo(() => new CircleGeometry(ISLAND_R - 0.1, 48).rotateX(-Math.PI / 2), []);
+  const kerb = useMemo(islandKerb, []);
+  const kerbMat = useMemo(() => new MeshStandardMaterial({ color: '#d6d1c4', roughness: 0.9 }), []);
   const cu = (BOUNDS.u0 + BOUNDS.u1) / 2;
   const cv = (BOUNDS.v0 + BOUNDS.v1) / 2;
   return (
     <>
       <mesh name="valley-ground" geometry={plane} material={material} position={[cu, 0, -cv]} receiveShadow />
       <mesh name="roundabout-island" geometry={island} material={material} position={[RING.u, ISLAND_Y, -RING.v]} receiveShadow />
+      <mesh name="roundabout-kerb" geometry={kerb} material={kerbMat} position={[RING.u, 0, -RING.v]} castShadow receiveShadow />
     </>
   );
 }

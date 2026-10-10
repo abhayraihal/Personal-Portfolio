@@ -71,13 +71,14 @@ attribute float aSize;
 attribute float aPhase;
 uniform float uTime;
 uniform float uNight;
+uniform float uDpr;
 varying float vAlpha;
 void main() {
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix * mv;
   float tw = 0.65 + 0.35 * sin(uTime * (1.3 + aPhase) + aPhase * 17.0);
   vAlpha = uNight * tw;
-  gl_PointSize = aSize;
+  gl_PointSize = aSize * uDpr;
 }
 `;
 const STAR_FRAG = /* glsl */ `
@@ -92,6 +93,7 @@ void main() {
 // A dome of stars, seen whenever a camera framing shows the sky at night.
 function Stars() {
   const ref = useRef<Points>(null);
+  const dpr = useThree((s) => s.viewport.dpr);
   const { geometry, material } = useMemo(() => {
     const r = rng(77);
     const n = 900;
@@ -116,7 +118,7 @@ function Stars() {
     const m = new ShaderMaterial({
       vertexShader: STAR_VERT,
       fragmentShader: STAR_FRAG,
-      uniforms: { uTime: env.time, uNight: env.night },
+      uniforms: { uTime: env.time, uNight: env.night, uDpr: { value: 1 } },
       blending: AdditiveBlending,
       depthWrite: false,
       transparent: true,
@@ -124,6 +126,7 @@ function Stars() {
     });
     return { geometry: g, material: m };
   }, []);
+  material.uniforms.uDpr.value = dpr;
   useFrame(() => {
     if (ref.current) ref.current.visible = env.night.value > 0.02;
   });

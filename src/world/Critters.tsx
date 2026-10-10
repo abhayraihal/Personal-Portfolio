@@ -178,7 +178,7 @@ function Butterflies({ plan, count }: { plan: Plan; count: number }) {
 export function Critters({ plan, low }: { plan: Plan; low: boolean }) {
   return (
     <group name="valley-critters">
-      <Fireflies plan={plan} count={low ? 90 : 220} />
+      <Fireflies plan={plan} count={low ? 140 : 380} />
       {!low && <Butterflies plan={plan} count={14} />}
     </group>
   );

@@ -25,9 +25,9 @@ export const LOOK = {
     fog: new Color('#14223f'),
     hemiSky: new Color('#5470b8'),
     hemiGround: new Color('#1d2640'),
-    hemi: 0.62,
+    hemi: 0.78,
     sun: new Color('#a8bcff'),
-    sunI: 0.55,
+    sunI: 0.7,
   },
 };
 

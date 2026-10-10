@@ -25,8 +25,8 @@ import { Stream } from './Stream.tsx';
 const MODELS_USED: ModelName[] = [
   'tree-deodar-tall', 'tree-deodar', 'tree-pine-full', 'tree-pine-cone', 'tree-pine-snow',
   'rock-grey-a', 'rock-grey-b', 'rock-grey-c', 'rocks-snowcap-large', 'rocks-snowcap-small',
-  'grass-tuft', 'grass-clump', 'flowers-blue-poppy', 'flowers-tall', 'mushrooms', 'plant-leafy',
-  'log', 'log-small', 'stump', 'stones-river-flat', 'pole-prayer-flag-mast', 'banner-darchog-blue',
+  'grass-tuft', 'grass-clump', 'flowers-blue-poppy', 'flowers-tall', 'mushrooms',
+  'log', 'stump', 'stones-river-flat', 'pole-prayer-flag-mast', 'banner-darchog-blue',
   'banner-darchog-red', 'banner-darchog-green', 'lamp-post-street', 'lamp-post-lantern',
 ];
 preloadModels(MODELS_USED);
@@ -93,7 +93,7 @@ export function World() {
         <Ground mask={mask} low={low} />
         <Stream mask={mask} />
         <Bridge />
-        <Hills />
+        <Hills mask={mask} />
         <Scatter plan={plan} />
         <PrayerFlags plan={plan} />
         <Lamps plan={plan} />
