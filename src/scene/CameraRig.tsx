@@ -212,8 +212,21 @@ export function CameraRig() {
       return;
     }
 
-    // Follow point: the car plus a little look-ahead along its ground velocity.
     obj.getWorldPosition(_car);
+    if (store.phase === 'play' && !s.playing) {
+      // Entering play (after the intro, or straight from the card with reduced motion): cut.
+      s.playing = true;
+      s.follow.copy(_car);
+      s.lookAhead.set(0, 0, 0);
+      s.hasLast = false;
+      zoom.current.value = zoom.current.goal;
+      s.toId = store.cameraOverride?.id ?? null;
+      s.to = store.cameraOverride;
+      s.source = { kind: 'follow' };
+      s.blendT = 1;
+    }
+
+    // Follow point: the car plus a little look-ahead along its ground velocity.
     const pinned = s.pinStep >= 0 && car.steps === s.pinStep;
     if (!pinned) s.pinStep = -1;
     if (!s.hasLast || pinned) {
@@ -270,17 +283,6 @@ export function CameraRig() {
     // play
     const o = store.cameraOverride;
     const id = o?.id ?? null;
-    if (!s.playing) {
-      // Entering play (after the intro, or straight from the card with reduced motion): cut.
-      s.playing = true;
-      s.follow.copy(_car);
-      s.lookAhead.set(0, 0, 0);
-      z.value = z.goal;
-      s.toId = id;
-      s.to = o;
-      s.source = { kind: 'follow' };
-      s.blendT = 1;
-    }
 
     if (id !== s.toId || (o && s.to && o !== s.to && jumped(o, s.to))) {
       // A new framing was asked for (or the old one cleared). Blend from what is on screen now: a
