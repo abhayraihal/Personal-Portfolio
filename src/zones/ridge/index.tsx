@@ -1,4 +1,5 @@
 import { Board } from '../../components/Board.tsx';
+import { ErrorBoundary } from '../../components/ErrorBoundary.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { ZoneFrame } from '../../components/ZoneFrame.tsx';
 import { contests } from '../../data/codeforces.ts';
@@ -28,15 +29,17 @@ export function RidgeZone() {
         <Summit />
         <YearStones />
         <RatingLabels />
-        <Dressing />
+        <ErrorBoundary name="zone:ridge:dressing">
+          <Dressing />
+        </ErrorBoundary>
         <Histogram />
         <TagSign position={[2.5, 0, 10.5]} />
         <Platforms position={[-58, 0, 10.2]} />
         <Pad id="ridge-codeforces" label="Open Codeforces stats" action={{ kind: 'panel', panel: 'codeforces' }} position={[-21, 0, 14.6]} icon="Codeforces" color={RANK_SHADE.Expert} />
         <Board
           title="Rating ridge"
-          lines={['Height = rating after each contest', `${N} contests, ${monthYear(contests[0].date)} to ${monthYear(contests[N - 1].date)}`, `One contest every ${DS} m`]}
-          width={7.6}
+          lines={['Height follows my Codeforces rating', `${N} rated contests, ${monthYear(contests[0].date)} to ${monthYear(contests[N - 1].date)}`, `One contest every ${DS} m of road`]}
+          width={8.9}
           titleSize={0.72}
           lineSize={0.38}
           accent={RANK_SHADE.Expert}

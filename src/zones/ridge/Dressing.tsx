@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { BallCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { Euler, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import { modelScale, useMerged } from '../../components/Model.tsx';
+import { modelScale, preloadModels, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
 import { useStore } from '../../state/store.ts';
 import { S_END, YEARS, deckY, hwAt, sContest } from './profile.ts';
@@ -9,6 +9,9 @@ import { faceRun, frontFaceAt } from './shape.ts';
 import { HIST_X1 } from './Histogram.tsx';
 
 type Item = { x: number; y: number; z: number; yaw: number; scale: number };
+
+const NAMES: ModelName[] = ['tree-deodar-tall', 'tree-pine-snow', 'tree-pine-full', 'rock-grey-b', 'rock-grey-c'];
+preloadModels(NAMES);
 
 // Small deterministic generator so the dressing is the same on every load.
 function rng(seed: number) {
