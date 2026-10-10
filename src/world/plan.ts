@@ -151,7 +151,8 @@ function buildLamps(): Lamp[] {
           const v = s.a[1] + tv * d + nv * (s.half + offset);
           if (zoneDist(u, v) < 1.5) continue;
           if (Math.hypot(u - RING.u, v - RING.v) < RING.r + RING.half + 2.5) continue;
-          if (Math.hypot(u - BRIDGE.u, v - BRIDGE.v) < BRIDGE.length / 2 + 3) continue;
+          // The bridge has its own lanterns on the abutments.
+          if (Math.hypot(u - BRIDGE.u, v - BRIDGE.v) < BRIDGE.length / 2 + 8.5) continue;
           if (streamEdgeAt(u, v) < 1.5) continue;
           if (roadDist(u, v) < offset - 0.3) continue; // too close to another road
           if (lamps.some((l) => Math.hypot(l.u - u, l.v - v) < spacing * 0.6)) continue;
@@ -187,19 +188,19 @@ function buildFlags(r: () => number) {
   // Gateway across the start of the career road.
   string(pole(-10.5, 34, POLE_H, 0), pole(10.5, 34, POLE_H, 0), 1.3);
 
-  // Across the campus road, between the hub and the bridge.
+  // Across the campus road, between the hub and the bridge: one string about 6 m before the
+  // bridge's own flags, so the two never stack up on screen.
   const camp = DIRT.find((s) => s.id === 'campus');
   if (camp) {
     const du = camp.b[0] - camp.a[0];
     const dv = camp.b[1] - camp.a[1];
     const len = Math.hypot(du, dv);
     const [tu, tv] = [du / len, dv / len];
-    for (const t of [0.47, 0.585]) {
-      const cu = camp.a[0] + du * t;
-      const cv = camp.a[1] + dv * t;
-      const off = camp.half + 2.6;
-      string(pole(cu - tv * off, cv + tu * off, 5.2, 0), pole(cu + tv * off, cv - tu * off, 5.2, 0), 0.9);
-    }
+    const t = 0.38;
+    const cu = camp.a[0] + du * t;
+    const cv = camp.a[1] + dv * t;
+    const off = camp.half + 2.6;
+    string(pole(cu - tv * off, cv + tu * off, 5.2, 0), pole(cu + tv * off, cv - tu * off, 5.2, 0), 0.9);
   }
 
   // Bridge: corner posts, a string along each rail and one across each end.
