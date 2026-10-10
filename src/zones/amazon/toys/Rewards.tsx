@@ -26,6 +26,7 @@ const FACE_H = 3.74;
 const COINS = 10;
 const COIN_S = 0.47; // 0.7 m coins
 const COIN_R = 0.35;
+const TRACK = 0.18; // coins alternate between two tracks on the chute, so neighbours never touch
 const CHUTE = { x0: -3.2, y0: 1.6, x1: 2.15, y1: 1.0, z: 1.0 };
 const SLOPE = (CHUTE.y1 - CHUTE.y0) / (CHUTE.x1 - CHUTE.x0);
 const BOX = { x: 2.95, w: 1.6, h: 1.0, d: 1.2, z: 1.0 };
@@ -231,11 +232,12 @@ function RewardsToy({ clock }: ToyProps) {
   const quality = useStore((s) => s.quality);
   const count = quality === 'low' ? 6 : COINS;
   const plan = useMemo(() => Array.from({ length: COINS }, (_, i) => {
-    const x0 = CHUTE.x0 + 0.45 + ((i * 7) % 5) * 0.1;
+    const x0 = CHUTE.x0 + 0.5 + 0.06 * ((i >> 1) % 2);
     const yLand = surface(x0) + COIN_R;
     const tf = Math.sqrt((2 * (DROP_Y - yLand)) / G);
     const t0 = START + i * GAP;
-    return { t0, x0, yLand, tf, end: t0 + tf + TB + TR + TD, spin: (i % 2 ? 1 : -1) * (3 + (i % 3)) };
+    const z = CHUTE.z + (i % 2 ? -TRACK : TRACK);
+    return { t0, x0, z, yLand, tf, end: t0 + tf + TB + TR + TD, spin: (i % 2 ? 1 : -1) * (3 + (i % 3)) };
   }), []);
   const entered = useRef<boolean[]>(Array(COINS).fill(false));
   // The screen glows like a drive-in when the last coin is in the buy box.
@@ -259,6 +261,7 @@ function RewardsToy({ clock }: ToyProps) {
         const c = plan[i];
         const tau = t - c.t0;
         let x = c.x0;
+        let z = c.z;
         let y = DROP_Y;
         let roll = 0;
         let wob = 0;
@@ -287,10 +290,11 @@ function RewardsToy({ clock }: ToyProps) {
             playSound('coin', 0.5);
           }
           x = CHUTE.x1 + (SLOT_X - CHUTE.x1) * Math.min(1, k * 1.6);
+          z = c.z + (BOX.z - c.z) * Math.min(1, k * 2);
           y = BOX.h + COIN_R - (BOX.h + COIN_R - 0.15) * k * k;
           roll = c.tf * c.spin - 0.6 - (CHUTE.x1 - c.x0 - 0.15) / COIN_R - k * 2;
         } else s = 0;
-        _p.set(x, y, CHUTE.z);
+        _p.set(x, y, z);
         _q.setFromEuler(_e.set(0, wob, roll));
         _s.setScalar(s);
         m.setMatrixAt(i, _m.compose(_p, _q, _s));
