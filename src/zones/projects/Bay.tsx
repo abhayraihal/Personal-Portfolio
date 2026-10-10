@@ -8,6 +8,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
+import { useStore } from '../../state/store.ts';
 import { loadCanvasFonts, textWidth } from './canvas.ts';
 import { IMAGE_H, IMAGE_W, ROWS } from './layout.ts';
 import type { Bay as BayDef } from './layout.ts';
@@ -154,16 +155,33 @@ const CHIP_H = 0.52;
 const CHIP_PAD = 0.2;
 const CHIP_GAP = 0.13;
 
+// Wrap width for a tagline: the full room if it fits on one line, otherwise the narrowest width
+// that still gives two lines, so the second line is never one or two stray words.
+function taglineWidth(text: string, room: number): number {
+  if (textWidth(text, 'body', TAG) <= room) return room;
+  const words = text.split(' ');
+  let best = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const a = textWidth(words.slice(0, i).join(' '), 'body', TAG);
+    const b = textWidth(words.slice(i).join(' '), 'body', TAG);
+    best = Math.min(best, Math.max(a, b));
+  }
+  return best <= room ? best + 0.12 : room;
+}
+
 function Lectern({ bay, z }: { bay: BayDef; z: number }) {
   use(loadCanvasFonts());
   const p = bay.project;
   const wedge = useMemo(() => (sharedWedge ??= wedgeGeometry()), []);
+  // At night the paper glows a little, like the lit billboards, so the ink text stays readable.
+  const night = useStore((s) => s.night);
   const x0 = -LECTERN_W / 2 + 0.42;
   const top = SLANT / 2;
   const titleY = top - 0.62;
   const titleW = textWidth(p.title, 'display', TITLE);
   const year = String(p.year);
   const yearW = textWidth(year, 'bodyBold', 0.32) + 0.44;
+  const tagW = useMemo(() => taglineWidth(p.tagline, LECTERN_W - 0.84), [p.tagline]);
 
   // Chips run left to right along the bottom edge, scaled down if the stack is too long to fit.
   const { chips, k } = useMemo(() => {
@@ -199,7 +217,7 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
         <ConvexHullCollider args={[wedgeHull]} />
       </RigidBody>
       <mesh geometry={wedge} castShadow receiveShadow>
-        <meshStandardMaterial color={COLORS.paper} roughness={0.9} />
+        <meshStandardMaterial color={COLORS.paper} roughness={0.9} emissive={COLORS.paper} emissiveIntensity={night ? 0.42 : 0} />
       </mesh>
       <group position={[0, FRONT_H + RISE / 2, 0]} rotation={[-Math.PI / 4, 0, 0]}>
         <mesh geometry={chipGeometry} position={[0, 0, faceZ]}>
@@ -212,7 +230,7 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
           position={[x0 + titleW + 0.3 + yearW / 2, titleY - 0.02, faceZ + 0.03]}>
           {year}
         </Label>
-        <Label size={TAG} color={COLORS.inkSoft} anchorX="left" anchorY="top" maxWidth={LECTERN_W - 0.84} lineHeight={1.22}
+        <Label size={TAG} color={COLORS.inkSoft} anchorX="left" anchorY="top" maxWidth={tagW} lineHeight={1.22}
           position={[x0, top - 1.12, faceZ + 0.01]}>
           {p.tagline}
         </Label>
