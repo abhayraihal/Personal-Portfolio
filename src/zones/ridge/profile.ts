@@ -30,7 +30,17 @@ export const PLAZA_LEN = 15;
 export const RAIL_INSET = 0.3; // rail centre line, inside the deck edge
 export const BLUR = 3; // m, gaussian smoothing of the deck profile: crest radii stay above ~16 m
 
+// The world paints the approach road's centre line as 3 m dashes every 6 m, counted from its hub
+// end, and its kerb joints every 0.6 m from the same point. The funnel starts on the road at the
+// road's own width where a dash ends, and is widest where the guard rails begin.
+export const ROAD_HW = (approach?.width ?? 8) / 2;
+export const APPROACH_LEN = approach ? Math.hypot(approach.points[0][0] - FOOT_U, approach.points[0][1] - ROAD_V) : 26;
+export const LAST_DASH_S = 6 * Math.floor(APPROACH_LEN / 6) - APPROACH_LEN; // start of the road's last dash
+export const MOUTH_S0 = LAST_DASH_S - 3;
+export const MOUTH_PEAK = 0.6;
+
 export const ratingY = (rating: number) => (rating - R0) * K;
+const smooth = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 export const sContest = (i: number) => RAMP + i * DS;
 export const S_SUMMIT = sContest(N - 1);
 export const S_END = S_SUMMIT + PLAZA_LEN;
@@ -115,7 +125,7 @@ function solveCoarse(floors: Map<number, number>): Float64Array {
 }
 
 export const PROFILE_DS = 0.25;
-export const PROFILE_S0 = -3;
+export const PROFILE_S0 = MOUTH_S0 - 1;
 const PROFILE_S1 = S_END + 3;
 export const PROFILE_COUNT = Math.round((PROFILE_S1 - PROFILE_S0) / PROFILE_DS) + 1;
 
@@ -147,8 +157,13 @@ function buildProfile(coarse: Float64Array): Float64Array {
     for (let q = -r; q <= r; q++) acc += lin[Math.max(0, Math.min(PROFILE_COUNT - 1, k + q))] * kernel[q + r];
     out[k] = acc / sum;
   }
-  // The plaza is exactly flat once the crest rounding has died out.
-  for (let k = 0; k < PROFILE_COUNT; k++) if (PROFILE_S0 + k * PROFILE_DS >= S_SUMMIT + 3 * BLUR) out[k] = SUMMIT_Y;
+  // The plaza is exactly flat once the crest rounding has died out, and the blur's lead-in before
+  // the ramp eases back down to the road where the deck starts.
+  for (let k = 0; k < PROFILE_COUNT; k++) {
+    const sk = PROFILE_S0 + k * PROFILE_DS;
+    if (sk >= S_SUMMIT + 3 * BLUR) out[k] = SUMMIT_Y;
+    else if (sk < 0) out[k] = BASE_Y + (out[k] - BASE_Y) * smooth(sk / -MOUTH_S0 + 1);
+  }
   return out;
 }
 
@@ -185,15 +200,17 @@ export const deckY = (s: number) => sample(DECK, s);
 
 // Deck half-width: a funnel at the foot that catches cars arriving off-centre, the road, a flared
 // mouth into the summit plaza, and chamfered far corners.
-const smooth = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
-export const MOUTH_HW = 5.4;
-export const MOUTH_S1 = 8;
+// Wide enough that the rail ends clear the road's kerbs, long enough to ease a car hugging either
+// kerb onto the ramp without stopping it.
+export const MOUTH_HW = 4.7;
+export const MOUTH_S1 = 10;
 // Long enough that a car coming down off the plaza is steered into the road, not stopped.
 export const FLARE_S0 = S_SUMMIT - 3;
 export const FLARE_S1 = S_SUMMIT + 5;
 export const CHAMFER = 3;
 export function hwAt(s: number): number {
-  if (s < MOUTH_S1) return HW + (MOUTH_HW - HW) * (1 - smooth(s / MOUTH_S1));
+  if (s < MOUTH_PEAK) return ROAD_HW + (MOUTH_HW - ROAD_HW) * smooth((s - MOUTH_S0) / (MOUTH_PEAK - MOUTH_S0));
+  if (s < MOUTH_S1) return HW + (MOUTH_HW - HW) * (1 - smooth((s - MOUTH_PEAK) / (MOUTH_S1 - MOUTH_PEAK)));
   if (s < FLARE_S0) return HW;
   if (s < FLARE_S1) return HW + (PLAZA_HW - HW) * smooth((s - FLARE_S0) / (FLARE_S1 - FLARE_S0));
   if (s < S_END - CHAMFER) return PLAZA_HW;
