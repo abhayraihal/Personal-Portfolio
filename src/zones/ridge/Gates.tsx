@@ -6,7 +6,7 @@ import { Color, MeshStandardMaterial } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { MILESTONES, deckY, sContest } from './profile.ts';
 import type { Milestone } from './profile.ts';
-import { railSides } from './shape.ts';
+import { RAIL_VIS_T, railSides } from './shape.ts';
 import { cornerCutBox, shadeFor } from './geometry.ts';
 import { railPointAt } from './Rails.tsx';
 
@@ -14,6 +14,7 @@ import { railPointAt } from './Rails.tsx';
 export const gateFlash: number[] = MILESTONES.map(() => 0);
 
 const PILLAR = 0.62;
+const SINK = 1; // below the deck, so a pillar standing over the cliff edge stays buried in the face
 const HEIGHT = 5.1; // deck to the top of the lintel
 const LINTEL_H = 0.75;
 const PLAQUE_H = 1.4;
@@ -25,11 +26,14 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
   const s = sContest(m.index);
   const y0 = deckY(s);
   const { front, back } = useMemo(() => railSides(0.5), []);
-  const zf = railPointAt(front, s).z;
-  const zb = railPointAt(back, s).z;
+  // Pillars sit just outside the rail line, inner faces flush with the rail, so a car sliding
+  // along the rail is not caught on them.
+  const out = (PILLAR - RAIL_VIS_T) / 2;
+  const zf = railPointAt(front, s).z + out;
+  const zb = railPointAt(back, s).z - out;
   const color = shadeFor(m.name, m.color);
   const parts = useMemo(() => {
-    const pillar = cornerCutBox(PILLAR, HEIGHT + 0.4, PILLAR, 0.09);
+    const pillar = cornerCutBox(PILLAR, HEIGHT + SINK, PILLAR, 0.09);
     const lintel = cornerCutBox(PILLAR + 0.12, LINTEL_H, zf - zb + PILLAR + 0.3, 0.1);
     const mat = new MeshStandardMaterial({ color, roughness: 0.75, emissive: new Color(color), emissiveIntensity: 0 });
     return { pillar, lintel, mat };
@@ -51,7 +55,7 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
   return (
     <group position={[-s, 0, 0]}>
       {[zf, zb].map((z) => (
-        <mesh key={z} geometry={parts.pillar} material={parts.mat} position={[0, y0 + (HEIGHT + 0.4) / 2 - 0.4, z]} castShadow receiveShadow />
+        <mesh key={z} geometry={parts.pillar} material={parts.mat} position={[0, y0 + (HEIGHT + SINK) / 2 - SINK, z]} castShadow receiveShadow />
       ))}
       <mesh geometry={parts.lintel} material={parts.mat} position={[0, y0 + HEIGHT - LINTEL_H / 2, (zf + zb) / 2]} castShadow receiveShadow />
       <RoundedBox args={[w + 0.2, PLAQUE_H + 0.2, 0.16]} radius={0.1} smoothness={2} position={[0, yPlaque, zPlaque - 0.04]} castShadow>
@@ -65,7 +69,7 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
       </Label>
       <RigidBody type="fixed" colliders={false}>
         {[zf, zb].map((z) => (
-          <CuboidCollider key={z} args={[PILLAR / 2, (HEIGHT + 0.4) / 2, PILLAR / 2]} position={[0, y0 + (HEIGHT + 0.4) / 2 - 0.4, z]} />
+          <CuboidCollider key={z} args={[PILLAR / 2, (HEIGHT + SINK) / 2, PILLAR / 2]} position={[0, y0 + (HEIGHT + SINK) / 2 - SINK, z]} />
         ))}
       </RigidBody>
     </group>
