@@ -96,11 +96,11 @@ export function Trophy() {
 
         {/* Plaque leaning back towards the camera, in front of the dais. */}
         <group position={[0, 0, PLAQUE_Z]}>
-          <mesh position={[0, 0.17, 0]} material={M.slate} castShadow>
+          <mesh position={[0, 0.17, 0]} material={M.slate}>
             <boxGeometry args={[5.1, 0.34, 0.62]} />
           </mesh>
           <group position={[0, 0.76, -0.05]} rotation={[-0.75, 0, 0]}>
-            <mesh material={M.paper} castShadow>
+            <mesh material={M.paper}>
               <boxGeometry args={[4.9, 1.05, 0.1]} />
             </mesh>
             <Label font="bodyBold" size={0.36} color={COLORS.ink} position={[0, 0.2, 0.06]}>

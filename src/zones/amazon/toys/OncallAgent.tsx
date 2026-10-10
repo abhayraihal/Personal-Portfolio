@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
-import { Color, CylinderGeometry, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
-import type { Group, Mesh } from 'three';
+import { Color, CylinderGeometry, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
+import type { Group, InstancedMesh, Mesh } from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { Label } from '../../../components/Label.tsx';
 import { Model } from '../../../components/Model.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
 import { TOY_TEXT } from '../copy.ts';
+import { useBoxes } from '../geo.ts';
+import type { BoxSpec } from '../geo.ts';
 import { M } from '../materials.ts';
 import { Plaque, StationBoard } from '../parts.tsx';
-import { easeInCubic, easeOutBack, easeOutCubic, frameDt, seg } from '../shared.ts';
+import { easeInCubic, easeOutBack, easeOutCubic, fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
 
 // A ticket crate drops onto the landing pad, the agent checks four sources one after another,
@@ -21,6 +24,7 @@ const LAND = { x: 0, z: 0.95 };
 const PILLAR_X = [-3.6, -2.15, 2.15, 3.6];
 const PILLAR_Z = 0.05;
 const PILLAR_H = 1.9;
+const LAMP_Y = PILLAR_H + 0.12;
 const CRATE_S = 0.9; // crate-wood is 1 m at scale 1
 const DROP = 9;
 const T_LAND = 0.85;
@@ -30,46 +34,38 @@ const T_POOF = 3.5;
 const T_CARD = 3.62;
 const CARD = { w: 2.7, h: 2.5 };
 const CARD_LOW = -3.4;
+const HEAD_Y = [CARD.h - 0.58, CARD.h - 1.26, CARD.h - 1.94];
 
 const DIM = new Color('#2a3140');
 // One colour per source: logs, metrics, code, runbooks.
 const SOURCE_COLORS = ['#4f8cff', '#3ee07a', '#b07cff', '#ffb020'].map((c) => new Color(c));
+const BARS: BoxSpec[] = HEAD_Y.flatMap((y): BoxSpec[] => [
+  [2.16, 0.07, 0.01, -CARD.w / 2 + 0.24 + 1.08, y - 0.28, 0.06],
+  [1.56, 0.07, 0.01, -CARD.w / 2 + 0.24 + 0.78, y - 0.44, 0.06],
+]);
+
 const _c = new Color();
+const _m = new Matrix4();
+const _p = new Vector3();
+const _q = new Quaternion();
+const _s = new Vector3();
 const _up = new Vector3(0, 1, 0);
 const _d = new Vector3();
 
-function Pillar({ x, label, lamp }: { x: number; label: string; lamp: MeshBasicMaterial }) {
-  return (
-    <group position={[x, 0, PILLAR_Z]}>
-      <RoundedBox args={[0.78, PILLAR_H, 0.78]} radius={0.08} smoothness={2} bevelSegments={1} position={[0, PILLAR_H / 2, 0]} material={M.slate} castShadow receiveShadow />
-      <mesh position={[0, PILLAR_H + 0.12, 0]} material={lamp}>
-        <boxGeometry args={[0.62, 0.24, 0.62]} />
-      </mesh>
-      <Plaque text={label} size={0.24} position={[0, 1.18, 0.4]} depth={0.05} />
-    </group>
-  );
-}
-
 // Report card: headings only, the lines under them are blank bars.
 function ReportCard() {
-  const headY = [CARD.h - 0.58, CARD.h - 1.26, CARD.h - 1.94];
+  const bars = useBoxes(BARS);
   return (
     <group>
       <RoundedBox args={[CARD.w, CARD.h, 0.1]} radius={0.05} smoothness={2} bevelSegments={1} position={[0, CARD.h / 2, 0]} material={M.paper} castShadow />
       <mesh position={[0, CARD.h - 0.16, 0.055]} material={M.orange}>
         <boxGeometry args={[CARD.w - 0.1, 0.22, 0.01]} />
       </mesh>
+      <mesh geometry={bars} material={M.stoneDark} />
       {TOY_TEXT.report.map((h, i) => (
-        <group key={h} position={[-CARD.w / 2 + 0.24, headY[i], 0.06]}>
-          <Label font="bodyBold" size={0.29} color={COLORS.ink} anchorX="left">
-            {h}
-          </Label>
-          {[0, 1].map((r) => (
-            <mesh key={r} position={[r ? 0.78 : 1.08, -0.28 - r * 0.16, 0]} material={M.stoneDark}>
-              <boxGeometry args={[r ? 1.56 : 2.16, 0.07, 0.01]} />
-            </mesh>
-          ))}
-        </group>
+        <Label key={h} font="bodyBold" size={0.29} color={COLORS.ink} anchorX="left" position={[-CARD.w / 2 + 0.24, HEAD_Y[i], 0.06]}>
+          {h}
+        </Label>
       ))}
     </group>
   );
@@ -80,29 +76,55 @@ function OncallAgentToy({ clock }: ToyProps) {
   const card = useRef<Group>(null);
   const dust = useRef<Mesh>(null);
   const ring = useRef<Mesh>(null);
-  const beams = useRef<(Mesh | null)[]>([]);
+  const pillars = useRef<InstancedMesh>(null);
+  const lamps = useRef<InstancedMesh>(null);
+  const beams = useRef<InstancedMesh>(null);
   const fired = useRef({ land: false, src: [false, false, false, false] });
-  const lamps = useMemo(() => PILLAR_X.map(() => new MeshBasicMaterial({ color: DIM.clone(), toneMapped: false })), []);
-  const dustMat = useMemo(() => new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false }), []);
-  const beam = useMemo(() => {
-    const geo = new CylinderGeometry(0.05, 0.05, 1, 6, 1);
-    geo.translate(0, 0.5, 0);
-    return { geo, mats: SOURCE_COLORS.map((c) => new MeshBasicMaterial({ color: c, toneMapped: false, transparent: true, opacity: 0.85 })) };
+  const geo = useMemo(() => {
+    const beam = new CylinderGeometry(0.05, 0.05, 1, 6, 1);
+    beam.translate(0, 0.5, 0);
+    return { pillar: new RoundedBoxGeometry(0.78, PILLAR_H, 0.78, 2, 0.08), beam };
   }, []);
+  const mats = useMemo(() => ({
+    lamp: new MeshBasicMaterial({ toneMapped: false }),
+    beam: new MeshBasicMaterial({ toneMapped: false, transparent: true, opacity: 0.85 }),
+    dust: new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false }),
+  }), []);
   useEffect(() => () => {
-    lamps.forEach((m) => m.dispose());
-    dustMat.dispose();
-    beam.geo.dispose();
-    beam.mats.forEach((m) => m.dispose());
-  }, [lamps, dustMat, beam]);
+    geo.pillar.dispose();
+    geo.beam.dispose();
+    Object.values(mats).forEach((m) => m.dispose());
+  }, [geo, mats]);
 
   // Beam from the top of the crate to each pillar lamp: a unit cylinder along +Y, scaled to length.
   const beamPose = useMemo(() => PILLAR_X.map((x) => {
     const from = new Vector3(LAND.x, 1.05, LAND.z);
-    const to = new Vector3(x, PILLAR_H + 0.12, PILLAR_Z);
-    _d.subVectors(to, from);
+    _d.set(x, LAMP_Y, PILLAR_Z).sub(from);
     return { from, len: _d.length(), q: new Quaternion().setFromUnitVectors(_up, _d.normalize()) };
   }), []);
+
+  useLayoutEffect(() => {
+    const p = pillars.current;
+    const l = lamps.current;
+    const b = beams.current;
+    if (!p || !l || !b) return;
+    _q.identity();
+    PILLAR_X.forEach((x, i) => {
+      p.setMatrixAt(i, _m.compose(_p.set(x, PILLAR_H / 2, PILLAR_Z), _q, _s.set(1, 1, 1)));
+      l.setMatrixAt(i, _m.compose(_p.set(x, LAMP_Y, PILLAR_Z), _q, _s.set(1, 1, 1)));
+    });
+    l.instanceColor = new InstancedBufferAttribute(new Float32Array(12), 3);
+    b.instanceColor = new InstancedBufferAttribute(new Float32Array(12), 3);
+    PILLAR_X.forEach((_, i) => {
+      l.setColorAt(i, DIM);
+      b.setColorAt(i, SOURCE_COLORS[i]);
+    });
+    p.instanceMatrix.needsUpdate = true;
+    l.instanceMatrix.needsUpdate = true;
+    p.computeBoundingSphere();
+    l.computeBoundingSphere();
+    fixBounds(b, 4.5, 0, 1.5, 0.5);
+  }, []);
 
   useFrame((state, delta) => {
     const dt = frameDt(delta);
@@ -140,25 +162,31 @@ function OncallAgentToy({ clock }: ToyProps) {
       const k = seg(t, T_LAND, T_LAND + 0.55);
       d.visible = phase === 'play' && k > 0 && k < 1;
       d.scale.setScalar(0.6 + 1.6 * easeOutCubic(k));
-      dustMat.opacity = 0.55 * (1 - k);
+      mats.dust.opacity = 0.55 * (1 - k);
     }
 
-    // Sources light up one after another, each with a beam from the crate.
-    for (let i = 0; i < PILLAR_X.length; i++) {
-      const t0 = T_SRC + i * SRC_GAP;
-      const k = phase === 'idle' ? 0 : seg(t, t0, t0 + 0.25) * back;
-      lamps[i].color.copy(_c.copy(DIM).lerp(SOURCE_COLORS[i], k));
-      // Beams fade once the report is up; the lamps stay lit.
-      const kb = k * (1 - seg(t, T_CARD, T_CARD + 0.4));
-      const b = beams.current[i];
-      if (b) {
-        b.visible = kb > 0.001;
-        b.scale.set(1, beamPose[i].len * easeOutCubic(kb), 1);
+    // Sources light up one after another, each with a beam from the crate. Beams fade once the
+    // report is up; the lamps stay lit.
+    const l = lamps.current;
+    const b = beams.current;
+    if (l && b) {
+      let anyBeam = false;
+      for (let i = 0; i < PILLAR_X.length; i++) {
+        const t0 = T_SRC + i * SRC_GAP;
+        const k = phase === 'idle' ? 0 : seg(t, t0, t0 + 0.25) * back;
+        l.setColorAt(i, _c.copy(DIM).lerp(SOURCE_COLORS[i], k));
+        const kb = k * (1 - seg(t, T_CARD, T_CARD + 0.4));
+        anyBeam ||= kb > 0.001;
+        const bp = beamPose[i];
+        b.setMatrixAt(i, _m.compose(bp.from, bp.q, _s.set(1, Math.max(0.0001, bp.len * easeOutCubic(kb)), 1)));
+        if (phase === 'play' && t >= t0 && !fired.current.src[i]) {
+          fired.current.src[i] = true;
+          playSound('click', 0.5);
+        }
       }
-      if (phase === 'play' && t >= t0 && !fired.current.src[i]) {
-        fired.current.src[i] = true;
-        playSound('click', 0.5);
-      }
+      if (l.instanceColor) l.instanceColor.needsUpdate = true;
+      b.instanceMatrix.needsUpdate = true;
+      b.visible = anyBeam;
     }
 
     // Report card rises out of the platform.
@@ -180,21 +208,13 @@ function OncallAgentToy({ clock }: ToyProps) {
   return (
     <>
       <StationBoard id="amazon-oncall-agent" position={[0, 0, -2.35]} />
+      <instancedMesh ref={pillars} args={[geo.pillar, M.slate, 4]} castShadow receiveShadow />
+      <instancedMesh ref={lamps} args={[undefined, mats.lamp, 4]}>
+        <boxGeometry args={[0.62, 0.24, 0.62]} />
+      </instancedMesh>
+      <instancedMesh ref={beams} args={[geo.beam, mats.beam, 4]} visible={false} />
       {PILLAR_X.map((x, i) => (
-        <Pillar key={x} x={x} label={TOY_TEXT.sources[i]} lamp={lamps[i]} />
-      ))}
-      {beamPose.map((b, i) => (
-        <mesh
-          key={i}
-          ref={(el) => {
-            beams.current[i] = el;
-          }}
-          geometry={beam.geo}
-          material={beam.mats[i]}
-          position={b.from}
-          quaternion={b.q}
-          visible={false}
-        />
+        <Plaque key={x} text={TOY_TEXT.sources[i]} size={0.24} position={[x, 1.18, PILLAR_Z + 0.4]} depth={0.05} />
       ))}
 
       {/* Landing pad */}
@@ -206,11 +226,11 @@ function OncallAgentToy({ clock }: ToyProps) {
           <ringGeometry args={[0.72, 0.86, 32]} />
           <meshBasicMaterial color={COLORS.amazon} toneMapped={false} />
         </mesh>
-        <mesh ref={dust} position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} material={dustMat} visible={false}>
+        <mesh ref={dust} position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} material={mats.dust} visible={false}>
           <ringGeometry args={[0.7, 0.95, 32]} />
         </mesh>
         <group ref={crate} visible={false}>
-          <Model name="crate-wood" scale={CRATE_S} position={[0, 0, 0]} />
+          <Model name="crate-wood" scale={CRATE_S} />
           <Plaque text={TOY_TEXT.ticket} size={0.2} position={[0, 0.62, CRATE_S / 2 + 0.03]} depth={0.03} />
         </group>
         <group ref={card} position={[0, CARD_LOW, -0.1]} visible={false}>

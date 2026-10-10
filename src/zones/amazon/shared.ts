@@ -96,3 +96,6 @@ export const frameDt = (delta: number) => Math.min(delta, 0.05);
 export function fixBounds(mesh: { boundingSphere: Sphere | null } | null, radius: number, cx = 0, cy = 1, cz = 0) {
   if (mesh) mesh.boundingSphere = new Sphere(new Vector3(cx, cy, cz), radius);
 }
+
+// ?inspect only: the station clocks, so the harness can start a toy without driving there.
+export const inspectClocks = new Map<string, ToyClock>();

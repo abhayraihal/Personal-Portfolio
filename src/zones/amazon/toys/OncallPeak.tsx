@@ -52,7 +52,7 @@ function Banners() {
   });
   return (
     <group ref={group} position={[BANNER_X, 0, BANNER_Z]}>
-      <mesh position={[0, 1.95, -0.1]} material={M.slate} castShadow>
+      <mesh position={[0, 1.95, -0.1]} material={M.slate}>
         <boxGeometry args={[0.13, 3.9, 0.13]} />
       </mesh>
       <mesh position={[0, 3.95, -0.1]} material={M.orange}>
@@ -168,7 +168,7 @@ function OncallPeakToy({ clock }: ToyProps) {
           </mesh>
         ))}
         <group ref={count} position={[0, 0.95, 0]}>
-          <mesh position={[0, 0, -0.05]} material={M.paper} castShadow>
+          <mesh position={[0, 0, -0.05]} material={M.paper}>
             <boxGeometry args={[2.9, 1.3, 0.1]} />
           </mesh>
           <Label font="display" size={0.8} color={COLORS.amazon} position={[0, 0.2, 0.005]}>

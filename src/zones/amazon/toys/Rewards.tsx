@@ -138,13 +138,13 @@ function Flag({ kind, phase }: { kind: FlagKind; phase: number }) {
   });
   return (
     <group>
-      <mesh position={[0, 0.6, 0]} material={M.metal} castShadow>
+      <mesh position={[0, 0.6, 0]} material={M.metal}>
         <cylinderGeometry args={[0.045, 0.055, 1.2, 8]} />
       </mesh>
       <mesh position={[0, 1.24, 0]} material={M.orange}>
         <sphereGeometry args={[0.08, 10, 8]} />
       </mesh>
-      <mesh ref={cloth} geometry={geometry} material={material} position={[0.04, 0.82, 0]} castShadow />
+      <mesh ref={cloth} geometry={geometry} material={material} position={[0.04, 0.82, 0]} />
     </group>
   );
 }
@@ -156,7 +156,7 @@ function Screen({ face }: { face: MeshStandardMaterial }) {
   return (
     <group position={[0, 0, SCREEN_Z]}>
       {[-3.1, 3.1].map((x) => (
-        <mesh key={x} position={[x, LEGS / 2, -0.05]} material={M.slate} castShadow>
+        <mesh key={x} position={[x, LEGS / 2, -0.05]} material={M.slate}>
           <boxGeometry args={[0.36, LEGS, 0.36]} />
         </mesh>
       ))}
@@ -201,13 +201,13 @@ function Chute() {
           <boxGeometry args={[len, 0.12, 0.8]} />
         </mesh>
         {[-1, 1].map((s) => (
-          <mesh key={s} position={[0, 0.1, s * 0.38]} material={M.orangeDeep} castShadow>
+          <mesh key={s} position={[0, 0.1, s * 0.38]} material={M.orangeDeep}>
             <boxGeometry args={[len, 0.22, 0.06]} />
           </mesh>
         ))}
       </group>
       {[-2.6, 1.3].map((x) => (
-        <mesh key={x} position={[x, surface(x) / 2 - 0.06, CHUTE.z]} material={M.slate} castShadow>
+        <mesh key={x} position={[x, surface(x) / 2 - 0.06, CHUTE.z]} material={M.slate}>
           <boxGeometry args={[0.16, surface(x) - 0.12, 0.16]} />
         </mesh>
       ))}

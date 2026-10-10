@@ -9,6 +9,8 @@ import { playSound } from '../../../state/events.ts';
 import { TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
 import { Plaque, StationBoard } from '../parts.tsx';
+import { useBoxes } from '../geo.ts';
+import type { BoxSpec } from '../geo.ts';
 import { easeInCubic, easeInOutCubic, easeOutBack, fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
 
@@ -50,6 +52,16 @@ const _c = new Color();
 
 const carIndex = (lane: number, slot: number) => lane * OLD_SLOTS.length + slot;
 
+const LANES: BoxSpec[] = LANE_Z.map((z): BoxSpec => [LANE_X1 - LANE_X0, 0.04, LANE_W, (LANE_X0 + LANE_X1) / 2, 0.02, z]);
+const FOOT_Z = (LANE_Z[0] + LANE_Z[3]) / 2;
+const FOOTPRINT: BoxSpec[] = [
+  [0.06, 0.02, 3.6, -0.36, 0, 0],
+  [0.06, 0.02, 3.6, 0.36, 0, 0],
+  [0.78, 0.02, 0.06, 0, 0, -1.8],
+  [0.78, 0.02, 0.06, 0, 0, 1.8],
+];
+const STRIPE_COLORS = LANE_COLORS.map((c) => new Color(c));
+
 function MigrationToy({ clock }: ToyProps) {
   const crateGeo = useMerged('crate-wood-banded');
   const carGeo = useMerged('vehicle-alt-pickup-truck');
@@ -67,6 +79,9 @@ function MigrationToy({ clock }: ToyProps) {
     ghostMat.dispose();
     lightMat.dispose();
   }, [ghostMat, lightMat]);
+  const lanes = useBoxes(LANES);
+  const foot = useBoxes(FOOTPRINT);
+  const stripes = useRef<InstancedMesh>(null);
   const crateScale = modelScale('crate-wood-banded') * CRATE_S;
   const carScale = modelScale('vehicle-alt-pickup-truck') * CAR_S;
 
@@ -74,6 +89,16 @@ function MigrationToy({ clock }: ToyProps) {
     const l = lights.current;
     if (l && !l.instanceColor) l.instanceColor = new InstancedBufferAttribute(new Float32Array(16 * 3), 3);
     for (const m of [crates.current, lights.current, cars.current, ghosts.current]) fixBounds(m, 6);
+    const st = stripes.current;
+    if (st) {
+      _q.identity();
+      LANE_Z.forEach((z, i) => {
+        st.setMatrixAt(i, _m.compose(_p.set(LANE_X0 + 0.14, 0.045, z), _q, _s.set(1, 1, 1)));
+        st.setColorAt(i, STRIPE_COLORS[i]);
+      });
+      st.instanceMatrix.needsUpdate = true;
+      st.computeBoundingSphere();
+    }
   }, []);
 
   useFrame((state, delta) => {
@@ -182,19 +207,14 @@ function MigrationToy({ clock }: ToyProps) {
   return (
     <>
       <StationBoard id="amazon-migration" position={[0, 0, -2.6]} width={7.0} />
+      <mesh geometry={lanes} material={M.slate} receiveShadow />
+      <instancedMesh ref={stripes} args={[undefined, M.white, 4]}>
+        <boxGeometry args={[0.24, 0.012, LANE_W]} />
+      </instancedMesh>
       {LANE_Z.map((z, i) => (
-        <group key={z} position={[0, 0, z]}>
-          <mesh position={[(LANE_X0 + LANE_X1) / 2, 0.02, 0]} material={M.slate} receiveShadow>
-            <boxGeometry args={[LANE_X1 - LANE_X0, 0.04, LANE_W]} />
-          </mesh>
-          <mesh position={[LANE_X0 + 0.14, 0.045, 0]}>
-            <boxGeometry args={[0.24, 0.012, LANE_W]} />
-            <meshStandardMaterial color={LANE_COLORS[i]} roughness={0.8} />
-          </mesh>
-          <Label flat font="bodyBold" size={0.3} color="#ffffff" position={[0, 0.05, 0]}>
-            {TOY_TEXT.countries[i]}
-          </Label>
-        </group>
+        <Label key={z} flat font="bodyBold" size={0.3} color="#ffffff" position={[0, 0.05, z]}>
+          {TOY_TEXT.countries[i]}
+        </Label>
       ))}
       <instancedMesh ref={crates} args={[crateGeo.geometry, crateGeo.material, 16]} castShadow receiveShadow />
       <instancedMesh ref={lights} args={[undefined, lightMat, 16]}>
@@ -217,19 +237,10 @@ function MigrationToy({ clock }: ToyProps) {
         </mesh>
       </group>
       {/* Where the old rack stood: an outline and the result. */}
-      <group ref={footprint} position={[-RACK_X, 0.01, (LANE_Z[0] + LANE_Z[3]) / 2]} visible={false}>
-        {[-1, 1].map((sx) => (
-          <mesh key={`x${sx}`} position={[sx * 0.36, 0, 0]} material={M.orange}>
-            <boxGeometry args={[0.06, 0.02, 3.6]} />
-          </mesh>
-        ))}
-        {[-1, 1].map((sz) => (
-          <mesh key={`z${sz}`} position={[0, 0, sz * 1.8]} material={M.orange}>
-            <boxGeometry args={[0.78, 0.02, 0.06]} />
-          </mesh>
-        ))}
+      <group ref={footprint} position={[-RACK_X, 0.01, FOOT_Z]} visible={false}>
+        <mesh geometry={foot} material={M.orange} />
       </group>
-      <group ref={dublin} position={[-RACK_X + 0.35, 0.5, (LANE_Z[0] + LANE_Z[3]) / 2 + 0.3]} visible={false}>
+      <group ref={dublin} position={[-RACK_X + 0.35, 0.5, FOOT_Z + 0.3]} visible={false}>
         <Plaque text={TOY_TEXT.dublin} size={0.3} material={M.ink} color="#ffffff" legs={0.25} />
       </group>
       <Plaque text={TOY_TEXT.noImpact} size={0.28} position={[2.25, 0.36, 3.0]} legs={0.16} color={COLORS.ink} />

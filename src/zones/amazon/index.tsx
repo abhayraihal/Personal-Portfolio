@@ -4,6 +4,7 @@ import { useInspect } from './inspect.ts';
 import { STATIONS } from './layout.ts';
 import type { StationId } from './layout.ts';
 import { Office } from './Office.tsx';
+import { Parcels } from './Parcels.tsx';
 import { Props } from './Props.tsx';
 import { Station } from './Station.tsx';
 import type { ToySpec } from './Station.tsx';
@@ -34,6 +35,7 @@ export function AmazonZone() {
       <Office />
       <Trophy />
       <Props />
+      <Parcels />
       {STATIONS.map((def) => (
         <Station key={def.id} def={def} toy={TOYS[def.id]} />
       ))}

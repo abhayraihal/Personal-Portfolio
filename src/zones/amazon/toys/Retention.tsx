@@ -9,6 +9,8 @@ import { playSound } from '../../../state/events.ts';
 import { TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
 import { Plaque, StationBoard } from '../parts.tsx';
+import { useBoxes } from '../geo.ts';
+import type { BoxSpec } from '../geo.ts';
 import { easeInCubic, easeOutBack, fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
 
@@ -33,6 +35,19 @@ const POP = 0.34;
 
 type Crate = { x: number; y: number; z: number; keep: boolean; t0: number; spin: number };
 
+const OW = NX * S + 0.2;
+const OD = NZ * S + 0.2;
+const OUTLINE: BoxSpec[] = [
+  [0.06, 0.02, OD + 0.06, -OW / 2, 0, 0],
+  [0.06, 0.02, OD + 0.06, OW / 2, 0, 0],
+  [OW + 0.06, 0.02, 0.06, 0, 0, -OD / 2],
+  [OW + 0.06, 0.02, 0.06, 0, 0, OD / 2],
+];
+const SIGN_LEGS: BoxSpec[] = [
+  [0.1, 0.6, 0.1, -1.75, 0.3, -0.06],
+  [0.1, 0.6, 0.1, 1.75, 0.3, -0.06],
+];
+
 const _m = new Matrix4();
 const _p = new Vector3();
 const _q = new Quaternion();
@@ -55,6 +70,8 @@ function RetentionToy({ clock }: ToyProps) {
     edgeMat.dispose();
   }, [sweepMat, edgeMat]);
   const scale = modelScale('crate-wood') * S;
+  const outline = useBoxes(OUTLINE);
+  const legs = useBoxes(SIGN_LEGS);
 
   const crates = useMemo<Crate[]>(() => {
     const list: Crate[] = [];
@@ -141,18 +158,7 @@ function RetentionToy({ clock }: ToyProps) {
     <>
       <StationBoard id="amazon-retention" position={[0, 0, -2.45]} lift={1.0} />
       {/* Outline of the full block, so the 4 left over read against what was there. */}
-      <group position={[BLOCK.x, 0.012, BLOCK.z]}>
-        {[-1, 1].map((sx) => (
-          <mesh key={`x${sx}`} position={[sx * (NX * S + 0.2) / 2, 0, 0]} material={M.orange}>
-            <boxGeometry args={[0.06, 0.02, NZ * S + 0.26]} />
-          </mesh>
-        ))}
-        {[-1, 1].map((sz) => (
-          <mesh key={`z${sz}`} position={[0, 0, sz * (NZ * S + 0.2) / 2]} material={M.orange}>
-            <boxGeometry args={[NX * S + 0.26, 0.02, 0.06]} />
-          </mesh>
-        ))}
-      </group>
+      <mesh geometry={outline} position={[BLOCK.x, 0.012, BLOCK.z]} material={M.orange} />
       <instancedMesh ref={mesh} args={[geometry, material, N]} castShadow receiveShadow />
       <group ref={sweep} position={[SWEEP_X0, 0, BLOCK.z]} visible={false}>
         <mesh position={[0, sweepH / 2, 0]} material={sweepMat}>
@@ -169,12 +175,8 @@ function RetentionToy({ clock }: ToyProps) {
 
       {/* Result sign: the three numbers from the panel, one per line. */}
       <group ref={sign} position={[1.85, 0, 0.9]}>
-        {[-1.75, 1.75].map((x) => (
-          <mesh key={x} position={[x, 0.3, -0.06]} material={M.slate} castShadow>
-            <boxGeometry args={[0.1, 0.6, 0.1]} />
-          </mesh>
-        ))}
-        <mesh position={[0, 1.42, -0.06]} material={M.paper} castShadow>
+        <mesh geometry={legs} material={M.slate} />
+        <mesh position={[0, 1.42, -0.06]} material={M.paper}>
           <boxGeometry args={[4.2, 1.68, 0.1]} />
         </mesh>
         <mesh position={[0, 2.2, 0]} material={M.orange}>

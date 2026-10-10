@@ -35,7 +35,7 @@ export function Office() {
         {/* Rooftop sign on two legs, set back from the parapet. */}
         <group position={[0, H - 0.25, front - 2.2]}>
           {[-3.8, 3.8].map((x) => (
-            <mesh key={x} position={[x, 0.55, -0.15]} material={M.slate} castShadow>
+            <mesh key={x} position={[x, 0.55, -0.15]} material={M.slate}>
               <boxGeometry args={[0.28, 1.1, 0.28]} />
             </mesh>
           ))}
@@ -50,7 +50,7 @@ export function Office() {
 
         {/* Role band over the entrance awning. */}
         <group position={[0, 4.55, front + 0.12]}>
-          <RoundedBox args={[14.6, 0.95, 0.16]} radius={0.06} smoothness={2} bevelSegments={1} material={M.paper} castShadow />
+          <RoundedBox args={[14.6, 0.95, 0.16]} radius={0.06} smoothness={2} bevelSegments={1} material={M.paper} />
           <mesh position={[0, -0.41, 0.085]} material={M.orange}>
             <boxGeometry args={[14.4, 0.1, 0.02]} />
           </mesh>

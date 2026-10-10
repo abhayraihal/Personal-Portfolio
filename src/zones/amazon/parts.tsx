@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Ref } from 'react';
 import type { Group, Material } from 'three';
 import { Board } from '../../components/Board.tsx';
@@ -6,6 +6,8 @@ import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import type { FontName } from '../../config/palette.ts';
 import { BOARDS } from './copy.ts';
+import { useBoxes } from './geo.ts';
+import type { BoxSpec } from './geo.ts';
 import type { StationId } from './layout.ts';
 import { M } from './materials.ts';
 
@@ -42,21 +44,23 @@ type PlaqueProps = {
   groupRef?: Ref<Group>;
 };
 
-// A plate with one line of text that sizes itself to the text once troika has laid it out.
+// A plate with one line of text that sizes itself to the text once troika has laid it out. The plate
+// and its legs are one mesh.
 export function Plaque({ text, size = 0.3, font = 'bodyBold', color = COLORS.ink, material = M.paper, position, rotation, pad = 0.14, depth = 0.08, legs = 0, groupRef }: PlaqueProps) {
   const [w, setW] = useState(() => text.length * size * 0.56);
   const h = size * 1.35 + pad;
+  const specs = useMemo<BoxSpec[]>(() => {
+    const list: BoxSpec[] = [[w + pad * 2, h, depth, 0, 0, -depth / 2]];
+    if (legs > 0) {
+      const lx = Math.max(0.2, w / 2 - 0.1);
+      for (const s of [-1, 1]) list.push([0.08, legs, 0.08, s * lx, -h / 2 - legs / 2, -depth / 2]);
+    }
+    return list;
+  }, [w, h, pad, depth, legs]);
+  const geo = useBoxes(specs);
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
-      {legs > 0 &&
-        [-1, 1].map((s) => (
-          <mesh key={s} position={[s * Math.max(0.2, w / 2 - 0.1), legs / 2 - h / 2 - legs, -depth / 2]} material={M.slate} castShadow>
-            <boxGeometry args={[0.08, legs, 0.08]} />
-          </mesh>
-        ))}
-      <mesh position={[0, 0, -depth / 2]} material={material} castShadow>
-        <boxGeometry args={[w + pad * 2, h, depth]} />
-      </mesh>
+      <mesh geometry={geo} material={material} />
       <Label
         font={font}
         size={size}
