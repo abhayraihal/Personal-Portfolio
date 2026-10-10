@@ -8,9 +8,10 @@
   pointer-events: none;
 }
 
-/* Toolbar, top right */
+/* Toolbar, top right. Above the other HUD pieces so the settings popover covers them. */
 .toolbar {
   position: absolute;
+  z-index: 3;
   top: calc(var(--edge) + var(--safe-t));
   right: calc(var(--edge) + var(--safe-r));
   display: flex;

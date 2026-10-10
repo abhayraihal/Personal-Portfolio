@@ -154,7 +154,7 @@ export function RatingChart({ interactive = true, table = true }: { interactive?
               <circle cx={p.x} cy={p.y} r="5" />
             </g>
           )}
-          {interactive && <rect className="cv-chart__hit" x={M.l} y={M.t} width={PLOT_W} height={PLOT_H} onPointerMove={onMove} onPointerLeave={() => setActive(null)} />}
+          {interactive && <rect className="cv-chart__hit" x={M.l} y={M.t} width={PLOT_W} height={PLOT_H} onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setActive(null)} />}
         </svg>
         {p && rank && (
           <div className="cv-chart__tip" style={{ '--x': `${(p.x / W) * 100}%`, '--y': `${(p.y / H) * 100}%` } as CSSProperties} data-side={p.x > W * 0.62 ? 'left' : 'right'} aria-hidden="true">

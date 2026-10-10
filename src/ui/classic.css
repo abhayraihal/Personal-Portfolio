@@ -11,7 +11,7 @@
   pointer-events: auto;
   outline: none;
 }
-.classic--overlay {
+.classic--enter {
   animation: fade-in calc(var(--motion) * 180ms) ease both;
 }
 /* The pre-rendered copy shows only at #classic (or one of its sections), without JavaScript. */

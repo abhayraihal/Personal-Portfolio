@@ -20,7 +20,7 @@ const RAD2DEG = 180 / Math.PI;
 const LABEL_NUDGE: Partial<Record<ZoneDef['id'], [number, number]>> = {
   hub: [17, 0],
   career: [0, 4],
-  ridge: [18, 0],
+  ridge: [-30, 12],
 };
 
 function ZoneMark({ zone, visited, current, onPick }: { zone: ZoneDef; visited: boolean; current: boolean; onPick: (z: ZoneDef) => void }) {

@@ -13,6 +13,10 @@ export function Classic() {
   const webgl = useStore((s) => s.webgl);
   const [printing, setPrinting] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Loaded at #classic: the pre-rendered page was already on screen, so no fade-in (it would
+  // flash the card underneath while React takes over).
+  const openedAtLoad = useRef(open);
+  if (!open) openedAtLoad.current = false;
   useClassicRoute();
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export function Classic() {
     };
   }, []);
 
-  if (open) return <ClassicView mode={webgl ? 'overlay' : 'standalone'} onClose={closeClassic} onPrint={print} headingRef={headingRef} />;
+  if (open) return <ClassicView mode={webgl ? 'overlay' : 'standalone'} enter={!openedAtLoad.current} onClose={closeClassic} onPrint={print} headingRef={headingRef} />;
   if (printing) return <ClassicView mode="print" />;
   return null;
 }

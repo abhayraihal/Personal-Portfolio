@@ -20,6 +20,7 @@ export type ClassicMode = 'overlay' | 'standalone' | 'static' | 'print';
 
 type Props = {
   mode: ClassicMode;
+  enter?: boolean; // fade in (opened from the world, not loaded at #classic)
   onClose?: () => void;
   onPrint?: () => void;
   headingRef?: Ref<HTMLHeadingElement>;
@@ -273,7 +274,7 @@ function Programming({ interactive }: { interactive: boolean }) {
   );
 }
 
-export function ClassicView({ mode, onClose, onPrint, headingRef }: Props) {
+export function ClassicView({ mode, enter, onClose, onPrint, headingRef }: Props) {
   const isStatic = mode === 'static';
   const interactive = mode === 'overlay' || mode === 'standalone';
   // The phone number is never in index.html, so the static copy leaves it out.
@@ -282,7 +283,7 @@ export function ClassicView({ mode, onClose, onPrint, headingRef }: Props) {
   const skills = (panels.skills.groups ?? []).filter((g) => g.label !== 'Coursework');
   const credits = panels.credits;
   return (
-    <main className={`classic classic--${mode}`} id={mode === 'print' ? undefined : 'classic'} aria-labelledby="cv-name" tabIndex={-1}>
+    <main className={`classic classic--${mode}${enter ? ' classic--enter' : ''}`} id={mode === 'print' ? undefined : 'classic'} aria-labelledby="cv-name" tabIndex={-1}>
       {mode !== 'print' && (
         <div className="classic__bar">
           <p className="classic__label">

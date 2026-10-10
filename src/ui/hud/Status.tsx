@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { ZONES } from '../../config/layout.ts';
+import { SPAWN, ZONES, zoneAt } from '../../config/layout.ts';
 import { contests } from '../../data/codeforces.ts';
 import { useStore } from '../../state/store.ts';
 import type { Toast } from '../../state/store.ts';
@@ -9,6 +9,9 @@ import { COARSE, blurAfterPointer, formatDate, textOn, useMediaQuery, usePresenc
 import { useUi } from '../uiStore.ts';
 
 const TOAST_EXIT_MS = 260;
+// The car starts in this zone. Its arrival toast right after Start would only cover the view the
+// camera glides down to, so the first one is skipped (the live region still announces it).
+const SPAWN_TITLE = zoneAt(SPAWN.u, SPAWN.v)?.title;
 
 function ToastView({ toast, leaving }: { toast: Toast; leaving: boolean }) {
   const zone = toast.tone === 'zone' ? ZONES.find((z) => z.title === toast.text) : undefined;
@@ -36,7 +39,14 @@ function ToastView({ toast, leaving }: { toast: Toast; leaving: boolean }) {
 // (store.announce), so the stack itself is not live.
 export function Toasts() {
   const toasts = useStore((s) => s.toasts);
-  const items = usePresence(toasts, TOAST_EXIT_MS);
+  const skip = useRef<number | null | undefined>(undefined); // id of the skipped toast, once known
+  if (skip.current === undefined) {
+    const first = toasts.find((t) => t.tone === 'zone');
+    if (first) skip.current = first.text === SPAWN_TITLE ? first.id : null;
+  }
+  const hidden = skip.current;
+  const shown = useMemo(() => (hidden == null ? toasts : toasts.filter((t) => t.id !== hidden)), [toasts, hidden]);
+  const items = usePresence(shown, TOAST_EXIT_MS);
   return (
     <div className="toasts">
       {items.map(({ item, leaving }) => (
@@ -101,7 +111,7 @@ export function Prompt() {
   );
 }
 
-const HINT_INPUTS = 6; // driving inputs before the first-time hint fades
+const HINT_INPUTS = 4; // driving inputs before the first-time hint fades
 
 export function ControlsHint() {
   const phase = useStore((s) => s.phase);
