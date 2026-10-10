@@ -63,7 +63,7 @@ function ReportCard() {
   return (
     <group>
       <RoundedBox args={[CARD.w, CARD.h, 0.1]} radius={0.05} smoothness={2} bevelSegments={1} position={[0, CARD.h / 2, 0]} material={M.paper} castShadow />
-      <mesh position={[0, CARD.h - 0.16, 0.055]} material={M.orange}>
+      <mesh position={[0, CARD.h - 0.16, 0.055]} material={M.accent}>
         <boxGeometry args={[CARD.w - 0.1, 0.22, 0.01]} />
       </mesh>
       <mesh geometry={bars} material={M.stoneDark} />

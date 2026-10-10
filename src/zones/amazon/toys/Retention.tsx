@@ -189,7 +189,7 @@ function RetentionToy({ clock }: ToyProps) {
         <mesh position={[0, 1.42, -0.06]} material={M.paper}>
           <boxGeometry args={[4.2, 1.68, 0.1]} />
         </mesh>
-        <mesh position={[0, 2.2, 0]} material={M.orange}>
+        <mesh position={[0, 2.2, 0]} material={M.accent}>
           <boxGeometry args={[4.1, 0.08, 0.01]} />
         </mesh>
         <Label size={0.35} color={COLORS.ink} lineHeight={0.47 / 0.35} textAlign="center" position={[0, 1.9 - 0.47 / 2, 0.005]}>

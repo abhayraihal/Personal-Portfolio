@@ -16,11 +16,13 @@ import { Static, staticChanged } from './merge.tsx';
 
 type V3 = [number, number, number];
 
-// Night: paper faces glow a little, like lit signs, so the dark text on them stays readable.
-const NIGHT_GLOW = 0.42;
+// Night: paper faces glow a little, like lit signs, so the dark text on them stays readable. The
+// glow is warm, like the valley's lamps, so the boards do not turn grey under the blue night sky.
+const NIGHT_GLOW = 0.5;
+const NIGHT_TINT = '#ffe3b5';
 
-export function glow(m: MeshStandardMaterial, on: boolean) {
-  m.emissive.set(on ? COLORS.paper : '#000000');
+function glow(m: MeshStandardMaterial, on: boolean) {
+  m.emissive.set(on ? NIGHT_TINT : '#000000');
   m.emissiveIntensity = NIGHT_GLOW;
 }
 

@@ -42,7 +42,7 @@ export function Office() {
               </mesh>
             ))}
             <RoundedBox args={[10.4, 2.7, 0.35]} radius={0.12} smoothness={2} bevelSegments={1} position={[0, 2.35, 0]} material={M.slate} castShadow />
-            <mesh position={[0, 1.12, 0.18]} material={M.orange}>
+            <mesh position={[0, 1.12, 0.18]} material={M.accent}>
               <boxGeometry args={[10.0, 0.16, 0.04]} />
             </mesh>
             <Label font="display" size={2.3} color={COLORS.amazon} position={[0, 2.42, 0.19]} letterSpacing={0.06}>
@@ -53,7 +53,7 @@ export function Office() {
           {/* Role band over the entrance awning. */}
           <group position={[0, 4.55, front + 0.12]}>
             <RoundedBox args={[14.6, 0.95, 0.16]} radius={0.06} smoothness={2} bevelSegments={1} material={M.paper} />
-            <mesh position={[0, -0.41, 0.085]} material={M.orange}>
+            <mesh position={[0, -0.41, 0.085]} material={M.accent}>
               <boxGeometry args={[14.4, 0.1, 0.02]} />
             </mesh>
             <Label font="bodyBold" size={0.46} color={COLORS.ink} position={[0, 0.03, 0.09]}>

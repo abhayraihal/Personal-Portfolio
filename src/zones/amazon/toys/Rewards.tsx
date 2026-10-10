@@ -224,7 +224,7 @@ function Screen({ face }: { face: MeshStandardMaterial }) {
         <mesh position={[0, faceY, 0.04]} material={face} receiveShadow>
           <boxGeometry args={[FACE_W, FACE_H, 0.04]} />
         </mesh>
-        <mesh position={[0, faceTop - 0.08, 0.065]} material={M.orange}>
+        <mesh position={[0, faceTop - 0.08, 0.065]} material={M.accent}>
           <boxGeometry args={[FACE_W - 0.2, 0.1, 0.01]} />
         </mesh>
       </Static>
