@@ -1,0 +1,44 @@
+import { toZoneLocal } from '../../config/layout.ts';
+
+// Phones and tablets: no keyboard, so the keycaps and key lines are left out.
+export const TOUCH = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+
+// Hub-local [x, y, z] (see <ZoneFrame>) for a screen-space point (u, v).
+export function hubAt(u: number, v: number, y = 0): [number, number, number] {
+  const [x, z] = toZoneLocal('hub', u, v);
+  return [x, y, z];
+}
+
+const HUT = [20.2, 10.4] as const;
+
+// Where everything in the hub sits, in screen space (u right, v up the screen). The car spawns at
+// (0, -8) facing up. Keep clear of the world's roads: hub-spine |u| <= 4 from v -16 to 18, the
+// campus and sports dirt roads leaving (+-6, -6) diagonally downwards, and the roundabout ring.
+export const SPOT = {
+  // Name letters stand across the spine; the car drives straight into them. Close enough to the
+  // spawn that both rows are in the first frame: from this camera the 2.2 m ABHAY row hides about
+  // 4.5 m of ground behind it, so the surname row sits 5 m further back.
+  abhayV: 3.0,
+  surnameV: 8.0,
+  // Painted on the road, sized to fit its 8 m width.
+  roleV: -3.3, // centre of the role line block, between the car and the letters
+  controlsV: -11.25, // first of the three control lines, just behind the car
+  // On the grass wedge between the spine and the campus road, left of the control lines; the
+  // whole cluster stays 0.5 m clear of both roads.
+  keycaps: [-6.4, -12.6] as const, // the W key; A S D sit below it
+  // Left of the spine.
+  photo: [-10.6, 1.4] as const,
+  photoPad: [-11.2, -2.2] as const, // 0.4 m clear of the campus road's upper edge
+  wallLegendV: 5.95, // painted between the wall and its pad
+  wall: [-19.4, 7.4] as const, // centre of the wall's base; it is about 11 m long
+  wallPad: [-19.4, 2.3] as const,
+  // Right of the spine.
+  hut: HUT, // hut recipe origin, the middle of its front row of cells; the door faces the camera
+  contactBoard: [13.4, 4.9] as const,
+  lantern: [16.9, 7.9] as const,
+  mailbox: [23.6, 5.2] as const,
+  contactPad: [HUT[0] - 1.25, 4.0] as const, // in front of the door, which is the hut's left cell
+  // Top left, out of the way between the skill wall and the ridge road.
+  bench: [-13.4, 17.2] as const,
+  creditsPad: [-13.4, 14.6] as const,
+};
