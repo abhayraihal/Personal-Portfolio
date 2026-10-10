@@ -22,7 +22,9 @@ const TREES: { name: ModelName; spots: Spot[] }[] = [
 const ROCKS: { name: ModelName; spots: Spot[] }[] = [
   { name: 'rock-grey-b', spots: [[-23.3, -2.2, 0.6, 1.2], [-10.2, -16.4, 2.1, 0.65]] },
   { name: 'rock-grey-c', spots: [[24, 0.6, 1.4, 1.1], [11.2, -16.6, 0.2, 0.6]] },
-  { name: 'rock-grey-a', spots: [[9.2, 13.4, 2.6, 1.3], [-8.6, 13.6, 0.9, 1.2]] },
+  // Behind the contact board and in the trees behind the skill wall, out of the arcs a car takes
+  // leaving the spawn up-left or up-right.
+  { name: 'rock-grey-a', spots: [[14.2, 14.8, 2.6, 1.3], [-21.4, 12.6, 0.9, 1.2]] },
 ];
 
 const POPPIES: Spot[] = [
