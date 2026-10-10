@@ -3,12 +3,14 @@ import type { RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { RapierRigidBody } from '@react-three/rapier';
 import { car } from '../../state/car.ts';
+import { events } from '../../state/events.ts';
 
 type Home = { t: { x: number; y: number; z: number }; r: { x: number; y: number; z: number; w: number } };
 
-// Same rule as <Resettable>, for a list of bodies the caller also needs refs to (traffic boxes,
+// Same rules as <Resettable>, for a list of bodies the caller also needs refs to (traffic boxes,
 // instanced crates and cones): a body that was knocked away goes home once it has been still for
-// `idleSeconds` with the car at least `carDistance` away.
+// `idleSeconds` with the car at least `carDistance` away, or at once on a teleport (zone hotkey or
+// R), which cuts the camera so nobody sees it move.
 export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[]>, idleSeconds = 12, carDistance = 14) {
   const homes = useRef<(Home | null)[]>([]);
   const idle = useRef<number[]>([]);
@@ -23,6 +25,17 @@ export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[]>, idle
     });
     return () => cancelAnimationFrame(id);
   }, [bodies]);
+
+  useEffect(() => events.on('teleported', () => {
+    const list = bodies.current;
+    for (let i = 0; i < list.length; i++) {
+      const b = list[i];
+      const h = homes.current[i];
+      if (!b || !h || atHome(b, h)) continue;
+      idle.current[i] = 0;
+      sendHome(b, h);
+    }
+  }), [bodies]);
 
   useFrame((_, delta) => {
     check.current += delta;
@@ -43,13 +56,17 @@ export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[]>, idle
       idle.current[i] = moved && far && still ? idle.current[i] + dt : 0;
       if (idle.current[i] > idleSeconds || t.y < -10) {
         idle.current[i] = 0;
-        b.setTranslation(h.t, true);
-        b.setRotation(h.r, true);
-        b.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        b.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        sendHome(b, h);
       }
     }
   });
+}
+
+function sendHome(b: RapierRigidBody, h: Home) {
+  b.setTranslation(h.t, true);
+  b.setRotation(h.r, true);
+  b.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  b.setAngvel({ x: 0, y: 0, z: 0 }, true);
 }
 
 function atHome(b: RapierRigidBody, h: Home) {
