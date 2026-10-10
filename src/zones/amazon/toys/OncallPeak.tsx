@@ -1,13 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Color, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
+import { BoxGeometry, Color, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import type { Group, InstancedMesh } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
 import { TOY_TEXT } from '../copy.ts';
+import { tinted } from '../geo.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { StationBoard } from '../parts.tsx';
 import { fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
@@ -38,38 +41,46 @@ const BANNERS = [
 ];
 const BANNER_X = 2.95;
 const BANNER_Z = -1.85;
+const SWAY_Y = 2.3; // the three banners sway together about this height
+
+// The three banners as one mesh: one box each, coloured per vertex.
+function bannerGeometry() {
+  const parts = BANNERS.map((b) => tinted(new BoxGeometry(2.6, b.h, 0.06).translate(0, b.y - SWAY_Y, 0), b.color));
+  const merged = mergeGeometries(parts, false) ?? parts[0];
+  for (const p of parts) if (p !== merged) p.dispose();
+  return merged;
+}
 
 function Banners() {
-  const group = useRef<Group>(null);
-  const mats = useMemo(() => BANNERS.map((b) => new MeshStandardMaterial({ color: b.color, roughness: 0.85 })), []);
-  useEffect(() => () => mats.forEach((m) => m.dispose()), [mats]);
+  const sway = useRef<Group>(null);
+  const { geometry, material } = useMemo(() => ({ geometry: bannerGeometry(), material: new MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }) }), []);
+  useEffect(() => () => {
+    geometry.dispose();
+    material.dispose();
+  }, [geometry, material]);
   useFrame(({ clock }) => {
-    const g = group.current;
+    const g = sway.current;
     if (!g || useStore.getState().reducedMotion) return;
-    g.children.forEach((c, i) => {
-      if (c.userData.banner) c.rotation.z = Math.sin(clock.elapsedTime * 1.3 + i * 1.9) * 0.025;
-    });
+    g.rotation.z = Math.sin(clock.elapsedTime * 1.3) * 0.025;
   });
   return (
-    <group ref={group} position={[BANNER_X, 0, BANNER_Z]}>
-      <mesh position={[0, 1.95, -0.1]} material={M.slate}>
-        <boxGeometry args={[0.13, 3.9, 0.13]} />
-      </mesh>
-      <mesh position={[0, 3.95, -0.1]} material={M.orange}>
-        <sphereGeometry args={[0.11, 12, 8]} />
-      </mesh>
-      {BANNERS.map((b, i) => (
-        <group key={i} position={[0, b.y, 0]} userData={{ banner: true }}>
-          <mesh position={[0, 0, 0]} material={mats[i]} castShadow>
-            <boxGeometry args={[2.6, b.h, 0.06]} />
-          </mesh>
-          {TOY_TEXT.peaks[i].map((line, k, all) => (
-            <Label key={line} font="bodyBold" size={0.3} color={b.text} position={[0, (all.length - 1) * 0.19 - k * 0.38, 0.035]}>
-              {line}
-            </Label>
-          ))}
-        </group>
-      ))}
+    <group position={[BANNER_X, 0, BANNER_Z]}>
+      <Static>
+        <mesh position={[0, 1.95, -0.1]} material={M.slate}>
+          <boxGeometry args={[0.13, 3.9, 0.13]} />
+        </mesh>
+        <mesh position={[0, 3.95, -0.1]} material={M.orange}>
+          <sphereGeometry args={[0.11, 12, 8]} />
+        </mesh>
+      </Static>
+      <group ref={sway} position={[0, SWAY_Y, 0]}>
+        <mesh geometry={geometry} material={material} castShadow />
+        {BANNERS.map((b, i) => (
+          <Label key={i} font="bodyBold" size={0.3} color={b.text} lineHeight={0.38 / 0.3} textAlign="center" position={[0, b.y - SWAY_Y, 0.035]}>
+            {TOY_TEXT.peaks[i].join('\n')}
+          </Label>
+        ))}
+      </group>
     </group>
   );
 }
@@ -151,9 +162,11 @@ function OncallPeakToy({ clock }: ToyProps) {
     <>
       <StationBoard id="amazon-oncall" position={[-1.6, 0, -2.4]} width={5.2} />
       <Banners />
-      <mesh position={[RING.x, 0.02, RING.z]} rotation={[-Math.PI / 2, 0, 0]} material={M.stoneDark} receiveShadow>
-        <ringGeometry args={[RING.r - 0.3, RING.r + 0.3, 48]} />
-      </mesh>
+      <Static>
+        <mesh position={[RING.x, 0.02, RING.z]} rotation={[-Math.PI / 2, 0, 0]} material={M.stoneDark} receiveShadow>
+          <ringGeometry args={[RING.r - 0.3, RING.r + 0.3, 48]} />
+        </mesh>
+      </Static>
       <instancedMesh ref={bases} args={[undefined, M.slate, N]} castShadow>
         <cylinderGeometry args={[0.15, 0.18, 0.22, 10]} />
       </instancedMesh>
@@ -162,19 +175,21 @@ function OncallPeakToy({ clock }: ToyProps) {
       </instancedMesh>
       {/* Count in the middle of the ring: "30+ high-severity tickets" */}
       <group position={[RING.x, 0, RING.z]}>
-        {[-1.15, 1.15].map((x) => (
-          <mesh key={x} position={[x, 0.15, -0.05]} material={M.slate}>
-            <boxGeometry args={[0.08, 0.3, 0.08]} />
-          </mesh>
-        ))}
+        <Static>
+          {[-1.35, 1.35].map((x) => (
+            <mesh key={x} position={[x, 0.15, -0.05]} material={M.slate}>
+              <boxGeometry args={[0.08, 0.3, 0.08]} />
+            </mesh>
+          ))}
+        </Static>
         <group ref={count} position={[0, 0.95, 0]}>
           <mesh position={[0, 0, -0.05]} material={M.paper}>
-            <boxGeometry args={[2.9, 1.3, 0.1]} />
+            <boxGeometry args={[3.3, 1.3, 0.1]} />
           </mesh>
           <Label font="display" size={0.8} color={COLORS.amazon} position={[0, 0.2, 0.005]}>
             {TOY_TEXT.tickets[0]}
           </Label>
-          <Label font="bodyBold" size={0.24} color={COLORS.ink} position={[0, -0.38, 0.005]}>
+          <Label font="bodyBold" size={0.27} color={COLORS.ink} position={[0, -0.38, 0.005]}>
             {TOY_TEXT.tickets[1]}
           </Label>
         </group>

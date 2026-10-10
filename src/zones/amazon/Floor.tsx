@@ -7,7 +7,7 @@ import { PLAZA_RADIUS, STATIONS } from './layout.ts';
 export const FLOOR_Y = 0.03; // above the world's road strips (y 0.02), below pads (lifted to 0.03)
 
 const LOOP_IN = 7;
-const LOOP_OUT = 13.6;
+const LOOP_OUT = 12.3; // inside the nearest platform corner (12.6 m out), so the ring is all drivable
 const ISLAND = 3.2;
 
 // Paving drawn once into a canvas: concentric pavers, a promenade ring that links the pads, an
@@ -30,6 +30,18 @@ function paint(size: number) {
   g.fillStyle = '#efe3cb';
   g.fillRect(0, 0, size, size);
   disc(R, '#f1e6cf');
+
+  // Aprons under the exhibit platforms (slightly larger than the platforms), under the ring.
+  g.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  for (const s of STATIONS) {
+    const [w, d] = s.size;
+    const m = 0.7;
+    const x0 = X(s.center[0] - w / 2 - m);
+    const y0 = Y(s.center[1] + d / 2 + m);
+    roundRect(g, x0, y0, (w + 2 * m) * k, (d + 2 * m) * k, k * 1.2);
+    g.fill();
+  }
+
   disc(LOOP_OUT, '#e4d2b2');
   disc(LOOP_IN, '#f1e6cf');
   disc(ISLAND, '#dcc8a5');
@@ -63,17 +75,6 @@ function paint(size: number) {
     g.stroke();
   }
   g.setLineDash([]);
-
-  // Aprons under the exhibit platforms (slightly larger than the platforms).
-  g.fillStyle = 'rgba(255, 255, 255, 0.35)';
-  for (const s of STATIONS) {
-    const [w, d] = s.size;
-    const m = 0.7;
-    const x0 = X(s.center[0] - w / 2 - m);
-    const y0 = Y(s.center[1] + d / 2 + m);
-    roundRect(g, x0, y0, (w + 2 * m) * k, (d + 2 * m) * k, k * 1.2);
-    g.fill();
-  }
 
   // Rim: orange band with a darker outer edge.
   g.beginPath();

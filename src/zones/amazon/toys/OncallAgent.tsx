@@ -13,6 +13,7 @@ import { TOY_TEXT } from '../copy.ts';
 import { useBoxes } from '../geo.ts';
 import type { BoxSpec } from '../geo.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { Plaque, StationBoard } from '../parts.tsx';
 import { easeInCubic, easeOutBack, easeOutCubic, fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
@@ -36,7 +37,9 @@ const T_POOF = 3.5;
 const T_CARD = T_POOF + 0.25; // once the crate has gone
 const CARD = { w: 2.7, h: 2.5 };
 const CARD_LOW = -3.4;
-const HEAD_Y = [CARD.h - 0.58, CARD.h - 1.26, CARD.h - 1.94];
+const HEAD_GAP = 0.68;
+const HEAD_SIZE = 0.29;
+const HEAD_Y = [CARD.h - 0.58, CARD.h - 0.58 - HEAD_GAP, CARD.h - 0.58 - 2 * HEAD_GAP];
 
 const DIM = new Color('#2a3140');
 // One colour per source: logs, metrics, code, runbooks.
@@ -60,15 +63,13 @@ function ReportCard() {
   return (
     <group>
       <RoundedBox args={[CARD.w, CARD.h, 0.1]} radius={0.05} smoothness={2} bevelSegments={1} position={[0, CARD.h / 2, 0]} material={M.paper} castShadow />
-      <mesh position={[0, CARD.h - 0.16, 0.055]} material={M.orange}>
+      <mesh position={[0, CARD.h - 0.16, 0.055]} material={M.accent}>
         <boxGeometry args={[CARD.w - 0.1, 0.22, 0.01]} />
       </mesh>
       <mesh geometry={bars} material={M.stoneDark} />
-      {TOY_TEXT.report.map((h, i) => (
-        <Label key={h} font="bodyBold" size={0.29} color={COLORS.ink} anchorX="left" position={[-CARD.w / 2 + 0.24, HEAD_Y[i], 0.06]}>
-          {h}
-        </Label>
-      ))}
+      <Label font="bodyBold" size={HEAD_SIZE} color={COLORS.ink} anchorX="left" lineHeight={HEAD_GAP / HEAD_SIZE} position={[-CARD.w / 2 + 0.24, HEAD_Y[1], 0.06]}>
+        {TOY_TEXT.report.join('\n')}
+      </Label>
     </group>
   );
 }
@@ -215,15 +216,19 @@ function OncallAgentToy({ clock }: ToyProps) {
         <boxGeometry args={[0.62, 0.24, 0.62]} />
       </instancedMesh>
       <instancedMesh ref={beams} args={[geo.beam, mats.beam, 4]} visible={false} />
-      {PILLAR_X.map((x, i) => (
-        <Plaque key={x} text={TOY_TEXT.sources[i]} size={0.24} position={[x, 1.18, PILLAR_Z + 0.4]} depth={0.05} />
-      ))}
+      <Static>
+        {PILLAR_X.map((x, i) => (
+          <Plaque key={x} text={TOY_TEXT.sources[i]} size={0.28} position={[x, 1.18, PILLAR_Z + 0.4]} depth={0.05} />
+        ))}
+      </Static>
 
       {/* Landing pad */}
       <group position={[LAND.x, 0, LAND.z]}>
-        <mesh position={[0, 0.03, 0]} material={M.slate} receiveShadow>
-          <cylinderGeometry args={[0.95, 0.95, 0.06, 32]} />
-        </mesh>
+        <Static>
+          <mesh position={[0, 0.03, 0]} material={M.slate} receiveShadow>
+            <cylinderGeometry args={[0.95, 0.95, 0.06, 32]} />
+          </mesh>
+        </Static>
         <mesh ref={ring} position={[0, 0.065, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.72, 0.86, 32]} />
           <meshBasicMaterial color={COLORS.amazon} toneMapped={false} />
@@ -240,7 +245,6 @@ function OncallAgentToy({ clock }: ToyProps) {
         </group>
       </group>
 
-      <Plaque text={TOY_TEXT.saved} size={0.3} position={[0, 0.42, 2.75]} legs={0.18} material={M.paper} />
     </>
   );
 }

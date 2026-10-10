@@ -9,6 +9,7 @@ import { TOY_TEXT } from '../copy.ts';
 import { useBoxes } from '../geo.ts';
 import type { BoxSpec } from '../geo.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { Plaque, StationBoard } from '../parts.tsx';
 import { easeInOutCubic, easeOutBack, fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
@@ -71,16 +72,20 @@ function SopBook({ coverRef }: { coverRef: (el: Group | null) => void }) {
   const inner = useBoxes(INNER_LINES);
   return (
     <group position={[LECTERN.x, 0, LECTERN.z]}>
-      <mesh geometry={post} material={M.slate} />
+      <Static>
+        <mesh geometry={post} material={M.slate} />
+      </Static>
       <group position={[0, LECTERN.y, 0]} rotation={[LECTERN.tilt, 0, 0]}>
-        <mesh geometry={top} material={M.slate} castShadow />
-        <mesh position={[0, 0, 0.017]} material={COVER}>
-          <boxGeometry args={[BOOK.w, BOOK.h, 0.03]} />
-        </mesh>
-        <mesh position={[0.01, 0, (0.032 + PAGE_TOP) / 2]} material={M.paper}>
-          <boxGeometry args={[BOOK.w - 0.06, BOOK.h - 0.06, PAGE_TOP - 0.032]} />
-        </mesh>
-        <mesh geometry={lines} material={M.stoneDark} />
+        <Static>
+          <mesh geometry={top} material={M.slate} castShadow />
+          <mesh position={[0, 0, 0.017]} material={COVER}>
+            <boxGeometry args={[BOOK.w, BOOK.h, 0.03]} />
+          </mesh>
+          <mesh position={[0.01, 0, (0.032 + PAGE_TOP) / 2]} material={M.paper}>
+            <boxGeometry args={[BOOK.w - 0.06, BOOK.h - 0.06, PAGE_TOP - 0.032]} />
+          </mesh>
+          <mesh geometry={lines} material={M.stoneDark} />
+        </Static>
         <Label font="display" size={0.2} color={COLORS.ink} position={[0.03, BOOK.h / 2 - 0.22, PAGE_TOP + 0.002]}>
           {TOY_TEXT.sop}
         </Label>
@@ -196,7 +201,9 @@ function ConnectorsToy({ clock }: ToyProps) {
       <instancedMesh ref={glass} args={[undefined, M.glass, 4]}>
         <cylinderGeometry args={[GLASS_R, GLASS_R, GLASS_H, 20, 1, true]} />
       </instancedMesh>
-      <mesh geometry={marks} material={M.white} />
+      <Static>
+        <mesh geometry={marks} material={M.white} />
+      </Static>
       <instancedMesh ref={caps} args={[undefined, M.slate, 4]}>
         <cylinderGeometry args={[0.46, 0.46, 0.2, 20]} />
       </instancedMesh>
@@ -214,7 +221,9 @@ function ConnectorsToy({ clock }: ToyProps) {
           >
             <Plaque text={TOY_TEXT.full} size={0.28} material={TAG} color="#ffffff" />
           </group>
-          <Plaque text={TOY_TEXT.connectors[i]} size={0.26} position={[0, 0.34, 0.7]} legs={0.14} />
+          <Static>
+            <Plaque text={TOY_TEXT.connectors[i]} size={0.26} position={[0, 0.34, 0.7]} legs={0.14} />
+          </Static>
         </group>
       ))}
       <SopBook

@@ -1,6 +1,9 @@
+import { useRef } from 'react';
+import type { Group } from 'three';
 import { ZoneFrame } from '../../components/ZoneFrame.tsx';
 import { Floor } from './Floor.tsx';
 import { useInspect } from './inspect.ts';
+import { useStaticMerge } from './merge.tsx';
 import { STATIONS } from './layout.ts';
 import type { StationId } from './layout.ts';
 import { Office } from './Office.tsx';
@@ -30,17 +33,21 @@ const TOYS: Record<StationId, ToySpec> = {
 // resume bullet around a promenade ring. See layout.ts for the plan.
 export function AmazonZone() {
   useInspect();
+  const root = useRef<Group>(null);
+  useStaticMerge(root);
   return (
     <ZoneFrame zone="amazon">
-      <NightPaper />
-      <Floor />
-      <Office />
-      <Trophy />
-      <Props />
-      <Parcels />
-      {STATIONS.map((def) => (
-        <Station key={def.id} def={def} toy={TOYS[def.id]} />
-      ))}
+      <group ref={root}>
+        <NightPaper />
+        <Floor />
+        <Office />
+        <Trophy />
+        <Props />
+        <Parcels />
+        {STATIONS.map((def) => (
+          <Station key={def.id} def={def} toy={TOYS[def.id]} />
+        ))}
+      </group>
     </ZoneFrame>
   );
 }

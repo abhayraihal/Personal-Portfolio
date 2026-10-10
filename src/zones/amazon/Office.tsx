@@ -10,6 +10,7 @@ import { useStore } from '../../state/store.ts';
 import { FLOOR_Y } from './Floor.tsx';
 import { MAIN_FRAME, MAIN_PAD, OFFICE, PAD_COLOR } from './layout.ts';
 import { M } from './materials.ts';
+import { Static } from './merge.tsx';
 import { frameCamera } from './Station.tsx';
 import { at } from './shared.ts';
 
@@ -32,32 +33,34 @@ export function Office() {
           <CuboidCollider args={[W / 2, H / 2, D / 2]} position={[0, H / 2, 0]} />
         </RigidBody>
 
-        {/* Rooftop sign on two legs, set back from the parapet. */}
-        <group position={[0, H - 0.25, front - 2.2]}>
-          {[-3.8, 3.8].map((x) => (
-            <mesh key={x} position={[x, 0.55, -0.15]} material={M.slate}>
-              <boxGeometry args={[0.28, 1.1, 0.28]} />
+        <Static>
+          {/* Rooftop sign on two legs, set back from the parapet. */}
+          <group position={[0, H - 0.25, front - 2.2]}>
+            {[-3.8, 3.8].map((x) => (
+              <mesh key={x} position={[x, 0.55, -0.15]} material={M.slate}>
+                <boxGeometry args={[0.28, 1.1, 0.28]} />
+              </mesh>
+            ))}
+            <RoundedBox args={[10.4, 2.7, 0.35]} radius={0.12} smoothness={2} bevelSegments={1} position={[0, 2.35, 0]} material={M.slate} castShadow />
+            <mesh position={[0, 1.12, 0.18]} material={M.accent}>
+              <boxGeometry args={[10.0, 0.16, 0.04]} />
             </mesh>
-          ))}
-          <RoundedBox args={[10.4, 2.7, 0.35]} radius={0.12} smoothness={2} bevelSegments={1} position={[0, 2.35, 0]} material={M.slate} castShadow />
-          <mesh position={[0, 1.12, 0.18]} material={M.orange}>
-            <boxGeometry args={[10.0, 0.16, 0.04]} />
-          </mesh>
-          <Label font="display" size={2.3} color={COLORS.amazon} position={[0, 2.42, 0.19]} letterSpacing={0.06}>
-            AMAZON
-          </Label>
-        </group>
+            <Label font="display" size={2.3} color={COLORS.amazon} position={[0, 2.42, 0.19]} letterSpacing={0.06}>
+              AMAZON
+            </Label>
+          </group>
 
-        {/* Role band over the entrance awning. */}
-        <group position={[0, 4.55, front + 0.12]}>
-          <RoundedBox args={[14.6, 0.95, 0.16]} radius={0.06} smoothness={2} bevelSegments={1} material={M.paper} />
-          <mesh position={[0, -0.41, 0.085]} material={M.orange}>
-            <boxGeometry args={[14.4, 0.1, 0.02]} />
-          </mesh>
-          <Label font="bodyBold" size={0.46} color={COLORS.ink} position={[0, 0.03, 0.09]}>
-            {SUBTITLE}
-          </Label>
-        </group>
+          {/* Role band over the entrance awning. */}
+          <group position={[0, 4.55, front + 0.12]}>
+            <RoundedBox args={[14.6, 0.95, 0.16]} radius={0.06} smoothness={2} bevelSegments={1} material={M.paper} />
+            <mesh position={[0, -0.41, 0.085]} material={M.accent}>
+              <boxGeometry args={[14.4, 0.1, 0.02]} />
+            </mesh>
+            <Label font="bodyBold" size={0.46} color={COLORS.ink} position={[0, 0.03, 0.09]}>
+              {SUBTITLE}
+            </Label>
+          </group>
+        </Static>
       </group>
 
       <Pad
