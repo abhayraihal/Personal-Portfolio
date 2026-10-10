@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, Fog, ShaderMaterial, SphereGeometry, SRGBColorSpace, Vector3 } from 'three';
 import type { HemisphereLight, Mesh, PerspectiveCamera, Points } from 'three';
@@ -98,7 +98,7 @@ void main() {
 const _sky = new Color();
 
 // Gradient sky behind everything. Drawn after the opaque pass, so only pixels with nothing else
-// in them run its shader; a framing that never shows the horizon costs one empty draw call.
+// in them run its shader, and skipped when the frame holds no sky.
 function SkyDome() {
   const { geometry, material } = useMemo(() => {
     const m = new ShaderMaterial({
@@ -113,7 +113,7 @@ function SkyDome() {
     });
     return { geometry: new SphereGeometry(1, 24, 12), material: m };
   }, []);
-  useLayoutEffect(
+  useEffect(
     () => () => {
       geometry.dispose();
       material.dispose();
