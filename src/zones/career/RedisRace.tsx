@@ -175,7 +175,8 @@ export function RedisRace() {
     const r = race.current;
     const dt = PHYSICS_DT;
     const v = car.v;
-    const crossed = car.ready && r.lastV < TRIGGER_V && v >= TRIGGER_V && car.u > -16 && car.u < 16;
+    // A teleport past the line (to the Amazon plaza, say) is not a drive-by.
+    const crossed = car.ready && r.lastV < TRIGGER_V && v >= TRIGGER_V && v - r.lastV < 2 && car.u > -16 && car.u < 16;
     r.lastV = v;
     r.t += dt;
 
