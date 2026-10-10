@@ -108,19 +108,25 @@ export function CarModel({ wheelRefs }: { wheelRefs: RefObject<(Group | null)[]>
     const b = bodyRef.current;
     const ln = lean.current;
     if (b && dt > 0) {
-      if (!ln.init || car.recovering) {
+      // Ground speed along the heading: vertical bounce on landing must not read as acceleration.
+      const speed = car.vx * Math.cos(car.yaw) - car.vz * Math.sin(car.yaw);
+      // Teleports and resets jump speed and heading in one step: start over instead of kicking the spring.
+      const jump = Math.abs(speed - ln.speed) > 5 || Math.abs(Math.atan2(Math.sin(car.yaw - ln.yaw), Math.cos(car.yaw - ln.yaw))) > 0.5;
+      if (!ln.init || car.recovering || jump) {
         ln.init = true;
-        ln.speed = car.speed;
+        ln.speed = speed;
         ln.yaw = car.yaw;
+        ln.accel = 0;
+        if (jump) ln.pitch = ln.pitchV = ln.roll = ln.rollV = 0;
       }
-      const accel = (car.speed - ln.speed) / dt;
+      const accel = (speed - ln.speed) / dt;
       const yawRate = Math.atan2(Math.sin(car.yaw - ln.yaw), Math.cos(car.yaw - ln.yaw)) / dt;
-      ln.speed = car.speed;
+      ln.speed = speed;
       ln.yaw = car.yaw;
-      ln.accel += (accel - ln.accel) * (1 - Math.exp(-dt * 12));
+      ln.accel += (accel - ln.accel) * (1 - Math.exp(-dt * 8));
       const grounded = car.contacts > 1 && !car.recovering;
       const pitchGoal = grounded ? clampLean(-ln.accel * LEAN.pitch) : 0; // nose up (negative about model X) when speeding up
-      const rollGoal = grounded ? clampLean(car.speed * yawRate * LEAN.roll) : 0; // left side up in a left turn
+      const rollGoal = grounded ? clampLean(speed * yawRate * LEAN.roll) : 0; // left side up in a left turn
       const k = LEAN.stiffness;
       const c = 2 * Math.sqrt(k) * LEAN.damping;
       ln.pitchV += (-(ln.pitch - pitchGoal) * k - ln.pitchV * c) * dt;
