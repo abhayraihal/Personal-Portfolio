@@ -45,7 +45,8 @@ export const IMAGE_W = 6.0;
 export const IMAGE_H = 3.5;
 
 // Entrance and the early-projects arcade at the far end of the boulevard. The entrance pad sits
-// behind the teleport point (zone-local -20, 0), so arriving puts the car beside the ring, not on it.
+// 5.6 m behind the teleport point (zone-local -20, 0): a teleport lands the car beside the ring and
+// no prompt pops up on arrival.
 export const ENTRANCE = { x: -25.6, z: 0 };
 export const ARCADE = { x: 22.4, z: -3.2, padZ: 1.5 };
 export const BOULEVARD = { x0: -27.5, x1: 18, z0: -4, z1: 4 };
