@@ -145,9 +145,8 @@ export function Arcade({ x, z, padZ }: { x: number; z: number; padZ: number }) {
   const closeUp = (on: boolean) => {
     const store = useStore.getState();
     if (!on) return store.clearCameraOverride(CAMERA_ID);
-    if (store.reducedMotion) return;
     // Look between the car and the cabinets; on narrow screens keep the car centred, clear of the
-    // interact button below it.
+    // interact button below it. With reduced motion the rig cuts to this instead of gliding.
     const narrow = window.innerWidth < window.innerHeight;
     const tz = narrow ? padZ : padZ - 1.3;
     store.setCameraOverride({ id: CAMERA_ID, target: [worldX(x, tz), 1, worldZ(x, tz)], distance: CLOSE_UP, blend: 1.2 });
