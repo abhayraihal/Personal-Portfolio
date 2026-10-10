@@ -11,6 +11,7 @@ import { modelScale, useMerged } from '../../../components/Model.tsx';
 import type { ModelName } from '../../../config/models.ts';
 import { car } from '../../../state/car.ts';
 import type { V3 } from './frame.ts';
+import { impactReporter } from './impact.ts';
 
 export type Placement = { position: V3; rotationY?: number; scale?: number };
 
@@ -80,6 +81,7 @@ type DynamicProps = Omit<RigidBodyProps, 'children' | 'position' | 'rotation' | 
   material: Material;
   items: Placement[];
   collider: ReactNode; // collider node for one instance, in the instance's frame
+  impact?: Parameters<typeof impactReporter>[0]; // report collisions on the events bus as this material
   idleSeconds?: number; // displaced, still and left alone this long: go home
   carDistance?: number; // "left alone" = the car is at least this far away (m)
   shadows?: boolean;
@@ -87,11 +89,12 @@ type DynamicProps = Omit<RigidBodyProps, 'children' | 'position' | 'rotation' | 
 
 // Dynamic instances (cones, parcels). Bodies sleep when still; each one snaps home after the car
 // has left it alone for a while, like <Resettable>.
-export function DynamicInstances({ geometry, material, items, collider, idleSeconds = 12, carDistance = 16, shadows = true, ...body }: DynamicProps) {
+export function DynamicInstances({ geometry, material, items, collider, impact, idleSeconds = 12, carDistance = 16, shadows = true, ...body }: DynamicProps) {
   const bodies = useRef<(RapierRigidBody | null)[]>([]);
   const homes = useRef<(Home | null)[]>([]);
   const idle = useRef<number[]>(items.map(() => 0));
   const check = useRef(0);
+  const onCollisionEnter = useMemo(() => (impact ? impactReporter(impact) : undefined), [impact]);
   const instances = useMemo<InstancedRigidBodyProps[]>(
     () => items.map((it, i) => ({ key: i, position: it.position, rotation: [0, it.rotationY ?? 0, 0] })),
     [items],
@@ -139,7 +142,7 @@ export function DynamicInstances({ geometry, material, items, collider, idleSeco
   });
 
   return (
-    <InstancedRigidBodies ref={bodies} instances={instances} colliders={false} colliderNodes={[collider]} {...body}>
+    <InstancedRigidBodies ref={bodies} instances={instances} colliders={false} colliderNodes={[collider]} onCollisionEnter={onCollisionEnter} {...body}>
       <instancedMesh args={[geometry, material, items.length]} castShadow={shadows} receiveShadow={shadows} frustumCulled={false} />
     </InstancedRigidBodies>
   );

@@ -9,6 +9,7 @@ import { car } from '../../state/car.ts';
 import { events, playSound } from '../../state/events.ts';
 import { useStore } from '../../state/store.ts';
 import { localToWorld } from '../career/kit/frame.ts';
+import { impactReporter } from '../career/kit/impact.ts';
 import { paintMaterial } from '../career/kit/paint.ts';
 import { BALL_RADIUS, CENTRE_SPOT, GOAL, PITCH, ZONE, goalLineX } from './plan.ts';
 
@@ -60,6 +61,7 @@ declare global {
 
 export function Football() {
   const geometry = useMemo(() => footballGeometry(BALL_RADIUS), []);
+  const onImpact = useMemo(() => impactReporter('soft', 2), []);
   const ball = useRef<RapierRigidBody>(null);
   const st = useRef({ scored: false, timer: 0, idle: 0, check: 0 });
 
@@ -135,7 +137,7 @@ export function Football() {
   return (
     <>
       <RigidBody ref={ball} name="football" colliders={false} position={[CENTRE_SPOT[0], BALL_RADIUS + 0.02, CENTRE_SPOT[1]]}
-        ccd linearDamping={0.45} angularDamping={0.6}>
+        ccd linearDamping={0.45} angularDamping={0.6} onCollisionEnter={onImpact}>
         <BallCollider args={[BALL_RADIUS]} mass={9} restitution={0.6} friction={0.7} />
         <mesh geometry={geometry} material={paintMaterial} castShadow receiveShadow />
       </RigidBody>

@@ -85,7 +85,7 @@ export function Roadside() {
         </>
       )}
       <FixedBoxes boxes={fixed} />
-      <DynamicInstances geometry={cone.geometry} material={cone.material} items={cones} collider={coneCollider}
+      <DynamicInstances geometry={cone.geometry} material={cone.material} items={cones} collider={coneCollider} impact="soft"
         linearDamping={0.4} angularDamping={0.6} shadows={!low} />
       {PLAN.years.map((y) => (
         <Label key={y.year} flat font="display" size={1.7} color={COLORS.roadLine} position={p(-2.3, y.v, 0.05)} fillOpacity={0.92}>

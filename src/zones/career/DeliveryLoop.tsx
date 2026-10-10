@@ -199,7 +199,7 @@ export function DeliveryLoop() {
         <meshStandardMaterial color="#858a98" roughness={1} />
       </mesh>
       <Van />
-      <DynamicInstances geometry={parcel} material={paintMaterial} items={stack} collider={collider} linearDamping={0.3} angularDamping={0.4} />
+      <DynamicInstances geometry={parcel} material={paintMaterial} items={stack} collider={collider} impact="soft" linearDamping={0.3} angularDamping={0.4} />
       <Board title="BlueDart" lines={['waybill created · cancelled · tracked']} width={6.9} titleSize={0.62} lineSize={0.36}
         accent={COLORS.limeroad} position={boardPos} lift={1.0} />
     </group>

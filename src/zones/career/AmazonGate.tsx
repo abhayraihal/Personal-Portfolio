@@ -20,6 +20,8 @@ const FACE_Z = SIGN_Z + 0.17;
 const RISE = 3.1; // height of the arch above the pillar caps
 
 // Entrance arch at the end of the career road, leading into the Amazon plaza.
+const GLOWS: V3[] = [[-HALF, PILLAR_H + 0.62, 0], [HALF, PILLAR_H + 0.62, 0]];
+
 // The sign panel is what hides the car; the arch above it is open.
 const OCCLUDER = { min: [-HALF, SIGN_Y - SIGN_H / 2, -0.2] as V3, max: [HALF, SIGN_Y + SIGN_H / 2, FACE_Z + 0.05] as V3 };
 
@@ -62,7 +64,7 @@ export function AmazonGate({ position, title, dates }: { position: V3; title: st
     <group ref={root} position={position}>
       <mesh geometry={lit} material={fade.lit} castShadow receiveShadow renderOrder={1} />
       <mesh geometry={face} material={fade.flat} renderOrder={1} />
-      <NightGlow positions={[[-HALF, PILLAR_H + 0.62, 0], [HALF, PILLAR_H + 0.62, 0]]} radius={0.3} />
+      <NightGlow positions={GLOWS} radius={0.3} material={fade.glow} />
       <Label ref={fade.label[0]} font="display" size={1.8} color="#ffffff" position={[0, SIGN_Y + 0.42, textZ]} renderOrder={2}>
         {title}
       </Label>

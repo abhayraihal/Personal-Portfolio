@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Box3, Matrix4, Ray, Vector3 } from 'three';
-import type { Material, Object3D } from 'three';
+import type { Material, MeshStandardMaterial, Object3D } from 'three';
 import { car } from '../../../state/car.ts';
 import type { V3 } from './frame.ts';
-import { flatMaterial, paintMaterial } from './paint.ts';
+import { flatMaterial, glowMaterial, paintMaterial } from './paint.ts';
 
 type TextLike = { fillOpacity: number; outlineOpacity: number };
 
@@ -22,17 +22,21 @@ const CAR_POINTS = [-0.4, 0.5];
 // crosses `box` (in the structure's local frame, i.e. relative to `root`).
 export function useOcclusionFade(root: RefObject<Object3D | null>, box: { min: V3; max: V3 }, minOpacity = 0.3) {
   const camera = useThree((s) => s.camera);
+  // Transparent from the start (at opacity 1 it draws like an opaque mesh), so fading only changes a
+  // uniform and never compiles a second shader variant mid-drive.
   const [mats] = useState(() => {
     const lit = paintMaterial.clone();
     const flat = flatMaterial.clone();
-    return { lit, flat, all: [lit, flat] as Material[] };
+    const glow: MeshStandardMaterial = glowMaterial.clone();
+    const all: Material[] = [lit, flat, glow];
+    for (const m of all) m.transparent = true;
+    return { lit, flat, glow, all };
   });
   const bounds = useMemo(() => new Box3(new Vector3(...box.min), new Vector3(...box.max)), [box]);
   const labels = useRef<(TextLike | null)[]>([]);
   const opacity = useRef(1);
   useEffect(() => () => {
-    mats.lit.dispose();
-    mats.flat.dispose();
+    for (const m of mats.all) m.dispose();
   }, [mats]);
   const [setters] = useState(() => [0, 1, 2, 3].map((i) => (el: TextLike | null) => {
     labels.current[i] = el;
@@ -60,14 +64,7 @@ export function useOcclusionFade(root: RefObject<Object3D | null>, box: { min: V
     let o = opacity.current + (target - opacity.current) * (1 - Math.exp(-Math.min(delta, 0.1) * 10));
     if (Math.abs(o - target) < 0.01) o = target;
     opacity.current = o;
-    const transparent = o < 1;
-    for (const m of mats.all) {
-      if (m.transparent !== transparent) {
-        m.transparent = transparent;
-        m.needsUpdate = true;
-      }
-      m.opacity = o;
-    }
+    for (const m of mats.all) m.opacity = o;
     for (const l of labels.current) {
       if (!l) continue;
       l.fillOpacity = o;
@@ -75,5 +72,5 @@ export function useOcclusionFade(root: RefObject<Object3D | null>, box: { min: V
     }
   });
 
-  return { lit: mats.lit, flat: mats.flat, label: setters };
+  return { lit: mats.lit, flat: mats.flat, glow: mats.glow, label: setters };
 }

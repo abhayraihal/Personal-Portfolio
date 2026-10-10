@@ -32,6 +32,7 @@ export function Gantry({ position, title, subtitle, color, half = 6.4 }: Props) 
   const root = useRef<Group>(null);
   const occluder = useMemo(() => ({ min: [-half - 0.3, SIGN_Y - SIGN_H / 2, -0.32] as V3, max: [half + 0.3, PILLAR_H, SIGN_Z + SIGN_D / 2] as V3 }), [half]);
   const fade = useOcclusionFade(root, occluder);
+  const glows = useMemo<V3[]>(() => [[-half, PILLAR_H + 0.42, 0], [half, PILLAR_H + 0.42, 0]], [half]);
   const [lit, face] = useMemo(() => {
     const dark = shade(color, -0.55);
     const white = '#f4f6fa';
@@ -66,7 +67,7 @@ export function Gantry({ position, title, subtitle, color, half = 6.4 }: Props) 
     <group ref={root} position={position}>
       <mesh geometry={lit} material={fade.lit} castShadow receiveShadow renderOrder={1} />
       <mesh geometry={face} material={fade.flat} renderOrder={1} />
-      <NightGlow positions={[[-half, PILLAR_H + 0.42, 0], [half, PILLAR_H + 0.42, 0]]} radius={0.26} />
+      <NightGlow positions={glows} radius={0.26} material={fade.glow} />
       <Label ref={fade.label[0]} font="display" size={1.3} color="#ffffff" position={[0, SIGN_Y + 0.45, textZ]} renderOrder={2}>
         {title}
       </Label>

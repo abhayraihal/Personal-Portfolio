@@ -209,7 +209,7 @@ export function Pitch() {
       </mesh>
       <Goal side={-1} />
       <Goal side={1} />
-      <DynamicInstances geometry={flag.geometry} material={flag.material} items={flags} collider={flagCollider}
+      <DynamicInstances geometry={flag.geometry} material={flag.material} items={flags} collider={flagCollider} impact="metal"
         linearDamping={0.5} angularDamping={0.8} shadows={!low} />
       <InstancedModel name="bench-wood" items={benches} shadows={!low} />
       <RigidBody type="fixed" colliders={false}>

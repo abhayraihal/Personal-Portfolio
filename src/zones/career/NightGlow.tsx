@@ -1,13 +1,12 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
-import { Matrix4, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3 } from 'three';
-import type { InstancedMesh } from 'three';
+import { Matrix4, Quaternion, SphereGeometry, Vector3 } from 'three';
+import type { InstancedMesh, MeshStandardMaterial } from 'three';
 import { useStore } from '../../state/store.ts';
 import type { V3 } from './kit/frame.ts';
+import { glowIntensity, glowMaterial } from './kit/paint.ts';
 
-// Lamp bulbs: pale by day, glowing when store.night is on. One shared material for every lamp in
-// the career and sports zones.
-export const glowMaterial = new MeshStandardMaterial({ color: '#fff4d2', emissive: '#ffcf70', emissiveIntensity: 0.25, roughness: 0.4 });
-glowMaterial.name = 'career-glow';
+// Lamp bulbs: pale by day, glowing when store.night is on. They share glowMaterial unless a
+// structure passes its own copy (to fade it with the structure).
 const sphere = new SphereGeometry(1, 14, 10);
 
 const _m = new Matrix4();
@@ -15,12 +14,14 @@ const _q = new Quaternion();
 const _p = new Vector3();
 const _s = new Vector3();
 
-export function NightGlow({ positions, radius = 0.25, squash = 1 }: { positions: V3[]; radius?: number; squash?: number }) {
+export function NightGlow({ positions, radius = 0.25, squash = 1, material = glowMaterial }: {
+  positions: V3[]; radius?: number; squash?: number; material?: MeshStandardMaterial;
+}) {
   const ref = useRef<InstancedMesh>(null);
   const night = useStore((s) => s.night);
   useEffect(() => {
-    glowMaterial.emissiveIntensity = night ? 2.4 : 0.25;
-  }, [night]);
+    material.emissiveIntensity = glowIntensity(night);
+  }, [night, material]);
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
@@ -29,5 +30,5 @@ export function NightGlow({ positions, radius = 0.25, squash = 1 }: { positions:
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
   }, [positions, radius, squash]);
-  return <instancedMesh ref={ref} args={[sphere, glowMaterial, positions.length]} />;
+  return <instancedMesh ref={ref} args={[sphere, material, positions.length]} />;
 }
