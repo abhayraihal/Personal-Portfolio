@@ -659,11 +659,11 @@
   }
 }
 /* Short touch screens (phones held sideways): the prompt and hint go back to the bottom edge,
-   between the joystick and the buttons. */
+   between the joystick and the buttons (Horn included). */
 @media (pointer: coarse) and (max-height: 540px) {
   .bottomcenter {
     bottom: calc(var(--safe-b) + 12px);
-    max-width: calc(100vw - 2 * 120px);
+    max-width: calc(100vw - 2 * 180px - 2 * var(--safe-r));
   }
 }
 @media (max-width: 640px) {

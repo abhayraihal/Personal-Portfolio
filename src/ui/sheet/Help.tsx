@@ -86,7 +86,10 @@ export function Help() {
           </section>
         </div>
         <p className="help__foot">
-          Rather read than drive? Press <kbd className="key">C</kbd> for the classic view, with everything on one page.
+          <span className="for-fine">
+            Rather read than drive? Press <kbd className="key">C</kbd> for the classic view, with everything on one page.
+          </span>
+          <span className="for-coarse">Rather read than drive? Tap the page icon at the top right for the classic view, with everything on one page.</span>
         </p>
       </section>
     </div>
