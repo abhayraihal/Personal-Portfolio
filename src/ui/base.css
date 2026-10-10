@@ -313,3 +313,38 @@ button {
     opacity: 0;
   }
 }
+
+/* Windows high contrast: shadows are dropped, so give controls and cards real borders. */
+@media (forced-colors: active) {
+  .btn,
+  .start,
+  .iconbtn,
+  .seg__btn,
+  .switch,
+  .pc-next__btn,
+  .prompt,
+  .touch-btn,
+  .minimap__toggle {
+    border: 1px solid ButtonText;
+  }
+  .card,
+  .chip,
+  .toolbar,
+  .popover,
+  .toast,
+  .ridge,
+  .minimap,
+  .sheet,
+  .help,
+  .hint,
+  .cv-item,
+  .cv-stat,
+  .cv-chart {
+    border: 1px solid CanvasText;
+  }
+  .switch[aria-checked='true'] .switch__thumb,
+  .seg__btn[aria-pressed='true'],
+  .iconbtn[aria-pressed='true'] {
+    outline: 2px solid Highlight;
+  }
+}
