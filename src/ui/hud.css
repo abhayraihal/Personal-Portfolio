@@ -600,11 +600,19 @@
   transition: opacity calc(var(--motion) * 160ms + 30ms) ease-out;
 }
 
-/* Very wide windows: room between the chip and the toolbar. */
+/* Very wide windows: room between the chip and the toolbar, and a larger map. */
 @media (min-width: 1600px) and (pointer: fine) {
   .topcenter {
     top: calc(var(--edge) + var(--safe-t));
     max-width: calc(100vw - 2 * 490px);
+  }
+}
+@media (min-width: 1600px) and (min-height: 1000px) and (pointer: fine) {
+  .minimap__svg {
+    width: 290px;
+  }
+  .hud[data-map='open'] .bottomcenter {
+    max-width: calc(100vw - 2 * 340px);
   }
 }
 
