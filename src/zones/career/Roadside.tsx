@@ -23,7 +23,7 @@ const bulbs: V3[] = LAMPS.map(([side, v]) => p(side * (LAMP_U - HEAD_OUT), v, HE
 
 const benches: Placement[] = [
   { position: p(-11.6, 63.2) },
-  { position: p(-11.4, 84.8) },
+  { position: p(-10.6, 86.6) },
 ];
 
 const cones: Placement[] = [
@@ -46,8 +46,8 @@ const flowers: Placement[] = [
   { position: p(-15.2, 53.5), rotationY: 1.2 },
   { position: p(-13.6, 63.4), rotationY: 0.7 },
   { position: p(-15.1, 77.4), rotationY: 2.6 },
-  { position: p(-13.4, 85.0), rotationY: 1.9 },
-  { position: p(-9.2, 85.4), rotationY: 0.2 },
+  { position: p(-12.8, 86.9), rotationY: 1.9 },
+  { position: p(-8.5, 87.1), rotationY: 0.2 },
   { position: p(6.0, 61.4), rotationY: 1.4 },
 ];
 const leafy: Placement[] = [
