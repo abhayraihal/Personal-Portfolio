@@ -23,8 +23,8 @@ const FOOTPATHS: { pts: P2[]; width: number }[] = [
   { pts: [[MONUMENT.x - 3.6, -18.6], [MONUMENT.x + 3.2, -18.6]], width: 2.2 },
   // research corner apron
   { pts: [[15.6, 1.3], [RESEARCH.pad[0] + 1.5, 1.3]], width: 4.6 },
-  // podium apron
-  { pts: [[PODIUM.x, 12.6], [PODIUM.x, 18.2]], width: 4.2 },
+  // from the loop's bottom-right corner to the podium pad
+  { pts: [[12.6, 8.4], PODIUM.pad], width: 3.6 },
   // school drive, through the gate to the pad beyond it
   { pts: [[SCHOOL.x, 12.6], [SCHOOL.x, SCHOOL.pad[1] + 1.4]], width: 5 },
 ];

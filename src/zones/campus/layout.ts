@@ -43,8 +43,9 @@ export const RESEARCH = {
   pad: [17.7, 1.3] as P2,
 };
 
-// Hackathon podium, below the loop.
-export const PODIUM = { x: 8.2, z: 21, pad: [8.2, 15.4] as P2 };
+// Hackathon podium, below the loop. The pad sits beside it, level with its labels, so nothing on
+// the podium is lower on screen than a parked car (where the phone's interact button floats).
+export const PODIUM = { x: 8.2, z: 21, pad: [14.8, 20.6] as P2 };
 
 // School gate (Delhi), below-left. The pad sits on the far side of the gate.
 export const SCHOOL = { x: -8, z: 19, pad: [-8, 23.6] as P2 };
