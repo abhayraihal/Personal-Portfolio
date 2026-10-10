@@ -1,6 +1,7 @@
 import { COLORS } from '../config/palette.ts';
 
-// Vehicle tuning shared by <Vehicle> and the headless sim (scripts/sim-vehicle.ts).
+// Vehicle tuning: physics, model placement, lights and effects. No three.js imports: the engine
+// sound in the entry chunk reads DRIVE.
 // Chassis frame: +X forward, +Y up, +Z right. These are rapier's defaults
 // (indexForwardAxis = 0, indexUpAxis = 1), so the controller axes are never changed.
 
