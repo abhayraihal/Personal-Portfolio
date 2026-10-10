@@ -6,6 +6,7 @@ import { AdditiveBlending, CanvasTexture, Color, FrontSide, MeshStandardMaterial
 import type { Group, Mesh, MeshStandardMaterial as StdMat, Sprite, SpotLight, Texture } from 'three';
 import { car } from '../state/car.ts';
 import { useStore } from '../state/store.ts';
+import { Flags } from './Flags.tsx';
 import { repaintPalette, splitBody } from './paint.ts';
 import { LIGHTS, MODEL, PAINT, WHEELS } from './tuning.ts';
 
@@ -112,6 +113,7 @@ export function CarModel({ wheelRefs }: { wheelRefs: RefObject<(Group | null)[]>
         <mesh geometry={split.rest} material={parts.paint} castShadow receiveShadow>
           <mesh geometry={spare.geometry} material={parts.paint} position={spare.position} castShadow />
         </mesh>
+        <Flags />
         <mesh geometry={split.tail} material={parts.tail} />
         <mesh geometry={split.head} material={parts.head} />
         {split.tailCenters.map((c, i) => (
