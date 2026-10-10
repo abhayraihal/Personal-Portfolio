@@ -25,13 +25,16 @@ const SIGN_Z = 0.52;
 const SIGN_D = 0.36;
 const FACE_Z = SIGN_Z + SIGN_D / 2 + 0.01;
 const STRIP_Y = SIGN_Y - SIGN_H / 2 + 0.62;
+// Once the car has driven through, the gantry stays faint while it stands between the camera and
+// the car, so it does not cover the pad and board just past it.
+const BEYOND = { min: [-20, -5, -40] as V3, max: [20, 30, -1.3] as V3, opacity: 0.3 };
 
 // Overhead sign gantry across the road: two pillars, a beam and a sign in the company colour.
 export function Gantry({ position, title, subtitle, color, half = 6.4 }: Props) {
   const signW = half * 2 - PILLAR - 0.5;
   const root = useRef<Group>(null);
   const occluder = useMemo(() => ({ min: [-half - 0.3, SIGN_Y - SIGN_H / 2, -0.32] as V3, max: [half + 0.3, PILLAR_H, SIGN_Z + SIGN_D / 2] as V3 }), [half]);
-  const fade = useOcclusionFade(root, occluder);
+  const fade = useOcclusionFade(root, occluder, 0.3, BEYOND);
   const glows = useMemo<V3[]>(() => [[-half, PILLAR_H + 0.42, 0], [half, PILLAR_H + 0.42, 0]], [half]);
   const [lit, face] = useMemo(() => {
     const dark = shade(color, -0.55);

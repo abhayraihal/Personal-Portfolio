@@ -5,7 +5,6 @@ import { CuboidCollider, RigidBody, useBeforePhysicsStep } from '@react-three/ra
 import type { RapierRigidBody } from '@react-three/rapier';
 import { Path, Shape, ShapeGeometry } from 'three';
 import type { Group, Mesh, MeshStandardMaterial, Texture } from 'three';
-import { Board } from '../../components/Board.tsx';
 import { kitMaterial, modelScale, modelUrl } from '../../components/Model.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { car } from '../../state/car.ts';
@@ -16,6 +15,7 @@ import type { V3 } from './kit/frame.ts';
 import { DynamicInstances } from './kit/instances.tsx';
 import type { Placement } from './kit/instances.tsx';
 import { box, paint, paintMaterial } from './kit/paint.ts';
+import { Sign } from './kit/sign.tsx';
 import { ZONE, p } from './plan.ts';
 
 // A delivery van that loops on a side lane next to the Limeroad gantry and stops for the player,
@@ -200,7 +200,7 @@ export function DeliveryLoop() {
       </mesh>
       <Van />
       <DynamicInstances geometry={parcel} material={paintMaterial} items={stack} collider={collider} impact="soft" linearDamping={0.3} angularDamping={0.4} />
-      <Board title="BlueDart" lines={['waybill created · cancelled · tracked']} width={6.9} titleSize={0.62} lineSize={0.36}
+      <Sign title="BlueDart" lines={['Status updates by push and pull']} width={7.2} titleSize={0.62} lineSize={0.4}
         accent={COLORS.limeroad} position={boardPos} lift={1.0} />
     </group>
   );
