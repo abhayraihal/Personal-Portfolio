@@ -40,8 +40,13 @@ const LAMP_ON = new Color('#3ee07a');
 const MARKS: BoxSpec[] = TUBE_X.flatMap((x) => [0.25, 0.5, 0.75].map((f): BoxSpec => [0.18, 0.03, 0.01, x + 0.22, BASE_H + LIQUID_MAX * f, TUBE_Z + GLASS_R - 0.05]));
 const LECTERN_PARTS: BoxSpec[] = [[0.32, 0.34, 0.32, 0, 0.17, -0.05]];
 const LECTERN_TOP: BoxSpec[] = [[2.0, 1.3, 0.08, -0.43, 0, -0.04]];
-const PAGE_LINES: BoxSpec[] = [0, 1, 2, 3, 4].map((r): BoxSpec => [r === 4 ? 0.36 : 0.6, 0.04, 0.005, 0.03, BOOK.h / 2 - 0.25 - r * 0.16, BOOK.d / 2 + 0.09]);
-const INNER_LINES: BoxSpec[] = [0, 1, 2, 3].map((r): BoxSpec => [0.6, 0.04, 0.005, BOOK.w / 2, BOOK.h / 2 - 0.25 - r * 0.16, -0.027]);
+// Book layers along the lectern's normal (z = 0 is the lectern face): back cover, pages, then the
+// front cover on a hinge at the left edge. The hinge drops while the cover opens, so the open cover
+// lies on the lectern instead of floating at page height.
+const PAGE_TOP = 0.112;
+const HINGE_Z = { closed: 0.122, open: 0.034 };
+const PAGE_LINES: BoxSpec[] = [0, 1, 2, 3].map((r): BoxSpec => [r === 3 ? 0.36 : 0.6, 0.04, 0.003, 0.03, BOOK.h / 2 - 0.42 - r * 0.15, PAGE_TOP + 0.0015]);
+const INNER_LINES: BoxSpec[] = [0, 1, 2, 3].map((r): BoxSpec => [0.6, 0.04, 0.003, BOOK.w / 2, BOOK.h / 2 - 0.25 - r * 0.16, -0.004]);
 
 const _m = new Matrix4();
 const _p = new Vector3();
@@ -58,7 +63,7 @@ function staged(k: number) {
 }
 
 // Lectern with a book lying on its sloped top. The front cover hinges on the left edge and opens
-// flat to the left, so the open book shows two pages.
+// flat to the left, so the open book shows two pages, the first one headed "SOP".
 function SopBook({ coverRef }: { coverRef: (el: Group | null) => void }) {
   const post = useBoxes(LECTERN_PARTS);
   const top = useBoxes(LECTERN_TOP);
@@ -69,30 +74,31 @@ function SopBook({ coverRef }: { coverRef: (el: Group | null) => void }) {
       <mesh geometry={post} material={M.slate} />
       <group position={[0, LECTERN.y, 0]} rotation={[LECTERN.tilt, 0, 0]}>
         <mesh geometry={top} material={M.slate} castShadow />
-        <group position={[0, 0, 0.02]}>
-          <mesh position={[0, 0, BOOK.d / 2 - 0.02]} material={COVER}>
+        <mesh position={[0, 0, 0.017]} material={COVER}>
+          <boxGeometry args={[BOOK.w, BOOK.h, 0.03]} />
+        </mesh>
+        <mesh position={[0.01, 0, (0.032 + PAGE_TOP) / 2]} material={M.paper}>
+          <boxGeometry args={[BOOK.w - 0.06, BOOK.h - 0.06, PAGE_TOP - 0.032]} />
+        </mesh>
+        <mesh geometry={lines} material={M.stoneDark} />
+        <Label font="display" size={0.2} color={COLORS.ink} position={[0.03, BOOK.h / 2 - 0.22, PAGE_TOP + 0.002]}>
+          {TOY_TEXT.sop}
+        </Label>
+        <group ref={coverRef} position={[-BOOK.w / 2, 0, HINGE_Z.closed]}>
+          <mesh position={[BOOK.w / 2, 0, 0.017]} material={COVER}>
             <boxGeometry args={[BOOK.w, BOOK.h, 0.03]} />
           </mesh>
-          <mesh position={[0.01, 0, BOOK.d / 2 + 0.04]} material={M.paper}>
-            <boxGeometry args={[BOOK.w - 0.06, BOOK.h - 0.06, 0.09]} />
+          <mesh position={[BOOK.w / 2, BOOK.h / 2 - 0.22, 0.0345]} material={M.orange}>
+            <boxGeometry args={[BOOK.w - 0.18, 0.05, 0.005]} />
           </mesh>
-          <mesh geometry={lines} material={M.stoneDark} />
-          <group ref={coverRef} position={[-BOOK.w / 2, 0, BOOK.d / 2 + 0.1]}>
-            <mesh position={[BOOK.w / 2, 0, 0]} material={COVER}>
-              <boxGeometry args={[BOOK.w, BOOK.h, 0.03]} />
-            </mesh>
-            <mesh position={[BOOK.w / 2, BOOK.h / 2 - 0.22, 0.017]} material={M.orange}>
-              <boxGeometry args={[BOOK.w - 0.18, 0.05, 0.005]} />
-            </mesh>
-            <Label font="display" size={0.38} color="#ffffff" position={[BOOK.w / 2, -0.04, 0.02]}>
-              {TOY_TEXT.sop}
-            </Label>
-            {/* inside of the cover, seen once it is open */}
-            <mesh position={[BOOK.w / 2, 0, -0.02]} material={M.paper}>
-              <boxGeometry args={[BOOK.w - 0.06, BOOK.h - 0.06, 0.01]} />
-            </mesh>
-            <mesh geometry={inner} material={M.stoneDark} />
-          </group>
+          <Label font="display" size={0.38} color="#ffffff" position={[BOOK.w / 2, -0.04, 0.038]}>
+            {TOY_TEXT.sop}
+          </Label>
+          {/* inside of the cover, seen once it is open */}
+          <mesh position={[BOOK.w / 2, 0, -0.0005]} material={M.paper}>
+            <boxGeometry args={[BOOK.w - 0.06, BOOK.h - 0.06, 0.004]} />
+          </mesh>
+          <mesh geometry={inner} material={M.stoneDark} />
         </group>
       </group>
     </group>
@@ -147,8 +153,10 @@ function ConnectorsToy({ clock }: ToyProps) {
       const level = phase === 'idle' ? 0 : staged(seg(t, t0, t0 + FILL)) * rw;
       anyLiquid ||= level > 0.001;
       if (liq) {
-        const h = Math.max(0.0001, level * LIQUID_MAX);
-        liq.setMatrixAt(i, _m.compose(_p.set(TUBE_X[i], BASE_H + h / 2, TUBE_Z), _q.identity(), _s.set(1, h, 1)));
+        // An empty gauge has no liquid at all; a zero-height cylinder would z-fight with the base.
+        const h = level * LIQUID_MAX;
+        const w = level > 0.001 ? 1 : 0;
+        liq.setMatrixAt(i, _m.compose(_p.set(TUBE_X[i], BASE_H + 0.006 + h / 2, TUBE_Z), _q.identity(), _s.set(w, Math.max(h, 0.0001), w)));
       }
       const done = phase !== 'idle' && t >= t0 + FILL;
       if (lamp) lamp.setColorAt(i, phase === 'rewind' ? _c.copy(LAMP_ON).lerp(LAMP_OFF, clock.r) : done ? LAMP_ON : LAMP_OFF);
@@ -172,6 +180,7 @@ function ConnectorsToy({ clock }: ToyProps) {
     if (c) {
       const k = phase === 'idle' ? 0 : easeInOutCubic(seg(t, T_BOOK, T_BOOK + 0.9)) * rw;
       c.rotation.y = -Math.PI * k;
+      c.position.z = HINGE_Z.closed + (HINGE_Z.open - HINGE_Z.closed) * seg(k, 0.5, 1);
     }
   });
 
