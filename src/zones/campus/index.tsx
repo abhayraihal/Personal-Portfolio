@@ -1,13 +1,30 @@
-import { Board } from '../../components/Board.tsx';
-import { Pad } from '../../components/Pad.tsx';
 import { ZoneFrame } from '../../components/ZoneFrame.tsx';
+import { Buildings } from './Buildings.tsx';
+import { DevHook } from './DevHook.tsx';
+import { Easel } from './Easel.tsx';
+import { Ground } from './Ground.tsx';
+import { Lamps } from './Lamps.tsx';
+import { Nature } from './Nature.tsx';
+import { Podium } from './Podium.tsx';
+import { Research } from './Research.tsx';
+import { School } from './School.tsx';
+import { Trail } from './Trail.tsx';
 
-// PLACEHOLDER (spine). The campus zone module replaces this.
+// IIT Mandi campus: a loop road round a lawn, with the institute blocks at the back and one
+// station per part of Abhay's time there (degree, paper, hackathons, biking club, school).
 export function CampusZone() {
   return (
     <ZoneFrame zone="campus">
-      <Board title="IIT Mandi" lines={['Placeholder']} position={[0, 0, -6]} />
-      <Pad id="campus-main" label="Open IIT Mandi" action={{ kind: 'panel', panel: 'education' }} position={[0, 0, 0]} />
+      <DevHook />
+      <Ground />
+      <Buildings />
+      <Nature />
+      <Lamps />
+      <Easel />
+      <Research />
+      <Podium />
+      <School />
+      <Trail />
     </ZoneFrame>
   );
 }
