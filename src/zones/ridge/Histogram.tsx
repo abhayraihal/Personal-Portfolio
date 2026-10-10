@@ -1,13 +1,14 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { RoundedBox } from '@react-three/drei';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import { Color, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
+import { Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { Board } from '../../components/Board.tsx';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { codeforces, rankFor } from '../../data/codeforces.ts';
 import { useStore } from '../../state/store.ts';
 import { cornerCutBox, shadeFor } from './geometry.ts';
+import { selfLitMaterial } from './materials.ts';
 
 // Ridge-frame layout: the easy end sits by the ramp, harder ratings run left along the foot, the
 // same way the road climbs.
@@ -26,8 +27,10 @@ export const HIST_X1 = columns[columns.length - 1].x;
 export function Histogram() {
   const ref = useRef<InstancedMesh>(null);
   const low = useStore((s) => s.quality === 'low');
+  const ink = useStore((s) => (s.night ? COLORS.paper : COLORS.ink)); // labels are unlit
   const total = columns.reduce((n, c) => n + c.cubes, 0);
-  const parts = useMemo(() => ({ geo: cornerCutBox(HIST.cube, HIST.cube, HIST.cube, 0.07), mat: new MeshStandardMaterial({ roughness: 0.6 }) }), []);
+  // the rank colours glow at night, like the rail posts
+  const parts = useMemo(() => ({ geo: cornerCutBox(HIST.cube, HIST.cube, HIST.cube, 0.07), mat: selfLitMaterial({ roughness: 0.6 }, 0, 0.35) }), []);
 
   useLayoutEffect(() => {
     const m = ref.current;
@@ -66,10 +69,10 @@ export function Histogram() {
       </RoundedBox>
       {columns.map((col) => (
         <group key={col.rating} position={[col.x, 0, 0]}>
-          <Label font="display" size={0.42} color={COLORS.ink} rotation={[TILT, 0, 0]} position={[0, HIST.plinthH + 0.24, plinthZ + 0.55]}>
+          <Label font="display" size={0.42} color={ink} rotation={[TILT, 0, 0]} position={[0, HIST.plinthH + 0.24, plinthZ + 0.55]}>
             {String(col.rating)}
           </Label>
-          <Label font="bodyBold" size={0.4} color={COLORS.ink} rotation={[TILT, 0, 0]} position={[0, HIST.plinthH + col.layers * STEP + 0.38, HIST.z]}>
+          <Label font="bodyBold" size={0.4} color={ink} rotation={[TILT, 0, 0]} position={[0, HIST.plinthH + col.layers * STEP + 0.38, HIST.z]}>
             {String(col.count)}
           </Label>
         </group>
@@ -83,12 +86,12 @@ export function Histogram() {
       <Board
         title="Solved by problem rating"
         lines={['1 block = 10 problems, rounded up', 'Block colour = rank at that rating']}
-        width={7.2}
-        titleSize={0.5}
-        lineSize={0.3}
+        width={8.4}
+        titleSize={0.58}
+        lineSize={0.37}
         accent={shadeFor('Expert', '#0000ff')}
         lift={0.9}
-        position={[xb - 4.2, 0, HIST.z + 0.3]}
+        position={[xb - 4.9, 0, HIST.z + 0.3]}
       />
     </>
   );

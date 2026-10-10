@@ -1,9 +1,9 @@
 // Outline, rail line, cliff faces and collider boxes of the ridge, in the ridge frame (see
 // profile.ts). Plain arrays and math, shared by the meshes, the colliders and the headless sim.
-import { CHAMFER, FLARE_S0, FLARE_S1, MOUTH_S1, RAIL_INSET, S_END, deckY, hwAt } from './profile.ts';
+import { CHAMFER, FLARE_S0, FLARE_S1, MOUTH_PEAK, MOUTH_S0, MOUTH_S1, RAIL_INSET, S_END, deckY, hwAt } from './profile.ts';
 
-export const DECK_S0 = -2; // the deck mesh starts on the approach road, just before the ramp
-export const RAIL_S0 = 0.6; // rails start a little way up the ramp
+export const DECK_S0 = MOUTH_S0; // the deck mesh starts on the approach road, before the ramp
+export const RAIL_S0 = MOUTH_PEAK; // rails start a little way up the ramp, where the funnel is widest
 // Collider heights above the deck. Taller than the visible rail so a car that hops a crest still
 // meets it; the summit plaza and its far end are taller again because cars arrive there boosting.
 export const RAIL_H = 1.7;

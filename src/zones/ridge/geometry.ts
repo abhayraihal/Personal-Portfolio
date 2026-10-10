@@ -4,9 +4,9 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Vector3 } from 'three';
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { COLORS } from '../../config/palette.ts';
-import { FLARE_S0, HW, MILESTONES, RAIL_INSET, STRATA, deckY, hwAt, sContest } from './profile.ts';
+import { APPROACH_LEN, FLARE_S0, HW, LAST_DASH_S, MILESTONES, MOUTH_S0, RAIL_INSET, STRATA, S_SUMMIT, deckY, hwAt, sContest } from './profile.ts';
 import type { Stratum } from './profile.ts';
-import { RAIL_VIS_T, faceFoot, outline, outlineS, railSides } from './shape.ts';
+import { RAIL_S0, RAIL_VIS_T, faceFoot, outline, outlineS, railSides } from './shape.ts';
 import type { OutlinePoint } from './shape.ts';
 
 type P3 = [number, number, number];
@@ -108,8 +108,13 @@ function addFaces(soup: Soup) {
   }
 }
 
+// The ground shader draws the world's asphalt this much brighter than COLORS.road on average, and
+// its kerbs in this stone colour; the deck matches both where it runs onto the approach road.
+const ROAD_TONE = 1.13;
+const KERB = '#d9d4c7';
+
 function addDeck(soup: Soup) {
-  const road = new Color(COLORS.road);
+  const road = new Color(COLORS.road).multiplyScalar(ROAD_TONE);
   const plaza = new Color('#9a968c');
   const ss = outlineS(0.5);
   for (let k = 0; k < ss.length - 1; k++) {
@@ -119,7 +124,7 @@ function addDeck(soup: Soup) {
     const y1 = deckY(s1);
     const w0 = hwAt(s0);
     const w1 = hwAt(s1);
-    const c = (s0 + s1) / 2 > FLARE_S0 + 2.5 ? plaza : road;
+    const c = (s0 + s1) / 2 > S_SUMMIT + 0.5 ? plaza : road;
     soup.quad([-s0, y0, w0], [-s0, y0, -w0], [-s1, y1, -w1], [-s1, y1, w1], c);
   }
 }
@@ -141,8 +146,19 @@ function paintAlong(soup: Soup, s0: number, s1: number, zOf: (s: number) => numb
 function addPaint(soup: Soup) {
   const white = new Color(COLORS.roadLine);
   const end = FLARE_S0 + 1;
+  // Where the deck covers the approach road (see profile.ts): the road's last centre dash, and its
+  // kerbs carried round the funnel to the ends of the guard rails, block for block.
+  paintAlong(soup, LAST_DASH_S, LAST_DASH_S + 3, () => 0, 0.24, white);
+  const kerb = [new Color(KERB).multiplyScalar(0.92), new Color(KERB)];
+  const kerbEnd = RAIL_S0 + 0.3;
+  for (let a = MOUTH_S0; a < kerbEnd - 1e-6; ) {
+    const k = Math.floor((APPROACH_LEN + a) / 0.6 + 1e-6);
+    const b = Math.min(kerbEnd, (k + 1) * 0.6 - APPROACH_LEN);
+    for (const side of [1, -1]) paintAlong(soup, a, b, (s) => side * (hwAt(s) - 0.18), 0.36, kerb[k % 2], 0.3);
+    a = b;
+  }
   // Dashed centre line and solid edge lines.
-  for (let s = 1.5; s < end - 1; s += 3) paintAlong(soup, s, Math.min(s + 1.4, end), () => 0, 0.16, white);
+  for (let s = 4.5; s < end - 1; s += 3) paintAlong(soup, s, Math.min(s + 1.4, end), () => 0, 0.16, white);
   for (const side of [1, -1]) paintAlong(soup, 0.8, end, (s) => side * (hwAt(s) - RAIL_INSET - 0.55), 0.13, white);
   // A chequered line across the road at each rank milestone, in the rank's colour and white.
   const cells = 12;

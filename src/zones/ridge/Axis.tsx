@@ -3,7 +3,7 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { CylinderGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
-import { R0, STRATA, YEARS, deckY, hwAt, ratingY, sContest } from './profile.ts';
+import { K, R0, STRATA, YEARS, deckY, hwAt, ratingY, sContest } from './profile.ts';
 import { faceFoot, frontFaceAt } from './shape.ts';
 import { cornerCutBox } from './geometry.ts';
 
@@ -29,7 +29,8 @@ export function YearStones() {
     () =>
       YEARS.map(({ year, index }) => {
         const f = cliffFoot(sContest(index));
-        return { year, x: f.x + f.n.x * 1.2, z: f.z + f.n.z * 1.2, yaw: Math.atan2(f.n.x, f.n.z) };
+        // straight out towards the camera, so the funnel and the plaza flare do not turn them
+        return { year, x: f.x, z: f.z + 1.2, yaw: 0 };
       }),
     [],
   );
@@ -81,30 +82,37 @@ export function YearStones() {
 }
 
 // Rating values painted on the cliff just above each stratum line, like the y axis of a chart,
-// repeated at a few places along the ridge.
-const AXIS_S = [24, 62, 100, 134];
-const AXIS_SIZE = 0.42;
+// repeated often enough that a phone's narrower view always has a column in it. Clear of the year
+// stones and of the plaza flare, where the face turns. The face under a point is one leaning plane,
+// so each column is a single text block with one line per 200 rating points.
+const AXIS_S = [16, 38, 60, 80, 110, 136];
+const AXIS_SIZE = 0.46;
+const MID = 0.32; // label centre above its stratum line
 
 export function RatingLabels() {
-  const labels = useMemo(() => {
-    const out: { key: string; text: string; pos: [number, number, number]; tilt: number }[] = [];
-    const lines = STRATA.map((st) => st.rating).filter((r) => r > R0);
-    for (const s of AXIS_S) {
-      const top = deckY(s);
-      for (const r of lines) {
-        const y = ratingY(r) + 0.32;
-        if (top < y + AXIS_SIZE * 0.6) continue;
-        const f = frontFaceAt(s, y);
-        out.push({ key: `${s}-${r}`, text: String(r), pos: [-s, y, f.z + 0.03], tilt: -f.lean });
+  const columns = useMemo(() => {
+    const lines = STRATA.map((st) => st.rating).filter((r) => r > R0 && r % 200 === 0);
+    return AXIS_S.flatMap((s) => {
+      const shown = lines.filter((r) => ratingY(r) + MID + AXIS_SIZE * 0.6 <= deckY(s));
+      if (!shown.length) return [];
+      const lean = frontFaceAt(s, 0).lean;
+      // in front of the face along the whole label: the face's lean changes along the ridge
+      let out = 0;
+      for (const r of shown) {
+        const y = ratingY(r) + MID;
+        const z0 = frontFaceAt(s, y).z;
+        for (let d = 0.2; d <= 1.8; d += 0.2) out = Math.max(out, frontFaceAt(s - d, y).z - z0);
       }
-    }
-    return out;
+      const y = ratingY(shown[0]) + MID - 0.35 * AXIS_SIZE; // baseline of the lowest label
+      const pos: [number, number, number] = [-s + 0.3, y, frontFaceAt(s, y).z + out + 0.03];
+      return [{ s, text: shown.toReversed().join('\n'), lean, lineHeight: (200 * K) / Math.cos(lean) / AXIS_SIZE, pos }];
+    });
   }, []);
   return (
     <>
-      {labels.map((l) => (
-        <Label key={l.key} font="bodyBold" size={AXIS_SIZE} color="#ffffff" fillOpacity={0.8} anchorX="left" rotation={[l.tilt, 0, 0]} position={[l.pos[0] + 0.3, l.pos[1], l.pos[2]]}>
-          {l.text}
+      {columns.map((c) => (
+        <Label key={c.s} font="bodyBold" size={AXIS_SIZE} lineHeight={c.lineHeight} color="#ffffff" fillOpacity={0.92} outlineWidth={0.035} outlineColor={COLORS.ink} outlineOpacity={0.45} anchorX="left" anchorY="bottom-baseline" rotation={[-c.lean, 0, 0]} position={c.pos}>
+          {c.text}
         </Label>
       ))}
     </>
