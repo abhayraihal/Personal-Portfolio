@@ -10,9 +10,11 @@ import { Resettable } from '../../components/Resettable.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { car } from '../../state/car.ts';
 import { playSound } from '../../state/events.ts';
+import { useStore } from '../../state/store.ts';
 import { mergeParts, roundedBox } from './boxes.ts';
 import { Y } from './Ground.tsx';
 import { PODIUM } from './layout.ts';
+import { nightLabel } from './Night.tsx';
 
 // Wording from panels.hackathons in profile.ts.
 const PLACES = [
@@ -49,6 +51,7 @@ function useTrophyMaterials() {
 }
 
 export function Podium() {
+  const night = useStore((s) => s.night);
   const trophy = useMerged('trophy-gold-cup');
   const mats = useTrophyMaterials();
   const k = modelScale('trophy-gold-cup') * TROPHY_S;
@@ -103,13 +106,13 @@ export function Podium() {
       </RigidBody>
       {PLACES.map((p, i) => (
         <group key={p.rank}>
-          <Label font="display" size={p.h > 1 ? 1.0 : 0.72} color={COLORS.ink} position={[p.x, STAGE.h + p.h / 2 - 0.06, BLOCK_Z + BLOCK.d / 2 + 0.01]}>
+          <Label font="display" size={p.h > 1 ? 1.0 : 0.72} {...nightLabel(night, COLORS.ink, 0.05)} position={[p.x, STAGE.h + p.h / 2 - 0.06, BLOCK_Z + BLOCK.d / 2 + 0.01]}>
             {p.rank}
           </Label>
-          <Label flat font="bodyBold" size={0.5} color={COLORS.ink} position={[p.x, STAGE.h + 0.01, 1.25]}>
+          <Label flat font="bodyBold" size={0.5} {...nightLabel(night, COLORS.ink, 0.045)} position={[p.x, STAGE.h + 0.01, 1.25]}>
             {p.place}
           </Label>
-          <Label flat size={0.38} maxWidth={2.9} textAlign="center" lineHeight={1.1} color={COLORS.inkSoft} anchorY="top" position={[p.x, STAGE.h + 0.01, 1.62]}>
+          <Label flat size={0.38} maxWidth={2.9} textAlign="center" lineHeight={1.1} {...nightLabel(night, COLORS.inkSoft, 0.04)} anchorY="top" position={[p.x, STAGE.h + 0.01, 1.62]}>
             {p.event}
           </Label>
           <Resettable

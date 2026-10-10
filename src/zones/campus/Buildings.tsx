@@ -9,6 +9,7 @@ import { panels } from '../../data/profile.ts';
 import { mergeParts, roundedBox } from './boxes.ts';
 import { Y } from './Ground.tsx';
 import { BUILDINGS, EDU_PAD, MONUMENT } from './layout.ts';
+import { NightWash, NightWindows } from './Night.tsx';
 
 // Wall footprints (native units) measured from the GLBs; the upper floors sit inside them.
 const FOOTPRINT = {
@@ -23,6 +24,7 @@ function Building({ name, x, z, scale }: { name: keyof typeof FOOTPRINT; x: numb
   return (
     <group position={[x, 0, z]}>
       <Model name={name} scale={scale} />
+      <NightWindows name={name} scale={scale} />
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider
           args={[((f.x1 - f.x0) * s) / 2, h / 2, ((f.z1 - f.z0) * s) / 2]}
@@ -55,6 +57,7 @@ function Monument() {
       <mesh geometry={geo} castShadow receiveShadow>
         <meshStandardMaterial vertexColors roughness={0.95} />
       </mesh>
+      <NightWash width={width - 0.24} height={h - 0.24} position={[0, base + h / 2, 0.303]} />
       <group position={[0, base, 0.31]}>
         <Label font="display" size={1.25} color={COLORS.iit} position={[0, 2.25, 0]}>
           IIT Mandi

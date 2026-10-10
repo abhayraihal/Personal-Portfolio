@@ -32,22 +32,23 @@ export const BUILDINGS = {
 export const MONUMENT = { x: 14.2, z: -20.7, width: 8.2 };
 export const EDU_PAD: P2 = [14.4, -15.3];
 // Photo easel at the entrance, beside the hub road, next to the IIT Mandi sign.
-export const EASEL: P2 = [24.2, -10.2];
+export const EASEL: P2 = [25.2, -11.2];
 
 // ICPR research corner, right of the loop.
 export const RESEARCH = {
   board: [22.6, -4.4] as P2,
-  field: { cx: 23.1, cz: 3.9, step: 1.55, n: 5, odd: [1, 3] as [number, number] }, // odd = [row, col]
-  mast: [27.6, -0.4] as P2,
-  status: [19.3, 8.9] as P2,
+  field: { cx: 23.9, cz: 3.9, step: 1.55, n: 5, odd: [1, 3] as [number, number] }, // odd = [row, col]
+  mast: [28.4, -0.5] as P2,
+  status: [20.1, 8.9] as P2,
   pad: [17.7, 1.3] as P2,
 };
 
-// Hackathon podium, below the loop.
-export const PODIUM = { x: 8.2, z: 21, pad: [8.2, 15.4] as P2 };
+// Hackathon podium, below the loop. The pad sits beside it, level with its labels, so nothing on
+// the podium is lower on screen than a parked car (where the phone's interact button floats).
+export const PODIUM = { x: 8.2, z: 21, pad: [14.8, 20.6] as P2 };
 
 // School gate (Delhi), below-left. The pad sits on the far side of the gate.
-export const SCHOOL = { x: -8, z: 19, pad: [-8, 23.6] as P2, board: [-1.2, 20.4] as P2 };
+export const SCHOOL = { x: -8, z: 19, pad: [-8, 23.6] as P2 };
 
 // Mountain biking trail: leaves the loop's top-left corner, runs straight down the left edge over
 // a tabletop kicker and rejoins the loop at its bottom-left corner.
@@ -57,5 +58,6 @@ export const TRAIL_CTRL: P2[] = [
 ];
 export const TRAIL = smoothPath(TRAIL_CTRL, 0.5);
 export const TRAIL_WIDTH = 4.4;
-export const KICKER = { x: -25.7, z: 3.3, width: 3.1, height: 0.62, curve: 2.3 }; // tabletop centre
+// Tabletop centre; base and top are widths across the trail, length and flat run along it.
+export const KICKER = { x: -25.7, z: 3.3, base: 3.4, top: 2.8, height: 0.62, length: 7.6, flat: 3 };
 export const TRAILHEAD = { sign: [-21.6, -10.6] as P2, pad: [-19.4, -6.5] as P2, bike: [-16.4, -9.9] as P2 };

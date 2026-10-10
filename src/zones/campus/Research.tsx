@@ -18,6 +18,7 @@ import { cylinder, mergeParts, roundedBox } from './boxes.ts';
 import { glowTexture, ordinal, wrap } from './geometry.ts';
 import { Y } from './Ground.tsx';
 import { RESEARCH } from './layout.ts';
+import { BoardNightWash, boardFace, NightWash } from './Night.tsx';
 import { useHomeReset } from './useHomeReset.ts';
 
 // Board text, all derived from profile.ts.
@@ -25,6 +26,10 @@ const VENUE = paper.venue.split(',')[0]; // 'ICPR 2024 · Springer LNCS'
 const AUTHOR_POS = paper.authors.indexOf(profile.name) + 1;
 const CO_AUTHOR = `Co-author, ${ordinal(AUTHOR_POS)} of ${paper.authors.length}`;
 const RESULT = wrap(paper.result, 37);
+const BOARD_LINES = [VENUE, CO_AUTHOR, ...RESULT];
+const BOARD_W = 7.4;
+const BOARD_LIFT = 0.9; // low, so its top edge stays under the photo easel behind it
+const BOARD_FACE = boardFace({ width: BOARD_W, lines: BOARD_LINES.length, lift: BOARD_LIFT });
 
 const F = RESEARCH.field;
 const HALF = ((F.n - 1) * F.step) / 2;
@@ -272,7 +277,7 @@ function AnomalyField() {
         <mesh geometry={brackets} position={[0, 0.82, 0]}>
           <meshBasicMaterial color={ALERT_RED} toneMapped={false} />
         </mesh>
-        <Label font="bodyBold" size={0.42} color={ALERT_RED} position={[0, 2.05, 0]}>
+        <Label font="bodyBold" size={0.42} color={ALERT_RED} outlineWidth={0.035} outlineColor={COLORS.paper} position={[0, 2.05, 0]}>
           anomaly
         </Label>
       </group>
@@ -301,6 +306,7 @@ function StatusSign({ foundRef, clearRef }: { foundRef: RefObject<Group | null>;
       <mesh geometry={geo} castShadow receiveShadow>
         <meshStandardMaterial vertexColors roughness={0.9} />
       </mesh>
+      <NightWash width={w - 0.16} height={h - 0.16} position={[0, lift + h / 2, 0.083]} />
       <group position={[0, lift + h / 2, 0.09]}>
         <Label size={0.28} color={COLORS.inkSoft} position={[0, 0.3, 0]}>
           Detector
@@ -325,13 +331,15 @@ export function Research() {
     <group name="campus-research">
       <Board
         title={paper.short}
-        lines={[VENUE, CO_AUTHOR, ...RESULT]}
-        width={7.4}
+        lines={BOARD_LINES}
+        width={BOARD_W}
         titleSize={0.7}
         lineSize={0.38}
         accent={COLORS.iit}
+        lift={BOARD_LIFT}
         position={[RESEARCH.board[0], 0, RESEARCH.board[1]]}
       />
+      <BoardNightWash face={BOARD_FACE} x={RESEARCH.board[0]} z={RESEARCH.board[1]} />
       <AnomalyField />
       <Pad
         id="campus-paper"

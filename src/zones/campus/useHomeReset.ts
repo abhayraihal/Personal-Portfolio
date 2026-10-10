@@ -3,11 +3,26 @@ import type { RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { RapierRigidBody } from '@react-three/rapier';
 import { car } from '../../state/car.ts';
+import { events } from '../../state/events.ts';
 
 type Home = { t: { x: number; y: number; z: number }; r: { x: number; y: number; z: number; w: number } };
 
+const displaced = (b: RapierRigidBody, h: Home) => {
+  const t = b.translation();
+  const r = b.rotation();
+  return Math.hypot(t.x - h.t.x, t.y - h.t.y, t.z - h.t.z) > 0.4 || Math.abs(r.x * h.r.x + r.y * h.r.y + r.z * h.r.z + r.w * h.r.w) < 0.985;
+};
+
+const sendHome = (b: RapierRigidBody, h: Home) => {
+  b.setTranslation(h.t, true);
+  b.setRotation(h.r, true);
+  b.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  b.setAngvel({ x: 0, y: 0, z: 0 }, true);
+};
+
 // <Resettable>'s rules for a set of bodies (e.g. InstancedRigidBodies): each body goes home once it
-// has sat displaced and still for `idleSeconds` with the car at least `carDistance` away.
+// has sat displaced and still for `idleSeconds` with the car at least `carDistance` away, and at
+// once on a teleport (the camera cuts, so nobody sees it move).
 export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[] | null>, idleSeconds = 14, carDistance = 14) {
   const homes = useRef<(Home | null)[]>([]);
   const idle = useRef<number[]>([]);
@@ -24,6 +39,16 @@ export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[] | null
     return () => cancelAnimationFrame(id);
   }, [bodies]);
 
+  useEffect(() => events.on('teleported', () => {
+    const list = bodies.current ?? [];
+    list.forEach((b, i) => {
+      const h = homes.current[i];
+      if (!b || !h || !displaced(b, h)) return;
+      sendHome(b, h);
+      idle.current[i] = 0;
+    });
+  }), [bodies]);
+
   useFrame((_, delta) => {
     acc.current += delta;
     if (acc.current < 0.25) return;
@@ -38,8 +63,7 @@ export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[] | null
       const asleep = b.isSleeping();
       if (asleep && settled.current[i]) continue;
       const t = b.translation();
-      const r = b.rotation();
-      const moved = Math.hypot(t.x - h.t.x, t.y - h.t.y, t.z - h.t.z) > 0.4 || Math.abs(r.x * h.r.x + r.y * h.r.y + r.z * h.r.z + r.w * h.r.w) < 0.985;
+      const moved = displaced(b, h);
       const far = Math.hypot(car.x - h.t.x, car.z - h.t.z) > carDistance;
       const v = b.linvel();
       const still = Math.hypot(v.x, v.y, v.z) < 0.3;
@@ -47,10 +71,7 @@ export function useHomeReset(bodies: RefObject<(RapierRigidBody | null)[] | null
       idle.current[i] = moved && far && still ? idle.current[i] + dt : 0;
       if (idle.current[i] > idleSeconds || t.y < -10) {
         idle.current[i] = 0;
-        b.setTranslation(h.t, true);
-        b.setRotation(h.r, true);
-        b.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        b.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        sendHome(b, h);
       }
     }
   });
