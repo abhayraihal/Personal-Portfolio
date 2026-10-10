@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Color, DoubleSide, Euler, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
+import { AdditiveBlending, Color, Euler, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
 import type { Group, InstancedMesh } from 'three';
 import { Label } from '../../../components/Label.tsx';
-import { modelScale, useMerged } from '../../../components/Model.tsx';
+import { modelScale, modelSize, useMerged } from '../../../components/Model.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
 import { TOY_TEXT } from '../copy.ts';
@@ -21,7 +21,8 @@ const NX = 4;
 const NZ = 5;
 const NY = 5;
 const N = NX * NZ * NY; // 100
-const S = 0.42; // crate size, crate-wood at scale 0.42
+const S = 0.42; // grid pitch
+const CRATE = 0.4; // crate edge, a little under the pitch so neighbours never share a face
 const BLOCK = { x: -1.6, z: 0.95 };
 const X0 = BLOCK.x - ((NX - 1) * S) / 2;
 const Z0 = BLOCK.z - ((NZ - 1) * S) / 2;
@@ -63,13 +64,13 @@ function RetentionToy({ clock }: ToyProps) {
   const sweep = useRef<Group>(null);
   const sign = useRef<Group>(null);
   const fired = useRef(false);
-  const sweepMat = useMemo(() => new MeshBasicMaterial({ color: COLORS.amazon, transparent: true, opacity: 0.38, depthWrite: false, side: DoubleSide, toneMapped: false }), []);
+  const sweepMat = useMemo(() => new MeshBasicMaterial({ color: COLORS.amazon, transparent: true, opacity: 0.42, depthWrite: false, blending: AdditiveBlending, toneMapped: false }), []);
   const edgeMat = useMemo(() => new MeshBasicMaterial({ color: '#fff1c9', toneMapped: false }), []);
   useEffect(() => () => {
     sweepMat.dispose();
     edgeMat.dispose();
   }, [sweepMat, edgeMat]);
-  const scale = modelScale('crate-wood') * S;
+  const scale = modelScale('crate-wood') * (CRATE / modelSize('crate-wood')[0]);
   const outline = useBoxes(OUTLINE);
   const legs = useBoxes(SIGN_LEGS);
 
@@ -125,7 +126,7 @@ function RetentionToy({ clock }: ToyProps) {
         } else if (phase !== 'idle' && c.keep) {
           flash = Math.sin(Math.PI * seg(t, T_OUT + 0.3, T_OUT + 0.9)) * 0.6;
         }
-        const hs = (S / 2) * (1 - s); // shrink about the crate centre
+        const hs = (CRATE / 2) * (1 - s); // shrink about the crate centre
         _p.set(c.x, c.y + hs + lift, c.z);
         _q.setFromEuler(_e.set(0, spin, 0));
         m.setMatrixAt(i, _m.compose(_p, _q, _s.setScalar(scale * Math.max(s, 0.0001))));
@@ -161,14 +162,18 @@ function RetentionToy({ clock }: ToyProps) {
       <mesh geometry={outline} position={[BLOCK.x, 0.012, BLOCK.z]} material={M.orange} />
       <instancedMesh ref={mesh} args={[geometry, material, N]} castShadow receiveShadow />
       <group ref={sweep} position={[SWEEP_X0, 0, BLOCK.z]} visible={false}>
+        {/* A slab, not a plane: the camera looks along -Z, so a plane across X would be edge-on. */}
         <mesh position={[0, sweepH / 2, 0]} material={sweepMat}>
-          <boxGeometry args={[0.34, sweepH, sweepD]} />
-        </mesh>
-        <mesh position={[0, sweepH, 0]} material={edgeMat}>
-          <boxGeometry args={[0.38, 0.08, sweepD + 0.04]} />
+          <boxGeometry args={[0.28, sweepH, sweepD]} />
         </mesh>
         <mesh position={[0, sweepH / 2, sweepD / 2]} material={edgeMat}>
-          <boxGeometry args={[0.38, sweepH, 0.05]} />
+          <boxGeometry args={[0.07, sweepH, 0.05]} />
+        </mesh>
+        <mesh position={[0, sweepH / 2, -sweepD / 2]} material={edgeMat}>
+          <boxGeometry args={[0.07, sweepH, 0.05]} />
+        </mesh>
+        <mesh position={[0, sweepH, 0]} material={edgeMat}>
+          <boxGeometry args={[0.07, 0.07, sweepD + 0.05]} />
         </mesh>
       </group>
       <Plaque text={TOY_TEXT.storedData} size={0.3} position={[BLOCK.x, 0.38, 2.6]} legs={0.16} />
