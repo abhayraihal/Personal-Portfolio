@@ -16,27 +16,27 @@ import { M } from './materials.ts';
 type V3 = [number, number, number];
 
 // Night: paper faces glow a little, like lit signs, so the dark text on them stays readable.
-export const NIGHT_GLOW = 0.42;
+const NIGHT_GLOW = 0.42;
 const PAPER = new Color(COLORS.paper).getHex();
 
-function lightPaper(root: Object3D | null, on: boolean) {
-  root?.traverse((o) => {
-    const m = (o as Mesh).material;
-    if (m instanceof MeshStandardMaterial && m.color.getHex() === PAPER) {
-      m.emissive.set(on ? COLORS.paper : '#000000');
-      m.emissiveIntensity = NIGHT_GLOW;
-    }
-  });
+function glow(m: MeshStandardMaterial, on: boolean) {
+  m.emissive.set(on ? COLORS.paper : '#000000');
+  m.emissiveIntensity = NIGHT_GLOW;
 }
 
 // The plaza's shared paper material (plaques, the office band, the trophy plaque).
 export function NightPaper() {
   const night = useStore((s) => s.night);
-  useEffect(() => {
-    M.paper.emissive.set(night ? COLORS.paper : '#000000');
-    M.paper.emissiveIntensity = NIGHT_GLOW;
-  }, [night]);
+  useEffect(() => glow(M.paper, night), [night]);
   return null;
+}
+
+// A Board makes its own face material, so find it by colour.
+function glowBoard(root: Object3D | null, on: boolean) {
+  root?.traverse((o) => {
+    const m = (o as Mesh).material;
+    if (m instanceof MeshStandardMaterial && m.color.getHex() === PAPER) glow(m, on);
+  });
 }
 
 // Station board: the panel title and up to four short lines, standing at the back of the platform.
@@ -44,7 +44,7 @@ export function StationBoard({ id, position, width = 7.2, titleSize = 0.62, lift
   const b = BOARDS[id];
   const group = useRef<Group>(null);
   const night = useStore((s) => s.night);
-  useEffect(() => lightPaper(group.current, night), [night]);
+  useEffect(() => glowBoard(group.current, night), [night]);
   return (
     <group ref={group}>
       <Board
