@@ -13,7 +13,7 @@ import { useStore } from '../../state/store.ts';
 import { loadCanvasFonts, textWidth } from './canvas.ts';
 import { IMAGE_H, IMAGE_W, ROWS } from './layout.ts';
 import type { Bay as BayDef } from './layout.ts';
-import { posterTexture } from './posters.ts';
+import { coverTexture } from './posters.ts';
 import { carNearZone, carX, carZ, ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
 
@@ -131,7 +131,7 @@ function ImageBillboard({ url, ...rest }: { url: string; fit: 'cover' | 'contain
 function PosterBillboard({ bay, ...rest }: { bay: BayDef; fit: 'cover' | 'contain'; x: number; z: number }) {
   use(loadCanvasFonts());
   const p = bay.project;
-  const map = posterTexture(p.panel, { title: p.title, tagline: p.tagline, chips: p.stack, year: p.year, art: bay.art ?? 'map' });
+  const map = coverTexture(p.panel, p.title, bay.art ?? 'map');
   return <Billboard map={map} {...rest} />;
 }
 
