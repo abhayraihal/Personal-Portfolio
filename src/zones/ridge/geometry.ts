@@ -4,7 +4,7 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Vector3 } from 'three';
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { COLORS } from '../../config/palette.ts';
-import { FLARE_S0, HW, MILESTONES, RAIL_INSET, STRATA, deckY, hwAt, sContest } from './profile.ts';
+import { FLARE_S0, HW, MILESTONES, RAIL_INSET, STRATA, S_SUMMIT, deckY, hwAt, sContest } from './profile.ts';
 import type { Stratum } from './profile.ts';
 import { RAIL_VIS_T, faceFoot, outline, outlineS, railSides } from './shape.ts';
 import type { OutlinePoint } from './shape.ts';
@@ -119,7 +119,7 @@ function addDeck(soup: Soup) {
     const y1 = deckY(s1);
     const w0 = hwAt(s0);
     const w1 = hwAt(s1);
-    const c = (s0 + s1) / 2 > FLARE_S0 + 2.5 ? plaza : road;
+    const c = (s0 + s1) / 2 > S_SUMMIT + 0.5 ? plaza : road;
     soup.quad([-s0, y0, w0], [-s0, y0, -w0], [-s1, y1, -w1], [-s1, y1, w1], c);
   }
 }

@@ -13,7 +13,7 @@ import { EndWall } from './Rails.tsx';
 const POLE_Z = -(PLAZA_HW - 0.75);
 const POLES: { x: number; h: number }[] = [
   { x: -(S_END - 1.6), h: 7.2 },
-  { x: -(S_SUMMIT + 4.5), h: 5.4 },
+  { x: -(S_SUMMIT + 5.5), h: 5.4 },
 ];
 
 function Pole({ x, h }: { x: number; h: number }) {

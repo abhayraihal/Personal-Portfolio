@@ -188,8 +188,9 @@ export const deckY = (s: number) => sample(DECK, s);
 const smooth = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 export const MOUTH_HW = 5.4;
 export const MOUTH_S1 = 8;
-export const FLARE_S0 = S_SUMMIT - 2;
-export const FLARE_S1 = S_SUMMIT + 3;
+// Long enough that a car coming down off the plaza is steered into the road, not stopped.
+export const FLARE_S0 = S_SUMMIT - 3;
+export const FLARE_S1 = S_SUMMIT + 5;
 export const CHAMFER = 3;
 export function hwAt(s: number): number {
   if (s < MOUTH_S1) return HW + (MOUTH_HW - HW) * (1 - smooth(s / MOUTH_S1));
