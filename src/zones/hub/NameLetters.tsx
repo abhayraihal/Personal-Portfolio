@@ -25,11 +25,12 @@ const KICK = { up: 0.25, spin: 0.85 };
 type Glyph = { key: string; geometry: BufferGeometry; half: [number, number, number]; x: number };
 
 // A little emissive keeps the camera-facing sides from going dull: the sun sits behind the letters.
+// The surname is cream so it stands out from the dark road it stands on.
 const pink = new MeshStandardMaterial({ color: COLORS.accent, emissive: COLORS.accent, emissiveIntensity: 0.22, roughness: 0.5 });
-const ink = new MeshStandardMaterial({ color: '#2c3039', roughness: 0.55 });
+const cream = new MeshStandardMaterial({ color: COLORS.paper, emissive: COLORS.paper, emissiveIntensity: 0.1, roughness: 0.6 });
 
 const FIRST: RowStyle = { size: 2.2, depth: 0.62, bevel: 0.07, gap: 0.3, wordGap: 0, mass: 28, material: pink };
-const LAST: RowStyle = { size: 1.25, depth: 0.42, bevel: 0.05, gap: 0.16, wordGap: 0.95, mass: 12, material: ink };
+const LAST: RowStyle = { size: 1.25, depth: 0.42, bevel: 0.05, gap: 0.16, wordGap: 0.95, mass: 12, material: cream };
 
 // Each letter is its own extruded TextGeometry (what drei's <Text3D> builds), centred on its bounding
 // box so the cuboid collider matches the glyph.
@@ -96,7 +97,7 @@ function Row({ glyphs, v, style, group }: { glyphs: Glyph[]; v: number; style: R
   );
 }
 
-// 'ABHAY' in big pink letters across the spine, 'SINGH RAIHAL' in smaller ink letters in front of it.
+// 'ABHAY' in big pink letters across the spine, 'SINGH RAIHAL' in smaller cream letters in front of it.
 export function NameLetters({ group }: { group: HomeGroup }) {
   const font = useFont(FONTS.display3d) as unknown as Font;
   const [first, ...rest] = profile.name.toUpperCase().split(' ');
