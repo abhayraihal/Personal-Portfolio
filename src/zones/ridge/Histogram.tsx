@@ -6,7 +6,7 @@ import { Board } from '../../components/Board.tsx';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { codeforces, rankFor } from '../../data/codeforces.ts';
-import { chamferedBox, shadeFor } from './geometry.ts';
+import { cornerCutBox, shadeFor } from './geometry.ts';
 
 // Ridge-frame layout: the easy end sits by the ramp, harder ratings run left along the foot, the
 // same way the road climbs.
@@ -25,7 +25,7 @@ export const HIST_X1 = columns[columns.length - 1].x;
 export function Histogram() {
   const ref = useRef<InstancedMesh>(null);
   const total = columns.reduce((n, c) => n + c.cubes, 0);
-  const parts = useMemo(() => ({ geo: chamferedBox(HIST.cube, HIST.cube, HIST.cube, 0.07), mat: new MeshStandardMaterial({ roughness: 0.6 }) }), []);
+  const parts = useMemo(() => ({ geo: cornerCutBox(HIST.cube, HIST.cube, HIST.cube, 0.07), mat: new MeshStandardMaterial({ roughness: 0.6 }) }), []);
 
   useLayoutEffect(() => {
     const m = ref.current;

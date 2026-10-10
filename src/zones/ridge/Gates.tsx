@@ -7,7 +7,7 @@ import { Label } from '../../components/Label.tsx';
 import { MILESTONES, deckY, sContest } from './profile.ts';
 import type { Milestone } from './profile.ts';
 import { railSides } from './shape.ts';
-import { chamferedBox, shadeFor } from './geometry.ts';
+import { cornerCutBox, shadeFor } from './geometry.ts';
 import { railPointAt } from './Rails.tsx';
 
 // RidgeLogic sets flash[i] to 1 when the car drives through gate i; the gate glows and fades.
@@ -29,8 +29,8 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
   const zb = railPointAt(back, s).z;
   const color = shadeFor(m.name, m.color);
   const parts = useMemo(() => {
-    const pillar = chamferedBox(PILLAR, HEIGHT + 0.4, PILLAR, 0.09);
-    const lintel = chamferedBox(PILLAR + 0.12, LINTEL_H, zf - zb + PILLAR + 0.3, 0.1);
+    const pillar = cornerCutBox(PILLAR, HEIGHT + 0.4, PILLAR, 0.09);
+    const lintel = cornerCutBox(PILLAR + 0.12, LINTEL_H, zf - zb + PILLAR + 0.3, 0.1);
     const mat = new MeshStandardMaterial({ color, roughness: 0.75, emissive: new Color(color), emissiveIntensity: 0 });
     return { pillar, lintel, mat };
   }, [color, zf, zb]);

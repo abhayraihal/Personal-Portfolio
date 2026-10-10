@@ -4,8 +4,8 @@ import { CylinderGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quatern
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { R0, STRATA, YEARS, deckY, hwAt, ratingY, sContest } from './profile.ts';
-import { faceFoot, faceRun } from './shape.ts';
-import { chamferedBox } from './geometry.ts';
+import { faceFoot, frontFaceAt } from './shape.ts';
+import { cornerCutBox } from './geometry.ts';
 
 const W = 1.0;
 const H = 0.95;
@@ -37,7 +37,7 @@ export function YearStones() {
     const capGeo = new CylinderGeometry(W / 2, W / 2, D, 18, 1, false, Math.PI / 2, Math.PI);
     capGeo.rotateX(Math.PI / 2);
     return {
-      bodyGeo: chamferedBox(W, H, D, 0.05),
+      bodyGeo: cornerCutBox(W, H, D, 0.05),
       capGeo,
       bodyMat: new MeshStandardMaterial({ color: '#f4f1ea', roughness: 0.9 }),
       capMat: new MeshStandardMaterial({ color: COLORS.flags[4], roughness: 0.8 }),
@@ -84,27 +84,26 @@ export function YearStones() {
 // repeated at a few places along the ridge.
 const AXIS_S = [24, 62, 100, 134];
 const AXIS_SIZE = 0.42;
-const FRONT_RUN = faceRun({ x: 0, z: 1 });
 
 export function RatingLabels() {
   const labels = useMemo(() => {
-    const out: { key: string; text: string; pos: [number, number, number] }[] = [];
+    const out: { key: string; text: string; pos: [number, number, number]; tilt: number }[] = [];
     const lines = STRATA.map((st) => st.rating).filter((r) => r > R0);
     for (const s of AXIS_S) {
       const top = deckY(s);
       for (const r of lines) {
         const y = ratingY(r) + 0.32;
         if (top < y + AXIS_SIZE * 0.6) continue;
-        out.push({ key: `${s}-${r}`, text: String(r), pos: [-s, y, hwAt(s) + FRONT_RUN * (top - y) + 0.03] });
+        const f = frontFaceAt(s, y);
+        out.push({ key: `${s}-${r}`, text: String(r), pos: [-s, y, f.z + 0.03], tilt: -f.lean });
       }
     }
     return out;
   }, []);
-  const tilt = -Math.atan(FRONT_RUN);
   return (
     <>
       {labels.map((l) => (
-        <Label key={l.key} font="bodyBold" size={AXIS_SIZE} color="#ffffff" fillOpacity={0.8} anchorX="left" rotation={[tilt, 0, 0]} position={[l.pos[0] + 0.3, l.pos[1], l.pos[2]]}>
+        <Label key={l.key} font="bodyBold" size={AXIS_SIZE} color="#ffffff" fillOpacity={0.8} anchorX="left" rotation={[l.tilt, 0, 0]} position={[l.pos[0] + 0.3, l.pos[1], l.pos[2]]}>
           {l.text}
         </Label>
       ))}

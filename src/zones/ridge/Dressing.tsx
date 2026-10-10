@@ -4,7 +4,7 @@ import { modelScale, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
 import { useStore } from '../../state/store.ts';
 import { S_END, YEARS, deckY, hwAt, sContest } from './profile.ts';
-import { faceRun } from './shape.ts';
+import { faceRun, frontFaceAt } from './shape.ts';
 import { HIST_X1 } from './Histogram.tsx';
 
 type Item = { x: number; y: number; z: number; yaw: number; scale: number };
@@ -16,7 +16,6 @@ function rng(seed: number) {
 }
 
 const BACK_RUN = faceRun({ x: 0, z: -1 });
-const FRONT_RUN = faceRun({ x: 0, z: 1 });
 
 // Ground height on the far side of the ridge at (s, z), z < -hw.
 function backSlopeY(s: number, z: number) {
@@ -74,7 +73,7 @@ export function Dressing() {
       if (stones.some((t) => Math.abs(t - ss) < 2.5)) continue;
       if (-ss > HIST_X1 - 2 && -ss < 4 && r() < 0.6) continue; // keep the stats yard tidy
       const sc = Math.min(ss, S_END);
-      const z = hwAt(sc) + FRONT_RUN * (deckY(sc) + 0.25) + 0.15 + r() * 0.5;
+      const z = frontFaceAt(sc, -0.25).z + 0.15 + r() * 0.5;
       const it = { x: -ss, y: -0.05, z, yaw: r() * Math.PI * 2, scale: 0.45 + r() * 0.4 };
       (r() < 0.5 ? rocks : rocksB).push(it);
     }

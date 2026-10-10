@@ -38,11 +38,16 @@ class Soup {
   poly(p: P3[], color: Color) {
     for (let i = 1; i < p.length - 1; i++) this.tri(p[0], p[i], p[i + 1], color);
   }
-  build(): BufferGeometry {
+  // shade: optional brightness factor from a triangle's normal, baked into its colour
+  build(shade?: (nx: number, ny: number, nz: number) => number): BufferGeometry {
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
     g.computeVertexNormals(); // non-indexed, so every triangle gets its own flat normal
+    if (shade) {
+      const n = g.attributes.normal.array;
+      for (let i = 0; i < this.col.length; i++) this.col[i] *= shade(n[i - (i % 3)], n[i - (i % 3) + 1], n[i - (i % 3) + 2]);
+    }
+    g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
     g.computeBoundingSphere();
     return g;
   }
@@ -139,16 +144,18 @@ function addPaint(soup: Soup) {
   // Dashed centre line and solid edge lines.
   for (let s = 1.5; s < end - 1; s += 3) paintAlong(soup, s, Math.min(s + 1.4, end), () => 0, 0.16, white);
   for (const side of [1, -1]) paintAlong(soup, 0.8, end, (s) => side * (hwAt(s) - RAIL_INSET - 0.55), 0.13, white);
-  // A band across the road at each rank milestone, in the rank's colour.
+  // A chequered line across the road at each rank milestone, in the rank's colour and white.
+  const cells = 12;
+  const half = HW - RAIL_INSET - 0.2;
+  const cell = (2 * half) / cells;
   for (const m of MILESTONES) {
     const s = sContest(m.index);
     const c = new Color(shadeFor(m.name, m.color));
-    const half = HW - RAIL_INSET - 0.2;
-    for (let i = 0; i < 6; i++) {
-      const z0 = -half + (2 * half * i) / 6;
-      const z1 = -half + (2 * half * (i + 1)) / 6;
-      paintAlong(soup, s - 0.35, s + 0.35, () => (z0 + z1) / 2, z1 - z0 - 0.02, c, 0.35);
-    }
+    for (let row = 0; row < 2; row++)
+      for (let i = 0; i < cells; i++) {
+        const z = -half + cell * (i + 0.5);
+        paintAlong(soup, s - cell + row * cell, s + row * cell, () => z, cell, (i + row) % 2 ? white : c, cell);
+      }
   }
 }
 
@@ -192,11 +199,12 @@ export function buildRidgeGeometry(): { faces: BufferGeometry; top: BufferGeomet
   const { front, back } = railSides(0.5);
   addBeam(deck, front, BEAM.y0, BEAM.y1, BEAM.w, beam);
   addBeam(deck, back, BEAM.y0, BEAM.y1, BEAM.w, beam);
-  return { faces: faces.build(), top: deck.build() };
+  // The sun comes from screen-left and above: folds turned that way read a little brighter.
+  return { faces: faces.build((nx, ny) => 1 - 0.3 * nx + 0.12 * ny), top: deck.build() };
 }
 
-// Chamfered block centred on the origin (toy-brick look, 44 triangles).
-export function chamferedBox(w: number, h: number, d: number, c: number): BufferGeometry {
+// Box with its eight corners cut off, centred on the origin (toy-block look, 44 triangles).
+export function cornerCutBox(w: number, h: number, d: number, c: number): BufferGeometry {
   const pts: Vector3[] = [];
   const hx = w / 2;
   const hy = h / 2;

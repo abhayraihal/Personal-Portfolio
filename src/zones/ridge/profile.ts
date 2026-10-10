@@ -2,8 +2,7 @@
 // smoothed to a drivable grade), the deck outline, the rank strata, the gates and the year marks.
 // Plain math with no three.js, so a headless physics sim can import it.
 import { ROADS, ZONE_BY_ID } from '../../config/layout.ts';
-import { screenToWorld } from '../../config/world.ts';
-import { RANK_BANDS, codeforces, contests, rankFor } from '../../data/codeforces.ts';
+import { RANK_BANDS, contests, rankFor } from '../../data/codeforces.ts';
 
 const DEG = Math.PI / 180;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -17,13 +16,6 @@ export const FOOT_U = roadEnd[0];
 export const ROAD_V = roadEnd[1];
 const [CU, CV] = ZONE_BY_ID.ridge.center;
 export const FRAME_OFFSET: [number, number, number] = [FOOT_U - CU, 0, -(ROAD_V - CV)];
-
-// Screen (u, v) to the ridge frame (x, z), and a ridge-frame point to world space.
-export const toRidge = (u: number, v: number): [number, number] => [u - FOOT_U, -(v - ROAD_V)];
-export function ridgeToWorld(x: number, y: number, z: number): [number, number, number] {
-  const [wx, wz] = screenToWorld(x + FOOT_U, ROAD_V - z);
-  return [wx, y, wz];
-}
 
 export const N = contests.length;
 export const RAMP = 4; // m of on-ramp from the ground to contest 1
@@ -86,7 +78,7 @@ function solveCoarse(floors: Map<number, number>): Float64Array {
   const pairInc = new Float64Array((N - 1) * 2);
   const floorInc = new Float64Array(N);
   let rampInc = 0;
-  for (let it = 0; it < 3000; it++) {
+  for (let it = 0; it < 400; it++) {  // converged to 0.1 mm by ~120
     for (let i = 0; i < N - 1; i++) {
       const a = p[i] + pairInc[i * 2];
       const b = p[i + 1] + pairInc[i * 2 + 1];
@@ -191,9 +183,6 @@ export const DECK: Float64Array = (() => {
 // Deck height at a distance s along the road.
 export const deckY = (s: number) => sample(DECK, s);
 
-// Grade (dy/ds) at s, for orienting things that sit on the deck.
-export const deckSlope = (s: number) => (deckY(s + 0.25) - deckY(s - 0.25)) / 0.5;
-
 // Deck half-width: a funnel at the foot that catches cars arriving off-centre, the road, a flared
 // mouth into the summit plaza, and chamfered far corners.
 const smooth = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
@@ -214,7 +203,6 @@ export function hwAt(s: number): number {
 export const contestAt = (s: number) => Math.max(0, Math.min(N - 1, Math.round((s - RAMP) / DS)));
 
 export const SUMMIT = {
-  rating: codeforces.maxRating,
   y: SUMMIT_Y,
   s: S_SUMMIT + 8.5, // centre of the turnaround circle, where the plaza is level
 };

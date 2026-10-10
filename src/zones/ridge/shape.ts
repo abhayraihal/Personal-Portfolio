@@ -104,10 +104,29 @@ export function faceRun(n: V2): number {
   return (wf * RUN_FRONT + wb * RUN_BACK + we * RUN_END + 1e-6 * RUN_FRONT) / (wf + wb + we + 1e-6);
 }
 
+// The camera-side cliff leans by a different amount along the ridge, so it folds like rock and the
+// folds catch the light differently. 0.6..1.4 times the base lean, smooth along s.
+export function frontFold(s: number): number {
+  return 1 + 0.22 * Math.sin(s * 0.21 + 1.3) + 0.12 * Math.sin(s * 0.57 + 0.4) + 0.06 * Math.sin(s * 1.31 + 2.1);
+}
+
+// Horizontal run per metre of height at an outline point, folds included.
+export function runAt(p: { s: number; n: V2 }): number {
+  const front = Math.max(p.n.z, 0) ** 2;
+  return faceRun(p.n) * (1 + (frontFold(p.s) - 1) * front);
+}
+
 // Top and bottom of the cliff under each outline point.
 export function faceFoot(p: OutlinePoint): { x: number; y: number; z: number } {
-  const run = faceRun(p.n) * (p.y - FACE_FOOT);
+  const run = runAt(p) * (p.y - FACE_FOOT);
   return { x: p.x + p.n.x * run, y: FACE_FOOT, z: p.z + p.n.z * run };
+}
+
+// The camera-side face at height y below a point s on the straight road (z of the face, and its
+// lean in radians from vertical), for things painted on or standing against it.
+export function frontFaceAt(s: number, y: number): { z: number; lean: number } {
+  const run = runAt({ s, n: { x: 0, z: 1 } });
+  return { z: hwAt(s) + run * (deckY(s) - y), lean: Math.atan(run) };
 }
 
 // Triangle soups for physics (indexed).

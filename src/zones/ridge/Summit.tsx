@@ -6,7 +6,7 @@ import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { codeforces } from '../../data/codeforces.ts';
-import { PLAZA_HW, S_END, S_SUMMIT, SUMMIT, SUMMIT_Y } from './profile.ts';
+import { PLAZA_HW, S_END, S_SUMMIT, SUMMIT, SUMMIT_Y, deckY } from './profile.ts';
 import { RANK_SHADE } from './geometry.ts';
 import { EndWall } from './Rails.tsx';
 
@@ -18,7 +18,7 @@ const POLES: { x: number; h: number }[] = [
 
 function Pole({ x, h }: { x: number; h: number }) {
   return (
-    <group position={[x, SUMMIT_Y, POLE_Z]}>
+    <group position={[x, deckY(-x), POLE_Z]}>
       <mesh position={[0, h / 2, 0]} castShadow>
         <cylinderGeometry args={[0.07, 0.09, h, 8]} />
         <meshStandardMaterial color={COLORS.paper} roughness={0.8} />
