@@ -46,8 +46,8 @@ export function paint(parts: Part[]): BufferGeometry {
 export const paintMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
 paintMaterial.name = 'career-paint';
 
-// Unlit paint for sign faces, so company colours read exactly whatever the light does (the sun
-// sits behind camera-facing faces).
+// Unlit paint for sign faces, so colours read exactly by day and by night (lit, a face comes out
+// about a quarter darker than its colour).
 export const flatMaterial = new MeshBasicMaterial({ vertexColors: true, toneMapped: false });
 flatMaterial.name = 'career-flat';
 

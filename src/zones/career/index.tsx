@@ -1,4 +1,3 @@
-import { Board } from '../../components/Board.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { ZoneFrame } from '../../components/ZoneFrame.tsx';
 import { COLORS } from '../../config/palette.ts';
@@ -6,6 +5,7 @@ import { jobs, panels } from '../../data/profile.ts';
 import { AmazonGate } from './AmazonGate.tsx';
 import { DeliveryLoop } from './DeliveryLoop.tsx';
 import { Gantry } from './Gantry.tsx';
+import { Sign } from './kit/sign.tsx';
 import { Milestone } from './Milestone.tsx';
 import { PLAN, p } from './plan.ts';
 import { RedisRace } from './RedisRace.tsx';
@@ -41,19 +41,19 @@ export function CareerZone() {
     <ZoneFrame zone="career">
       <Roadside />
 
-      <Board title="Career road" lines={roadOrder.map((j) => `${j.company} · ${j.dates}`)} width={7.4} titleSize={0.78} lineSize={0.42}
+      <Sign title="Career road" lines={roadOrder.map((j) => `${j.company} · ${j.dates}`)} width={7.4} titleSize={0.78} lineSize={0.42}
         color={HIGHWAY_GREEN} textColor="#ffffff" accent="#ffffff" position={p(...start.board)} lift={1.1} />
       <Pad id="career-road" label="Read about my career" action={{ kind: 'panel', panel: 'career' }} position={p(...start.pad)} color={COLORS.accent} icon="Career" />
 
       <Gantry position={p(0, rp.v)} title={razorpay.company.toUpperCase()} subtitle={`SDE Intern · X Payouts · ${razorpay.dates}`} color={COLORS.razorpay} />
-      <Board title="Razorpay" lines={RAZORPAY_LINES} width={6.8} lineSize={0.4} accent={COLORS.razorpay} position={p(...rp.board)} />
+      <Sign title="Razorpay" lines={RAZORPAY_LINES} width={6.8} lineSize={0.4} accent={COLORS.razorpay} position={p(...rp.board)} />
       <Pad id="career-razorpay" label="Read about Razorpay" action={{ kind: 'panel', panel: 'razorpay' }} position={p(...rp.pad)} color={COLORS.razorpay} icon="Razorpay" />
       <RedisRace />
 
       <Milestone position={p(...PLAN.milestone)} cap={degree} place={edu.title} year={gradYear} />
 
       <Gantry position={p(0, lr.v)} title={limeroad.company.toUpperCase()} subtitle={`SDE · ${limeroad.dates} · ${limeroad.place}`} color={COLORS.limeroad} />
-      <Board title="Limeroad" lines={LIMEROAD_LINES} width={6.8} lineSize={0.4} accent={COLORS.limeroad} position={p(...lr.board)} />
+      <Sign title="Limeroad" lines={LIMEROAD_LINES} width={6.8} lineSize={0.4} accent={COLORS.limeroad} position={p(...lr.board)} />
       <Pad id="career-limeroad" label="Read about Limeroad" action={{ kind: 'panel', panel: 'limeroad' }} position={p(...lr.pad)} color={COLORS.limeroad} icon="Limeroad" />
       <DeliveryLoop />
 
