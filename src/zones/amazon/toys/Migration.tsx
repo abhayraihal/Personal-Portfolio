@@ -9,6 +9,7 @@ import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
 import { TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { Plaque, StationBoard } from '../parts.tsx';
 import { useBoxes } from '../geo.ts';
 import type { BoxSpec } from '../geo.ts';
@@ -19,7 +20,10 @@ import type { ToyProps, ToySpec } from '../Station.tsx';
 // Shadow copies of the traffic cross first, then the real cars move lane by lane, then the old
 // rack sinks into the platform and leaves "Dublin: 0 hosts".
 
-const LANE_Z = [2.2, 1.2, 0.2, -0.8];
+const LANE_PITCH = 1.0;
+const LANE_Z = [0, 1, 2, 3].map((i) => 2.2 - i * LANE_PITCH);
+// Flat text reads away from the camera, so the back lane's name is the first line.
+const LANE_NAMES = TOY_TEXT.countries.map((_, i, all) => all[all.length - 1 - i]).join('\n');
 const LANE_X0 = -2.75;
 const LANE_X1 = 2.75;
 const LANE_W = 0.82;
@@ -208,15 +212,16 @@ function MigrationToy({ clock }: ToyProps) {
   return (
     <>
       <StationBoard id="amazon-migration" position={[0, 0, -2.6]} width={7.0} />
-      <mesh geometry={lanes} material={M.slate} receiveShadow />
+      <Static>
+        <mesh geometry={lanes} material={M.slate} receiveShadow />
+      </Static>
       <instancedMesh ref={stripes} args={[undefined, M.white, 4]}>
         <boxGeometry args={[0.24, 0.012, LANE_W]} />
       </instancedMesh>
-      {LANE_Z.map((z, i) => (
-        <Label key={z} flat font="bodyBold" size={0.3} color="#ffffff" position={[0, 0.05, z]}>
-          {TOY_TEXT.countries[i]}
-        </Label>
-      ))}
+      {/* Lane names, one label. */}
+      <Label flat font="bodyBold" size={0.3} color="#ffffff" lineHeight={LANE_PITCH / 0.3} textAlign="center" position={[0, 0.05, (LANE_Z[0] + LANE_Z[3]) / 2]}>
+        {LANE_NAMES}
+      </Label>
       <instancedMesh ref={crates} args={[crateGeo.geometry, crateGeo.material, 16]} castShadow receiveShadow />
       <instancedMesh ref={lights} args={[undefined, lightMat, 16]}>
         <boxGeometry args={[0.13, 0.09, 0.02]} />
@@ -231,12 +236,14 @@ function MigrationToy({ clock }: ToyProps) {
           <boxGeometry args={[0.08, 1.24, 0.08]} />
         </mesh>
       </group>
-      <group position={[RACK_X, 1.38, -1.45]}>
-        <Plaque text={TOY_TEXT.newRegions} size={0.28} material={M.paper} />
-        <mesh position={[0, -0.76, -0.06]} material={M.slate}>
-          <boxGeometry args={[0.08, 1.24, 0.08]} />
-        </mesh>
-      </group>
+      <Static>
+        <group position={[RACK_X, 1.38, -1.45]}>
+          <Plaque text={TOY_TEXT.newRegions} size={0.28} material={M.paper} />
+          <mesh position={[0, -0.76, -0.06]} material={M.slate}>
+            <boxGeometry args={[0.08, 1.24, 0.08]} />
+          </mesh>
+        </group>
+      </Static>
       {/* Where the old rack stood: an outline and the result. */}
       <group ref={footprint} position={[-RACK_X, 0.01, FOOT_Z]} visible={false}>
         <mesh geometry={foot} material={M.orange} />
@@ -245,7 +252,9 @@ function MigrationToy({ clock }: ToyProps) {
       <group ref={dublin} position={[-RACK_X + 0.55, 0, -1.45]} visible={false}>
         <Plaque text={TOY_TEXT.dublin} size={0.32} material={M.ink} color="#ffffff" position={[0, 1.05, 0]} legs={0.76} />
       </group>
-      <Plaque text={TOY_TEXT.noImpact} size={0.28} position={[2.25, 0.36, 3.0]} legs={0.16} color={COLORS.ink} />
+      <Static>
+        <Plaque text={TOY_TEXT.noImpact} size={0.28} position={[2.25, 0.36, 3.0]} legs={0.16} color={COLORS.ink} />
+      </Static>
     </>
   );
 }

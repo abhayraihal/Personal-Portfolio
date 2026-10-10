@@ -8,6 +8,7 @@ import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
 import { TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { StationBoard } from '../parts.tsx';
 import { fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
@@ -52,22 +53,22 @@ function Banners() {
   });
   return (
     <group ref={group} position={[BANNER_X, 0, BANNER_Z]}>
-      <mesh position={[0, 1.95, -0.1]} material={M.slate}>
-        <boxGeometry args={[0.13, 3.9, 0.13]} />
-      </mesh>
-      <mesh position={[0, 3.95, -0.1]} material={M.orange}>
-        <sphereGeometry args={[0.11, 12, 8]} />
-      </mesh>
+      <Static>
+        <mesh position={[0, 1.95, -0.1]} material={M.slate}>
+          <boxGeometry args={[0.13, 3.9, 0.13]} />
+        </mesh>
+        <mesh position={[0, 3.95, -0.1]} material={M.orange}>
+          <sphereGeometry args={[0.11, 12, 8]} />
+        </mesh>
+      </Static>
       {BANNERS.map((b, i) => (
         <group key={i} position={[0, b.y, 0]} userData={{ banner: true }}>
           <mesh position={[0, 0, 0]} material={mats[i]} castShadow>
             <boxGeometry args={[2.6, b.h, 0.06]} />
           </mesh>
-          {TOY_TEXT.peaks[i].map((line, k, all) => (
-            <Label key={line} font="bodyBold" size={0.3} color={b.text} position={[0, (all.length - 1) * 0.19 - k * 0.38, 0.035]}>
-              {line}
-            </Label>
-          ))}
+          <Label font="bodyBold" size={0.3} color={b.text} lineHeight={0.38 / 0.3} textAlign="center" position={[0, 0, 0.035]}>
+            {TOY_TEXT.peaks[i].join('\n')}
+          </Label>
         </group>
       ))}
     </group>
@@ -151,9 +152,11 @@ function OncallPeakToy({ clock }: ToyProps) {
     <>
       <StationBoard id="amazon-oncall" position={[-1.6, 0, -2.4]} width={5.2} />
       <Banners />
-      <mesh position={[RING.x, 0.02, RING.z]} rotation={[-Math.PI / 2, 0, 0]} material={M.stoneDark} receiveShadow>
-        <ringGeometry args={[RING.r - 0.3, RING.r + 0.3, 48]} />
-      </mesh>
+      <Static>
+        <mesh position={[RING.x, 0.02, RING.z]} rotation={[-Math.PI / 2, 0, 0]} material={M.stoneDark} receiveShadow>
+          <ringGeometry args={[RING.r - 0.3, RING.r + 0.3, 48]} />
+        </mesh>
+      </Static>
       <instancedMesh ref={bases} args={[undefined, M.slate, N]} castShadow>
         <cylinderGeometry args={[0.15, 0.18, 0.22, 10]} />
       </instancedMesh>
@@ -162,11 +165,13 @@ function OncallPeakToy({ clock }: ToyProps) {
       </instancedMesh>
       {/* Count in the middle of the ring: "30+ high-severity tickets" */}
       <group position={[RING.x, 0, RING.z]}>
-        {[-1.15, 1.15].map((x) => (
-          <mesh key={x} position={[x, 0.15, -0.05]} material={M.slate}>
-            <boxGeometry args={[0.08, 0.3, 0.08]} />
-          </mesh>
-        ))}
+        <Static>
+          {[-1.15, 1.15].map((x) => (
+            <mesh key={x} position={[x, 0.15, -0.05]} material={M.slate}>
+              <boxGeometry args={[0.08, 0.3, 0.08]} />
+            </mesh>
+          ))}
+        </Static>
         <group ref={count} position={[0, 0.95, 0]}>
           <mesh position={[0, 0, -0.05]} material={M.paper}>
             <boxGeometry args={[2.9, 1.3, 0.1]} />

@@ -13,6 +13,7 @@ import { useStore } from '../../state/store.ts';
 import { FLOOR_Y } from './Floor.tsx';
 import { PAD_COLOR, TROPHY } from './layout.ts';
 import { M } from './materials.ts';
+import { Static } from './merge.tsx';
 import { ModelInstances } from './Instances.tsx';
 import type { Placement } from './Instances.tsx';
 import { at, easeOutCubic, frameDt, seg } from './shared.ts';
@@ -75,19 +76,21 @@ export function Trophy() {
           <CylinderCollider args={[0.75, BED_R + 0.3]} position={[0, 0.75, 0]} />
           <CuboidCollider args={[2.55, 0.6, 0.36]} position={[0, 0.6, PLAQUE_Z]} />
         </RigidBody>
-        <mesh position={[0, DAIS_H / 2, 0]} material={M.stone} castShadow receiveShadow>
-          <cylinderGeometry args={[DAIS_R - 0.12, DAIS_R, DAIS_H, 40]} />
-        </mesh>
-        <mesh position={[0, DAIS_H - 0.04, 0]} material={M.orange}>
-          <cylinderGeometry args={[DAIS_R - 0.1, DAIS_R - 0.1, 0.1, 40]} />
-        </mesh>
-        <mesh position={[0, DAIS_H + 0.02, 0]} material={M.stoneDark} receiveShadow>
-          <cylinderGeometry args={[DAIS_R - 0.3, DAIS_R - 0.3, 0.06, 40]} />
-        </mesh>
+        <Static>
+          <mesh position={[0, DAIS_H / 2, 0]} material={M.stone} castShadow receiveShadow>
+            <cylinderGeometry args={[DAIS_R - 0.12, DAIS_R, DAIS_H, 40]} />
+          </mesh>
+          <mesh position={[0, DAIS_H - 0.04, 0]} material={M.orange}>
+            <cylinderGeometry args={[DAIS_R - 0.1, DAIS_R - 0.1, 0.1, 40]} />
+          </mesh>
+          <mesh position={[0, DAIS_H + 0.02, 0]} material={M.stoneDark} receiveShadow>
+            <cylinderGeometry args={[DAIS_R - 0.3, DAIS_R - 0.3, 0.06, 40]} />
+          </mesh>
+          <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]} material={M.soil} receiveShadow>
+            <ringGeometry args={[BED_R - 0.42, BED_R + 0.42, 40, 1, 0.33 * Math.PI - Math.PI / 2, 1.34 * Math.PI]} />
+          </mesh>
+        </Static>
         <Model name="pedestal-column" scale={COLUMN_S} position={[0, DAIS_H, 0]} />
-        <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]} material={M.soil} receiveShadow>
-          <ringGeometry args={[BED_R - 0.42, BED_R + 0.42, 40, 1, 0.33 * Math.PI - Math.PI / 2, 1.34 * Math.PI]} />
-        </mesh>
         <ModelInstances name="flowers-tall" items={BED_FLOWERS} />
         <ModelInstances name="plant-leafy" items={BED_LEAVES} />
         <group ref={cup} position={[0, CUP_Y, 0]}>
@@ -96,13 +99,17 @@ export function Trophy() {
 
         {/* Plaque leaning back towards the camera, in front of the dais. */}
         <group position={[0, 0, PLAQUE_Z]}>
-          <mesh position={[0, 0.17, 0]} material={M.slate}>
-            <boxGeometry args={[5.1, 0.34, 0.62]} />
-          </mesh>
-          <group position={[0, 0.76, -0.05]} rotation={[-0.75, 0, 0]}>
-            <mesh material={M.paper}>
-              <boxGeometry args={[4.9, 1.05, 0.1]} />
+          <Static>
+            <mesh position={[0, 0.17, 0]} material={M.slate}>
+              <boxGeometry args={[5.1, 0.34, 0.62]} />
             </mesh>
+          </Static>
+          <group position={[0, 0.76, -0.05]} rotation={[-0.75, 0, 0]}>
+            <Static>
+              <mesh material={M.paper}>
+                <boxGeometry args={[4.9, 1.05, 0.1]} />
+              </mesh>
+            </Static>
             <Label font="bodyBold" size={0.36} color={COLORS.ink} position={[0, 0.2, 0.06]}>
               Most innovative idea
             </Label>

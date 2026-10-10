@@ -8,6 +8,7 @@ import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
 import { TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { Plaque, StationBoard } from '../parts.tsx';
 import { useBoxes } from '../geo.ts';
 import type { BoxSpec } from '../geo.ts';
@@ -159,7 +160,9 @@ function RetentionToy({ clock }: ToyProps) {
     <>
       <StationBoard id="amazon-retention" position={[0, 0, -2.45]} lift={1.0} />
       {/* Outline of the full block, so the 4 left over read against what was there. */}
-      <mesh geometry={outline} position={[BLOCK.x, 0.012, BLOCK.z]} material={M.orange} />
+      <Static>
+        <mesh geometry={outline} position={[BLOCK.x, 0.012, BLOCK.z]} material={M.orange} />
+      </Static>
       <instancedMesh ref={mesh} args={[geometry, material, N]} castShadow receiveShadow />
       <group ref={sweep} position={[SWEEP_X0, 0, BLOCK.z]} visible={false}>
         {/* A slab, not a plane: the camera looks along -Z, so a plane across X would be edge-on. */}
@@ -176,7 +179,9 @@ function RetentionToy({ clock }: ToyProps) {
           <boxGeometry args={[0.07, 0.07, sweepD + 0.05]} />
         </mesh>
       </group>
-      <Plaque text={TOY_TEXT.storedData} size={0.3} position={[BLOCK.x, 0.38, 2.6]} legs={0.16} />
+      <Static>
+        <Plaque text={TOY_TEXT.storedData} size={0.3} position={[BLOCK.x, 0.38, 2.6]} legs={0.16} />
+      </Static>
 
       {/* Result sign: the three numbers from the panel, one per line. */}
       <group ref={sign} position={[1.85, 0, 0.9]}>
@@ -187,11 +192,12 @@ function RetentionToy({ clock }: ToyProps) {
         <mesh position={[0, 2.2, 0]} material={M.orange}>
           <boxGeometry args={[4.1, 0.08, 0.01]} />
         </mesh>
-        {TOY_TEXT.retention.map((line, i) => (
-          <Label key={line} font={i === 2 ? 'bodyBold' : 'body'} size={0.35} color={COLORS.ink} position={[0, 1.9 - i * 0.47, 0.005]}>
-            {line}
-          </Label>
-        ))}
+        <Label size={0.35} color={COLORS.ink} lineHeight={0.47 / 0.35} textAlign="center" position={[0, 1.9 - 0.47 / 2, 0.005]}>
+          {TOY_TEXT.retention.slice(0, 2).join('\n')}
+        </Label>
+        <Label font="bodyBold" size={0.35} color={COLORS.ink} position={[0, 1.9 - 2 * 0.47, 0.005]}>
+          {TOY_TEXT.retention[2]}
+        </Label>
       </group>
     </>
   );

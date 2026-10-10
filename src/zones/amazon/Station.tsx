@@ -13,6 +13,7 @@ import { PAD_COLOR, PLINTH_H, stationFraming } from './layout.ts';
 import type { Framing, StationDef } from './layout.ts';
 import { at, inspectClocks, ToyClock } from './shared.ts';
 import { M } from './materials.ts';
+import { Static } from './merge.tsx';
 
 export type ToyProps = { clock: ToyClock; def: StationDef };
 export type ToySpec = { Component: ComponentType<ToyProps>; length: number; minHold?: number };
@@ -47,8 +48,10 @@ export function Plinth({ w, d, color = M.plinthSide }: { w: number; d: number; c
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[w / 2, 0.75, d / 2]} position={[0, 0.75, 0]} />
       </RigidBody>
-      <RoundedBox args={[w, PLINTH_H - 0.05, d]} radius={0.14} smoothness={2} position={[0, (PLINTH_H - 0.05) / 2, 0]} material={color} receiveShadow castShadow />
-      <RoundedBox args={[w - 0.22, 0.1, d - 0.22]} radius={0.04} smoothness={1} position={[0, PLINTH_H - 0.05, 0]} material={M.plinthTop} receiveShadow />
+      <Static>
+        <RoundedBox args={[w, PLINTH_H - 0.05, d]} radius={0.14} smoothness={2} position={[0, (PLINTH_H - 0.05) / 2, 0]} material={color} receiveShadow castShadow />
+        <RoundedBox args={[w - 0.22, 0.1, d - 0.22]} radius={0.04} smoothness={1} position={[0, PLINTH_H - 0.05, 0]} material={M.plinthTop} receiveShadow />
+      </Static>
     </>
   );
 }

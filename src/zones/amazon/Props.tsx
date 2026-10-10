@@ -7,6 +7,7 @@ import { useStore } from '../../state/store.ts';
 import { ModelInstances } from './Instances.tsx';
 import type { Placement } from './Instances.tsx';
 import { M } from './materials.ts';
+import { Static } from './merge.tsx';
 import { at } from './shared.ts';
 
 const DEG = Math.PI / 180;
@@ -141,26 +142,28 @@ export function Props() {
       <ModelInstances name="plant-leafy" items={plants.leafy} shadows={quality === 'high'} />
       <ModelInstances name="flowers-tall" items={plants.flowers} shadows={quality === 'high'} />
 
-      {PLANTERS.map((pl, i) => (
-        <group key={i} position={at(pl.u, pl.v)}>
-          <mesh position={[0, PLANTER_H / 2, 0]} material={M.planter} castShadow receiveShadow>
-            <boxGeometry args={[pl.w, PLANTER_H, pl.d]} />
-          </mesh>
-          <mesh position={[0, PLANTER_H - 0.02, 0]} material={M.soil}>
-            <boxGeometry args={[pl.w - 0.24, 0.06, pl.d - 0.24]} />
-          </mesh>
-        </group>
-      ))}
-      {TREES.map((t, i) => (
-        <group key={i} position={at(t.u, t.v)}>
-          <mesh position={[0, PLANTER_H / 2, 0]} material={M.planter} castShadow receiveShadow>
-            <cylinderGeometry args={[1.35, 1.45, PLANTER_H, 24]} />
-          </mesh>
-          <mesh position={[0, PLANTER_H - 0.02, 0]} material={M.soil}>
-            <cylinderGeometry args={[1.18, 1.18, 0.06, 24]} />
-          </mesh>
-        </group>
-      ))}
+      <Static>
+        {PLANTERS.map((pl, i) => (
+          <group key={i} position={at(pl.u, pl.v)}>
+            <mesh position={[0, PLANTER_H / 2, 0]} material={M.planter} castShadow receiveShadow>
+              <boxGeometry args={[pl.w, PLANTER_H, pl.d]} />
+            </mesh>
+            <mesh position={[0, PLANTER_H - 0.02, 0]} material={M.soil}>
+              <boxGeometry args={[pl.w - 0.24, 0.06, pl.d - 0.24]} />
+            </mesh>
+          </group>
+        ))}
+        {TREES.map((t, i) => (
+          <group key={i} position={at(t.u, t.v)}>
+            <mesh position={[0, PLANTER_H / 2, 0]} material={M.planter} castShadow receiveShadow>
+              <cylinderGeometry args={[1.35, 1.45, PLANTER_H, 24]} />
+            </mesh>
+            <mesh position={[0, PLANTER_H - 0.02, 0]} material={M.soil}>
+              <cylinderGeometry args={[1.18, 1.18, 0.06, 24]} />
+            </mesh>
+          </group>
+        ))}
+      </Static>
 
       <RigidBody type="fixed" colliders={false}>
         {LAMPS.map((l, i) => (

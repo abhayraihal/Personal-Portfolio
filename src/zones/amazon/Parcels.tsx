@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { CuboidCollider } from '@react-three/rapier';
 import type { CollisionEnterHandler } from '@react-three/rapier';
-import { BoxGeometry, Color, Float32BufferAttribute, MeshStandardMaterial } from 'three';
-import type { BufferGeometry } from 'three';
+import { BoxGeometry, Color, Float32BufferAttribute, Matrix4, MeshStandardMaterial } from 'three';
+import type { BufferGeometry, InstancedMesh, Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Resettable } from '../../components/Resettable.tsx';
 import { car } from '../../state/car.ts';
@@ -10,7 +11,8 @@ import { events } from '../../state/events.ts';
 import { at } from './shared.ts';
 
 // A stack of six parcels by the entrance for the car to knock over. Plain boxes with tape and a
-// blank label; they drift home once the car has left them alone.
+// blank label; they drift home once the car has left them alone. The six bodies carry no meshes:
+// one instanced mesh copies their poses every frame.
 
 const SIZE = 0.8;
 const STACK = { u: 5.3, v: -15.8 };
@@ -55,6 +57,9 @@ const onHit: CollisionEnterHandler = ({ other, target }) => {
   if (p) events.emit('impact', { strength: Math.abs(car.speed), x: p.x, y: p.y, z: p.z, material: 'soft' });
 };
 
+const _inv = new Matrix4();
+const _m = new Matrix4();
+
 export function Parcels() {
   const geometry = useMemo(parcelGeometry, []);
   const material = useMemo(() => new MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }), []);
@@ -62,15 +67,36 @@ export function Parcels() {
     geometry.dispose();
     material.dispose();
   }, [geometry, material]);
+  const mesh = useRef<InstancedMesh>(null);
+  const poses = useRef<(Object3D | null)[]>([]);
+  useFrame(() => {
+    const m = mesh.current;
+    const parent = m?.parent;
+    if (!m || !parent) return;
+    parent.updateWorldMatrix(true, false);
+    _inv.copy(parent.matrixWorld).invert();
+    poses.current.forEach((o, i) => {
+      if (!o) return;
+      o.updateWorldMatrix(true, false);
+      m.setMatrixAt(i, _m.multiplyMatrices(_inv, o.matrixWorld));
+    });
+    m.instanceMatrix.needsUpdate = true;
+    m.computeBoundingSphere();
+  });
   const [sx, , sz] = at(STACK.u, STACK.v);
   return (
     <>
       {BOXES.map(([x, y, z, yaw], i) => (
         <Resettable key={i} colliders={false} position={[sx + x, y, sz + z]} rotation={[0, yaw, 0]} idleSeconds={10} carDistance={12} onCollisionEnter={onHit}>
           <CuboidCollider args={[SIZE / 2, SIZE / 2, SIZE / 2]} mass={5} friction={0.8} restitution={0.1} />
-          <mesh geometry={geometry} material={material} castShadow receiveShadow />
+          <object3D
+            ref={(el) => {
+              poses.current[i] = el;
+            }}
+          />
         </Resettable>
       ))}
+      <instancedMesh ref={mesh} args={[geometry, material, BOXES.length]} castShadow receiveShadow />
     </>
   );
 }
