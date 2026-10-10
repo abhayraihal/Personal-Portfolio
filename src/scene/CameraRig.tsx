@@ -2,13 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { MathUtils, Vector3 } from 'three';
 import type { Camera, PerspectiveCamera } from 'three';
-import { SPAWN } from '../config/layout.ts';
 import { CAMERA, screenToWorld } from '../config/world.ts';
 import { car, carObject } from '../state/car.ts';
 import { events } from '../state/events.ts';
 import { useStore } from '../state/store.ts';
 import type { CameraOverride } from '../state/store.ts';
 import { DRIVE } from '../vehicle/tuning.ts';
+
+const DEG = MathUtils.DEG2RAD;
 
 // Bruno-style camera: fixed azimuth and elevation that never rotate with the car. Zones can ask
 // for a different framing with useStore.setCameraOverride; the rig eases in and out of it.
@@ -17,23 +18,52 @@ const FOLLOW_RATE_Y = 2.5; // softer vertically, so hops and bumps do not shake 
 const ZOOM_RATE = 8; // 1/s
 const LOOK_AHEAD_S = 0.35; // seconds of velocity added to the look-at point
 const LOOK_AHEAD_MAX = 6; // m
-const INTRO_SECONDS = 2.6;
+const INTRO_SECONDS = 2.8;
 const SPEED_ZOOM = 0.25; // extra distance at boost top speed
 const SPEED_ZOOM_IN = 1.2; // 1/s while speeding up
 const SPEED_ZOOM_OUT = 0.7; // 1/s while slowing down
-const PORTRAIT_EXP = 0.8; // distance x aspect^-0.8 below aspect 1 (x1.86 on a 390x844 phone)
-const PORTRAIT_MAX = 2.2;
-const MAX_TOTAL_DISTANCE = 95; // m, keeps the car out of distant fog on tall screens
+const MAX_TOTAL_DISTANCE = 95; // m, keeps the car out of distant fog when zoomed out on tall screens
 const DEFAULT_BLEND = 1; // s
 const CUT_DISTANCE = 60; // m: framing changes farther apart than this cut instead of gliding
 
-// Establishing shot shown behind the HTML card, before Start.
-const [HUB_X, HUB_Z] = screenToWorld(SPAWN.u, SPAWN.v + 26);
-const IDLE = { azimuth: CAMERA.azimuth, elevation: 38 * MathUtils.DEG2RAD, distance: 70 };
+// Tall screens (aspect below 1) widen the vertical FOV up to PORTRAIT_FOV and step back only as
+// far as it takes to keep the ground width at the car at aspect^0.3 of a square screen's: about
+// 18.5 m across a 390x844 phone at the default zoom (43 m away), so the car stays a fifth of the
+// screen wide.
+const PORTRAIT_FOV = 50;
+const PORTRAIT_WIDTH_EXP = 0.3;
+const TAN_BASE = Math.tan((CAMERA.fov * DEG) / 2);
+
+// fov: vertical FOV; follow: distance multiplier for the follow camera and override distances.
+type Framing = { fov: number; follow: number };
+function framing(aspect: number, out: Framing): Framing {
+  const a = MathUtils.clamp(aspect, 0.35, 1);
+  out.fov = CAMERA.fov + (PORTRAIT_FOV - CAMERA.fov) * Math.min(1, (1 - a) / 0.55);
+  out.follow = (a ** (PORTRAIT_WIDTH_EXP - 1) * TAN_BASE) / Math.tan((out.fov * DEG) / 2);
+  return out;
+}
+
+// Establishing shot behind the start card: a low, wide look from the car at the start, up the
+// career road and its gates to the far hills, with a band of sky. The look-at point floats 28 m
+// above the hub, which puts the camera about 60 m up near the south edge of the valley and keeps
+// the glide down to the car short.
+const [IDLE_X, IDLE_Z] = screenToWorld(-6, 10);
+const IDLE = { x: IDLE_X, y: 28, z: IDLE_Z, azimuth: 36 * DEG, elevation: 20 * DEG, distance: 100, fov: 44 };
 
 type Pose = { x: number; y: number; z: number; distance: number; azimuth: number; elevation: number };
 const pose = (): Pose => ({ x: 0, y: 0, z: 0, distance: CAMERA.distance, azimuth: CAMERA.azimuth, elevation: CAMERA.elevation });
 const copyPose = (out: Pose, p: Pose) => Object.assign(out, p);
+
+// Slow sway while the card is up; t = 0 holds still (reduced motion).
+function idlePose(t: number, out: Pose): Pose {
+  out.x = IDLE.x + Math.sin(t * 0.07) * 3;
+  out.y = IDLE.y;
+  out.z = IDLE.z + Math.cos(t * 0.05) * 3;
+  out.distance = IDLE.distance;
+  out.azimuth = IDLE.azimuth + Math.sin(t * 0.09) * 2.5 * DEG;
+  out.elevation = IDLE.elevation;
+  return out;
+}
 
 function lerpAngle(a: number, b: number, k: number) {
   const d = Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -44,7 +74,7 @@ function lerpPose(out: Pose, a: Pose, b: Pose, k: number) {
   out.x = a.x + (b.x - a.x) * k;
   out.y = a.y + (b.y - a.y) * k;
   out.z = a.z + (b.z - a.z) * k;
-  // Distance blends in log space so a zoom from 70 m to 24 m feels even.
+  // Distance blends in log space so a zoom from 100 m to 32 m feels even.
   out.distance = Math.exp(Math.log(a.distance) + (Math.log(b.distance) - Math.log(a.distance)) * k);
   out.azimuth = lerpAngle(a.azimuth, b.azimuth, k);
   out.elevation = a.elevation + (b.elevation - a.elevation) * k;
@@ -55,8 +85,30 @@ const _dir = new Vector3();
 function applyPose(camera: Camera, p: Pose) {
   const ce = Math.cos(p.elevation);
   _dir.set(-Math.sin(p.azimuth) * ce, Math.sin(p.elevation), Math.cos(p.azimuth) * ce);
-  camera.position.set(p.x, p.y, p.z).addScaledVector(_dir, Math.min(p.distance, MAX_TOTAL_DISTANCE));
+  camera.position.set(p.x, p.y, p.z).addScaledVector(_dir, p.distance);
   camera.lookAt(p.x, p.y, p.z);
+}
+
+// Vertical FOV plus a horizontal lens shift in CSS px (content moves right by `shift`). Only
+// touches the projection when something changed.
+function setLens(cam: PerspectiveCamera, fov: number, shift: number, w: number, h: number) {
+  const shifted = Math.abs(shift) >= 0.5;
+  const v = cam.view;
+  const same = cam.fov === fov
+    && (shifted ? !!v?.enabled && Math.abs(v.offsetX + shift) < 0.25 && v.fullWidth === w && v.fullHeight === h : !v?.enabled);
+  if (same) return;
+  cam.fov = fov;
+  if (shifted) cam.setViewOffset(w, h, -shift, 0, w, h);
+  else if (v?.enabled) cam.clearViewOffset();
+  else cam.updateProjectionMatrix();
+}
+
+// Lens shift that centres the idle shot on the part of the screen the start card leaves free.
+function cardShift(width: number): number {
+  const el = typeof document === 'undefined' ? null : document.querySelector('.card-layer .card');
+  if (!el) return 0;
+  const right = el.getBoundingClientRect().right;
+  return width - right > 160 ? right / 2 : 0;
 }
 
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
@@ -68,13 +120,14 @@ const _vel = new Vector3();
 
 type Source = { kind: 'follow' } | { kind: 'override'; o: CameraOverride } | { kind: 'frozen'; pose: Pose };
 
-// Framing asked for by an override. Unset fields fall back to the follow pose `fp`; override
-// distances are scaled for tall screens like the follow distance.
+// Framing asked for by an override. Unset fields fall back to the follow pose `fp`. Override
+// distances are landscape distances: tall screens scale them like the follow distance (`portrait`
+// is the follow multiplier from framing()).
 function overridePose(o: CameraOverride, fp: Pose, portrait: number, out: Pose): Pose {
   out.x = o.target ? o.target[0] : fp.x;
   out.y = o.target ? o.target[1] : fp.y;
   out.z = o.target ? o.target[2] : fp.z;
-  out.distance = o.distance !== undefined ? o.distance * portrait : fp.distance;
+  out.distance = o.distance !== undefined ? Math.min(o.distance * portrait, MAX_TOTAL_DISTANCE) : fp.distance;
   out.azimuth = o.azimuth ?? CAMERA.azimuth;
   out.elevation = o.elevation ?? CAMERA.elevation;
   return out;
@@ -101,19 +154,25 @@ export function CameraRig() {
   const dom = useThree((s) => s.gl.domElement);
   const zoom = useRef({ goal: CAMERA.distance, value: CAMERA.distance });
   const st = useRef({
-    follow: new Vector3(HUB_X, 0, HUB_Z),
+    follow: new Vector3(IDLE.x, 0, IDLE.z),
     lookAhead: new Vector3(),
     last: new Vector3(),
     hasLast: false,
     speedK: 0,
-    portrait: 1,
-    portraitInit: false,
-    shown: { ...pose(), x: HUB_X, z: HUB_Z, distance: IDLE.distance, elevation: IDLE.elevation },
+    aspect: 1,
+    aspectInit: false,
+    framing: { fov: CAMERA.fov, follow: 1 } as Framing,
+    fov: IDLE.fov,
+    shift: 0,
+    shiftGoal: 0,
+    shiftInit: false,
+    shiftCheck: 0,
+    shown: idlePose(0, pose()),
     followPose: pose(),
     goal: pose(),
     from: pose(),
     playing: false,
-    intro: null as { t: number; from: Pose } | null,
+    intro: null as { t: number; from: Pose; fov: number; shift: number } | null,
     // Override blending
     toId: null as string | null,
     to: null as CameraOverride | null,
@@ -187,28 +246,31 @@ export function CameraRig() {
     s.pinStep = car.steps;
   }), []);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dt = Math.min(delta, 0.1);
     const s = st.current;
     const store = useStore.getState();
     const reduced = store.reducedMotion;
     const obj = carObject.current;
-    const aspect = (camera as PerspectiveCamera).aspect || 1;
-    const portraitGoal = aspect < 1 ? Math.min(PORTRAIT_MAX, aspect ** -PORTRAIT_EXP) : 1;
-    s.portrait = s.portraitInit ? s.portrait + (portraitGoal - s.portrait) * damp(4, dt) : portraitGoal;
-    s.portraitInit = true;
+    const cam = camera as PerspectiveCamera;
+    const { width, height } = state.size;
+    s.aspect = s.aspectInit ? s.aspect + ((cam.aspect || 1) - s.aspect) * damp(4, dt) : cam.aspect || 1;
+    s.aspectInit = true;
+    const fr = framing(s.aspect, s.framing);
 
     if (store.phase === 'boot' || store.phase === 'ready' || !obj) {
-      // Slow drift over the hub while the card is up (still with reduced motion).
-      const t = reduced ? 0 : performance.now() / 1000;
-      const p = s.shown;
-      p.x = HUB_X + Math.sin(t * 0.08) * 6;
-      p.y = 0;
-      p.z = HUB_Z + Math.cos(t * 0.06) * 4;
-      p.distance = IDLE.distance * s.portrait ** 0.6;
-      p.azimuth = IDLE.azimuth;
-      p.elevation = IDLE.elevation;
-      applyPose(camera, p);
+      const now = performance.now();
+      if (now >= s.shiftCheck) {
+        s.shiftCheck = now + 250;
+        s.shiftGoal = cardShift(width);
+      }
+      s.shift = s.shiftInit ? s.shift + (s.shiftGoal - s.shift) * damp(6, dt) : s.shiftGoal;
+      s.shiftInit = true;
+      // Slow sway behind the card; still with reduced motion.
+      idlePose(reduced ? 0 : now / 1000, s.shown);
+      s.fov = Math.max(IDLE.fov, fr.fov + 4);
+      applyPose(cam, s.shown);
+      setLens(cam, s.fov, s.shift, width, height);
       s.playing = false;
       s.intro = null;
       return;
@@ -259,13 +321,13 @@ export function CameraRig() {
     fp.x = s.follow.x;
     fp.y = s.follow.y;
     fp.z = s.follow.z;
-    fp.distance = z.value * s.portrait * speedMul;
+    fp.distance = Math.min(z.value * fr.follow * speedMul, MAX_TOTAL_DISTANCE);
     fp.azimuth = CAMERA.azimuth;
     fp.elevation = CAMERA.elevation;
 
     if (store.phase === 'intro') {
-      // Glide from the establishing shot down to the car.
-      if (!s.intro) s.intro = { t: 0, from: { ...s.shown } };
+      // Glide from the establishing shot down to the car; the FOV and the lens shift ease out with it.
+      if (!s.intro) s.intro = { t: 0, from: { ...s.shown }, fov: s.fov, shift: s.shift };
       const it = s.intro;
       it.t += dt / INTRO_SECONDS;
       s.follow.copy(_car);
@@ -273,8 +335,12 @@ export function CameraRig() {
       fp.x = _car.x;
       fp.y = _car.y;
       fp.z = _car.z;
-      lerpPose(s.shown, it.from, fp, smoothstep(Math.min(it.t, 1)));
-      applyPose(camera, s.shown);
+      const k = easeInOut(Math.min(it.t, 1));
+      lerpPose(s.shown, it.from, fp, k);
+      s.fov = it.fov + (fr.fov - it.fov) * k;
+      s.shift = it.shift * (1 - k);
+      applyPose(cam, s.shown);
+      setLens(cam, s.fov, s.shift, width, height);
       if (it.t >= 1) {
         s.intro = null;
         store.setPhase('play');
@@ -283,6 +349,9 @@ export function CameraRig() {
     }
 
     // play
+    s.fov = fr.fov;
+    s.shift = 0;
+    setLens(cam, fr.fov, 0, width, height);
     const o = store.cameraOverride;
     const id = o?.id ?? null;
 
@@ -296,21 +365,21 @@ export function CameraRig() {
       s.blendT = 0;
       s.toId = id;
       s.to = o;
-      const goal = o ? overridePose(o, fp, s.portrait, s.goal) : copyPose(s.goal, fp);
-      const from = sourcePose(s.source, fp, s.portrait, s.from);
+      const goal = o ? overridePose(o, fp, fr.follow, s.goal) : copyPose(s.goal, fp);
+      const from = sourcePose(s.source, fp, fr.follow, s.from);
       if (reduced || performance.now() < s.cutUntil || Math.hypot(goal.x - from.x, goal.z - from.z) > CUT_DISTANCE) s.blendT = 1;
     } else if (o) {
       s.to = o; // same owner, maybe a moved target: keep blending towards the fresh values
     }
 
-    const goal = s.to ? overridePose(s.to, fp, s.portrait, s.goal) : copyPose(s.goal, fp);
+    const goal = s.to ? overridePose(s.to, fp, fr.follow, s.goal) : copyPose(s.goal, fp);
     if (s.blendT < 1) {
       s.blendT = Math.min(1, s.blendT + dt / s.blendDuration);
-      lerpPose(s.shown, sourcePose(s.source, fp, s.portrait, s.from), goal, easeInOut(s.blendT));
+      lerpPose(s.shown, sourcePose(s.source, fp, fr.follow, s.from), goal, easeInOut(s.blendT));
     } else {
       copyPose(s.shown, goal);
     }
-    applyPose(camera, s.shown);
+    applyPose(cam, s.shown);
   });
 
   return null;

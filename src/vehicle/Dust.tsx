@@ -8,6 +8,7 @@ import { car } from '../state/car.ts';
 import { events } from '../state/events.ts';
 import { useStore } from '../state/store.ts';
 import { wheelFx } from './fx.ts';
+import { DRIVE } from './tuning.ts';
 
 // Dust puffs kicked up by the rear wheels (launches, boost, slides, hard braking, landings) and
 // faint skid marks. Both are one InstancedMesh each with a fixed cap; nothing is allocated per frame.
@@ -43,6 +44,11 @@ function surfaceAt(x: number, z: number): Surface {
   return 'grass';
 }
 
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
+// Lifts the shaded side of a puff by day. Mostly off at night, where it would make dust glow.
+const PUFF_EMISSIVE = new Color('#5a5852');
+const NIGHT_EMISSIVE = 0.2;
+
 const _m = new Matrix4();
 const _q = new Quaternion();
 const _e = new Euler();
@@ -57,7 +63,7 @@ export function Dust() {
   const res = useMemo(() => {
     const puffGeo = new IcosahedronGeometry(1, 1);
     // Emissive lifts the shaded side so puffs read as soft dust, not stones.
-    const puffMat = new MeshLambertMaterial({ color: '#ffffff', emissive: '#5a5852' });
+    const puffMat = new MeshLambertMaterial({ color: '#ffffff', emissive: PUFF_EMISSIVE });
     const skidGeo = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
     const skidMat = new MeshBasicMaterial({
       color: '#262830', transparent: true, opacity: 0.2, depthWrite: false,
@@ -77,6 +83,7 @@ export function Dust() {
     next: 0,
   }), []);
   const emitAcc = useRef([0, 0]);
+  const nightK = useRef(0);
   const skid = useRef({ active: [false, false], last: [new Vector3(), new Vector3()], next: 0, count: 0 });
 
   useEffect(() => () => {
@@ -129,6 +136,13 @@ export function Dust() {
     if (!pm || !sm || !car.ready) return;
     const dt = Math.min(delta, 0.05);
     const s = useStore.getState();
+    const nightGoal = s.night ? 1 : 0;
+    if (nightK.current !== nightGoal) {
+      // Same pace as the world's day/night blend.
+      const k = nightK.current + (nightGoal - nightK.current) * (1 - Math.exp(-dt * 1.4));
+      nightK.current = Math.abs(nightGoal - k) < 0.002 ? nightGoal : k;
+      res.puffMat.emissive.copy(PUFF_EMISSIVE).multiplyScalar(1 - (1 - NIGHT_EMISSIVE) * nightK.current);
+    }
     const low = s.quality === 'low';
     const rateScale = (low ? 0.5 : 1) * (s.reducedMotion ? 0.6 : 1);
     const speed = Math.abs(car.speed);
@@ -140,7 +154,8 @@ export function Dust() {
     let rate = 0;
     if (grounded) {
       if (car.throttle > 0.6 && car.speed > -0.5 && speed < 6) rate = 6 + 14 * (1 - speed / 6);
-      if (car.boosting && speed > 2) rate = Math.max(rate, 14);
+      // Boost kicks dust while it pulls; the trail thins out towards boost top speed.
+      if (car.boosting && speed > 2) rate = Math.max(rate, 14 * (1 - smoothstep(Math.min(speed / DRIVE.boostMaxSpeed, 1))));
       if (car.slip > 2.5) rate = Math.max(rate, Math.min(26, (car.slip - 2.5) * 7));
       if (car.brakeLight && car.throttle <= 0 && speed > 8) rate = Math.max(rate, 6);
     }

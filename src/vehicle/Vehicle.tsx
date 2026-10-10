@@ -72,6 +72,7 @@ export function Vehicle() {
     q1: new Quaternion(),
     tiltFor: 0,
     stuckT: -1, // < 0: not measuring
+    perchT: 0,
     stuckX: 0,
     stuckZ: 0,
     airT: 0,
@@ -113,6 +114,7 @@ export function Vehicle() {
     f.recovering = false;
     f.tiltFor = 0;
     f.stuckT = -1;
+    f.perchT = 0;
     f.airT = 0;
     f.minVy = 0;
     f.plop = false;
@@ -154,6 +156,7 @@ export function Vehicle() {
     f.recT = 0;
     f.tiltFor = 0;
     f.stuckT = -1;
+    f.perchT = 0;
     f.airT = 0;
     f.minVy = 0;
     car.recovering = true;
@@ -426,6 +429,15 @@ export function Vehicle() {
       }
     } else {
       f.stuckT = -1;
+    }
+
+    // Perched: no wheel on the ground, nearly still and not tipped over (high-centred on a knocked
+    // letter or a rock). Hop it back the way it came instead of waiting for the throttle timer.
+    const still = Math.hypot(lv.x, lv.y, lv.z) < UNSTUCK.perchSpeed;
+    f.perchT = !blocked && !f.recovering && contacts === 0 && still && car.tilt < RECOVERY.tiltDeg ? f.perchT + PHYSICS_DT : 0;
+    if (f.perchT >= UNSTUCK.perchSeconds) {
+      f.perchT = 0;
+      kick(UNSTUCK.hop, -(Math.sign(i.throttle) || 1) * UNSTUCK.push, (Math.random() < 0.5 ? -1 : 1) * UNSTUCK.spin);
     }
 
     if (p.y < -20) reset(); // fell off the world

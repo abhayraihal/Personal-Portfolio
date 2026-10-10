@@ -178,16 +178,16 @@ export function CarModel({ wheelRefs }: { wheelRefs: RefObject<(Group | null)[]>
             spot.current = el;
             if (el) el.target = target;
           }}
-          position={[0, 0.45, 1.3]}
+          position={LIGHTS.spotFrom}
           color={LIGHTS.beamColor}
           intensity={0}
           distance={LIGHTS.spotDistance}
           angle={LIGHTS.spotAngle}
-          penumbra={0.6}
-          decay={1.2}
+          penumbra={LIGHTS.spotPenumbra}
+          decay={LIGHTS.spotDecay}
           castShadow={false}
         />}
-        <primitive object={target} position={[0, -0.45, 9]} />
+        <primitive object={target} position={LIGHTS.spotAim} />
       </group>
       {WHEELS.map((w, i) => {
         const wheel = mesh(meshes, w.node);
