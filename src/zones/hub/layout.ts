@@ -34,7 +34,7 @@ export const SPOT = {
   wallPad: [-19.4, 2.3] as const,
   // Right of the spine.
   hut: HUT, // hut recipe origin, the middle of its front row of cells; the door faces the camera
-  contactBoard: [13.4, 4.9] as const,
+  contactBoard: [12.8, 4.5] as const, // its right edge stays clear of the lantern behind it
   lantern: [16.9, 7.9] as const,
   mailbox: [23.6, 5.2] as const,
   contactPad: [HUT[0] - 1.25, 4.0] as const, // in front of the door, which is the hut's left cell

@@ -216,7 +216,19 @@ export function ContactPost() {
       <group position={hubAt(mu, mv)}>
         <PillarBox />
       </group>
-      <Board title={panels.contact.title} lines={lines} width={6} lineSize={0.38} titleSize={0.66} lift={0.85} position={hubAt(bu, bv)} />
+      {/* Light text on a dark face at night: the face is lit, the text is not, so a cream face goes
+          grey under the moon while ink text stays dark. */}
+      <Board
+        title={panels.contact.title}
+        lines={lines}
+        width={6.8}
+        lineSize={0.43}
+        titleSize={0.7}
+        lift={0.7}
+        color={night ? COLORS.ink : COLORS.paper}
+        textColor={night ? COLORS.paper : COLORS.ink}
+        position={hubAt(bu, bv)}
+      />
       <group position={hubAt(lu, lv)}>
         <RigidBody type="fixed" colliders={false}>
           <CylinderCollider args={[1.8, 0.22]} position={[0, 1.8, 0]} />
