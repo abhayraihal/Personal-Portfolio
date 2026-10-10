@@ -3,13 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Abhay Singh Raihal · Software Engineer</title>
-    <meta name="description" content="Abhay Singh Raihal, Software Development Engineer at Amazon in Bengaluru. Drive around a 3D valley to see his work, projects and Codeforces rating." />
-    <meta name="theme-color" content="#cfe2dc" />
-    <link rel="icon" href="data:," />
+    <!-- Title, description, Open Graph, JSON-LD, icons and font preloads, from src/data/profile.ts (staticCard plugin in vite.config.ts). -->
+    <!--static-head-->
   </head>
   <body>
-    <div id="root"></div>
+    <!-- The recruiter card and the classic view, pre-rendered so they read without JavaScript. React replaces them on load. -->
+    <div id="root"><!--static-body--></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

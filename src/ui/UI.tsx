@@ -1,58 +1,76 @@
 import { useEffect } from 'react';
-import { ZONES } from '../config/layout.ts';
-import { jobs, panels, profile } from '../data/profile.ts';
+import { INSPECT } from '../config/world.ts';
 import { useStore } from '../state/store.ts';
+import { Card } from './card/Card.tsx';
+import { Classic } from './classic/Classic.tsx';
+import { Hud } from './hud/Hud.tsx';
+import { Fade, LiveRegion } from './hud/Status.tsx';
+import { useGlobalKeys } from './keys.ts';
+import { storage } from './lib.ts';
+import { Help } from './sheet/Help.tsx';
+import { PanelSheet } from './sheet/PanelSheet.tsx';
+import { TouchControls } from './touch/TouchControls.tsx';
+import { useUi } from './uiStore.ts';
 
-// PLACEHOLDER UI (spine). The UI module replaces this with the recruiter card, HUD, minimap,
-// panels, classic view, touch controls and settings.
+declare global {
+  interface Window {
+    __ui?: { store: typeof useStore; ui: typeof useUi }; // ?inspect only, for the screenshot harness
+  }
+}
+
+const MOTION_KEY = 'ui.motion';
+
+// A reduced-motion choice made in Settings outlives the visit (the store starts from the OS setting).
+function useMotionPreference() {
+  useEffect(() => {
+    const saved = storage.get(MOTION_KEY);
+    if (saved === 'reduced' || saved === 'full') useStore.getState().setReducedMotion(saved === 'reduced');
+    return useStore.subscribe((s, prev) => {
+      if (s.reducedMotion !== prev.reducedMotion) storage.set(MOTION_KEY, s.reducedMotion ? 'reduced' : 'full');
+    });
+  }, []);
+}
+
+// Screen readers hear the interact prompt when the car stops on a pad.
+function usePromptAnnouncements() {
+  useEffect(
+    () =>
+      useStore.subscribe((s, prev) => {
+        if (s.focus && s.focus.id !== prev.focus?.id && s.phase === 'play') s.announce(`${s.focus.label}. Press Enter or tap the button.`);
+      }),
+    [],
+  );
+}
+
+// The HTML layer over the canvas: recruiter card, HUD, panels, help, touch controls and the
+// classic view. Entry chunk only: nothing under src/ui imports three, drei or another 3D module.
 export function UI() {
-  const phase = useStore((s) => s.phase);
-  const progress = useStore((s) => s.progress);
-  const focus = useStore((s) => s.focus);
-  const panel = useStore((s) => s.panel);
-  const toasts = useStore((s) => s.toasts);
+  const webgl = useStore((s) => s.webgl);
+  const classic = useStore((s) => s.classicOpen);
+  const reduced = useStore((s) => s.reducedMotion);
+  const night = useStore((s) => s.night);
+  useGlobalKeys();
+  useMotionPreference();
+  usePromptAnnouncements();
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const s = useStore.getState();
-      if (e.repeat) return;
-      if (s.phase === 'ready' && (e.code === 'Enter' || e.code === 'KeyW' || e.code === 'ArrowUp')) s.start();
-      else if (e.code === 'Escape') s.closePanel();
-      else if (s.phase === 'play' && (e.code === 'Enter' || e.code === 'KeyE')) {
-        if (s.panel) s.closePanel();
-        else if (s.focus) s.interact();
-      } else if (s.phase === 'play') {
-        const z = ZONES.find((zone) => `Digit${zone.key}` === e.code);
-        if (z) s.teleport(z.id);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    if (INSPECT) window.__ui = { store: useStore, ui: useUi };
   }, []);
 
-  const p = panel ? panels[panel] : null;
   return (
-    <div className="ui">
-      {(phase === 'boot' || phase === 'ready') && (
-        <div className="card">
-          <h1>{profile.name}</h1>
-          <p>{profile.roleLine}</p>
-          <ul>{jobs.map((j) => <li key={j.company}>{j.company} · {j.role} · {j.dates}</li>)}</ul>
-          <button className="start" disabled={phase !== 'ready'} onClick={() => useStore.getState().start()}>
-            {phase === 'ready' ? 'Start driving' : `Loading ${Math.round(progress)}%`}
-          </button>
+    <div className="ui" data-motion={reduced ? 'reduced' : 'full'} data-night={night || undefined}>
+      {webgl && (
+        <div className="layers" inert={classic || undefined}>
+          <Card />
+          <Hud />
+          <TouchControls />
+          <PanelSheet />
+          <Help />
+          <Fade />
         </div>
       )}
-      {focus && !panel && <div className="prompt">Enter: {focus.label}</div>}
-      {p && (
-        <div className="panel" role="dialog" aria-label={p.title}>
-          <button onClick={() => useStore.getState().closePanel()}>Close</button>
-          <h2>{p.title}</h2>
-          {p.body?.map((b, i) => <p key={i}>{b}</p>)}
-          {p.bullets && <ul>{p.bullets.map((b, i) => <li key={i}>{b}</li>)}</ul>}
-        </div>
-      )}
-      <div className="toasts">{toasts.map((t) => <div key={t.id}>{t.text}</div>)}</div>
+      <Classic />
+      <LiveRegion />
     </div>
   );
 }

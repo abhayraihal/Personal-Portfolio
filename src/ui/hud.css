@@ -1,0 +1,680 @@
+/* HUD while driving: toolbar, settings, toasts, ridge readout, interact prompt, first-time hint,
+   minimap and the teleport fade. */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Toolbar, top right. Above the other HUD pieces so the settings popover covers them. */
+.toolbar {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--edge) + var(--safe-t));
+  right: calc(var(--edge) + var(--safe-r));
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-m);
+  pointer-events: auto;
+  animation: drop-in calc(var(--motion) * 340ms) calc(var(--motion) * 520ms) cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.toolbtn {
+  width: 42px;
+  height: 42px;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 296px;
+  padding: 16px 18px 18px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-l);
+  text-align: left;
+  animation: pop-in calc(var(--motion) * 180ms) ease-out both;
+  transform-origin: top right;
+}
+.popover__title {
+  margin: 0 0 12px;
+  font: 400 20px/1 var(--font-display);
+}
+.setting + .setting {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.setting__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.setting__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.setting__row .setting__label {
+  margin: 0;
+}
+.setting__note {
+  margin: 8px 0 0;
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.seg__btn {
+  min-height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.seg__btn[aria-pressed='true'] {
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    0 1px 0 var(--line-2),
+    0 2px 6px rgba(35, 38, 45, 0.12);
+}
+.switch {
+  position: relative;
+  flex: none;
+  width: 50px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--paper-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+  transition: background-color calc(var(--motion) * 150ms) ease;
+}
+.switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(35, 38, 45, 0.3);
+  transition: transform calc(var(--motion) * 150ms) ease;
+}
+.switch[aria-checked='true'] {
+  background: var(--accent-strong);
+}
+.switch[aria-checked='true'] .switch__thumb {
+  transform: translateX(20px);
+}
+
+/* Toasts and the ridge readout, top centre */
+.topcenter {
+  position: absolute;
+  top: calc(var(--edge) + var(--safe-t));
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--edge));
+  transform: translateX(-50%);
+}
+.toasts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  padding: 10px 18px;
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-m);
+  animation: toast-in calc(var(--motion) * 320ms) cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+.toast[data-leaving] {
+  animation: toast-out calc(var(--motion) * 240ms) ease-in both;
+}
+.toast--zone {
+  padding: 7px 20px 7px 7px;
+}
+.toast__key {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--zone);
+  color: var(--zone-text, #fff);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+  font: 400 23px/1 var(--font-display);
+}
+.toast__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.toast__title {
+  font: 400 22px/1.1 var(--font-display);
+}
+.toast__sub {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.toast--win {
+  background: var(--accent-strong);
+  color: #fff;
+}
+.toast--win .toast__title {
+  font-size: 21px;
+}
+.toast--info .toast__title {
+  font: 700 15px/1.35 var(--font-body);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+}
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+}
+
+.ridge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(780px, 100%);
+  padding: 8px 10px 8px 16px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-m);
+  animation: toast-in calc(var(--motion) * 300ms) ease-out both;
+}
+.ridge__count {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ridge__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ridge__name {
+  overflow: hidden;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ridge__date {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+.ridge__rating {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.ridge__rating strong {
+  font: 700 24px/1 var(--font-body);
+}
+.ridge__delta {
+  color: var(--ink-3);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.ridge__delta[data-sign='up'] {
+  color: #1f7a3a;
+}
+.ridge__delta[data-sign='down'] {
+  color: #b42f2f;
+}
+.ridge__rank {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--rank);
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ridge__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rank);
+}
+
+/* Interact prompt and the first-time hint, bottom centre */
+.bottomcenter {
+  position: absolute;
+  bottom: calc(var(--edge) + var(--safe-b) + 6px);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 2 * 170px);
+  transform: translateX(-50%);
+}
+.hud[data-map='open'] .bottomcenter {
+  max-width: calc(100vw - 2 * 352px);
+}
+
+.prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  padding: 10px 20px 10px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow:
+    0 4px 0 #0f1115,
+    0 14px 30px rgba(35, 38, 45, 0.35);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  animation: prompt-in calc(var(--motion) * 280ms) cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.prompt:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 #0f1115,
+    0 8px 20px rgba(35, 38, 45, 0.3);
+}
+.prompt:focus-visible {
+  outline-color: var(--accent);
+  outline-offset: 3px;
+}
+.prompt__key {
+  height: 32px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: #f39ab6;
+  color: var(--ink);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+.prompt .icon--small {
+  opacity: 0.75;
+}
+@keyframes prompt-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+}
+
+.hint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  padding: 10px 18px;
+  border-radius: 16px;
+  background: rgba(35, 38, 45, 0.84);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(35, 38, 45, 0.25);
+  font-size: 14px;
+  animation: rise-in calc(var(--motion) * 400ms) calc(var(--motion) * 250ms) ease-out both;
+}
+.hint[data-leaving] {
+  animation: hint-out calc(var(--motion) * 600ms + 100ms) ease-in both;
+}
+.hint__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.hint__keys {
+  display: inline-flex;
+  gap: 3px;
+}
+.hint .key {
+  border-color: transparent;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.hint__stick {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 6px rgba(35, 38, 45, 0.84),
+    inset 0 0 0 11px #fff;
+}
+@keyframes hint-out {
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Minimap, bottom left */
+.minimap {
+  position: absolute;
+  bottom: calc(var(--edge) + var(--safe-b));
+  left: calc(var(--edge) + var(--safe-l));
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-m);
+  pointer-events: auto;
+  animation: rise-in calc(var(--motion) * 340ms) calc(var(--motion) * 600ms) cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+.minimap__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 14px 8px 12px;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.minimap__toggle .icon {
+  width: 20px;
+  height: 20px;
+}
+.minimap__toggle > .icon:last-child {
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  transform: rotate(180deg);
+  transition: transform calc(var(--motion) * 160ms) ease;
+}
+.minimap[data-open='true'] .minimap__toggle > .icon:last-child {
+  transform: none;
+}
+.minimap__title {
+  font: 400 17px/1 var(--font-display);
+}
+.minimap__keys {
+  margin-left: auto;
+  padding-left: 14px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.minimap__body {
+  padding: 0 8px 8px;
+}
+.minimap__svg {
+  display: block;
+  width: 300px;
+  height: auto;
+  border-radius: 14px;
+  background: #b7d39b;
+}
+.mm-ground {
+  fill: #d9e8c3;
+}
+.mm-stream,
+.mm-road {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mm-zone {
+  cursor: pointer;
+  outline: none;
+}
+.mm-zone__area {
+  fill: var(--zone);
+  fill-opacity: 0.2;
+  stroke: var(--zone);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  transition: fill-opacity 140ms ease;
+}
+.mm-zone:hover .mm-zone__area {
+  fill-opacity: 0.4;
+}
+.mm-zone[data-current] .mm-zone__area {
+  fill-opacity: 0.34;
+  stroke-width: 3;
+}
+.mm-zone:focus-visible .mm-zone__area {
+  fill-opacity: 0.4;
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+.mm-zone__badge > circle {
+  fill: var(--paper);
+  stroke: var(--zone);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.mm-zone__badge > text {
+  fill: var(--ink);
+  font: 700 10.5px var(--font-body);
+}
+.mm-zone__tick circle {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 1.5;
+}
+.mm-zone__tick path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mm-zone__label {
+  fill: var(--ink);
+  font: 700 11px var(--font-body);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.mm-car > circle {
+  fill: #fff;
+  opacity: 0.9;
+}
+.mm-car > path {
+  fill: var(--accent);
+  stroke: var(--ink);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+/* Teleport fade */
+.fade {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: var(--paper);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity calc(var(--motion) * 230ms + 40ms) ease-in;
+}
+.fade[data-on='true'] {
+  opacity: 1;
+  transition: opacity calc(var(--motion) * 160ms + 30ms) ease-out;
+}
+
+/* Narrower desktop windows: toasts drop below the chip and toolbar. */
+@media (max-width: 1100px) {
+  .topcenter {
+    top: calc(var(--edge) + var(--safe-t) + 68px);
+  }
+}
+
+/* Phones: toolbar stacks down the right edge, the map sits under the chip, the prompt floats
+   above the touch controls. */
+@media (max-width: 640px), (pointer: coarse) {
+  .minimap {
+    top: calc(var(--edge) + var(--safe-t) + 60px);
+    bottom: auto;
+  }
+  .minimap__keys {
+    display: none;
+  }
+  .minimap__toggle {
+    min-height: 40px;
+    padding: 6px 12px 6px 10px;
+  }
+  .minimap__svg {
+    width: min(300px, calc(100vw - 112px));
+  }
+  /* The map opens downwards here, so the chevron flips. */
+  .minimap__toggle > .icon:last-child {
+    transform: none;
+  }
+  .minimap[data-open='true'] .minimap__toggle > .icon:last-child {
+    transform: rotate(180deg);
+  }
+  .bottomcenter,
+  .hud[data-map='open'] .bottomcenter {
+    max-width: calc(100vw - 2 * var(--edge));
+  }
+}
+@media (pointer: coarse) {
+  .bottomcenter {
+    bottom: calc(var(--safe-b) + 236px);
+  }
+  .hint {
+    gap: 4px 14px;
+    padding: 8px 14px;
+    font-size: 13.5px;
+  }
+  .prompt {
+    padding: 15px 24px;
+    background: var(--accent-strong);
+    box-shadow:
+      0 5px 0 var(--accent-deep),
+      0 14px 30px rgba(35, 38, 45, 0.35);
+    font-size: 17px;
+  }
+  .prompt__key {
+    display: none;
+  }
+}
+/* Short touch screens (phones held sideways): the prompt and hint go back to the bottom edge,
+   between the joystick and the buttons. */
+@media (pointer: coarse) and (max-height: 540px) {
+  .bottomcenter {
+    bottom: calc(var(--safe-b) + 12px);
+    max-width: calc(100vw - 2 * 120px);
+  }
+}
+@media (max-width: 640px) {
+  .toolbar {
+    flex-direction: column;
+  }
+  .toolbtn {
+    width: 40px;
+    height: 40px;
+  }
+  .toolbar .tip {
+    top: 50%;
+    right: calc(100% + 10px);
+    left: auto;
+    transform: translate(4px, -50%);
+  }
+  .toolbar .has-tip:focus-visible .tip {
+    transform: translate(0, -50%);
+  }
+  .popover {
+    top: 0;
+    right: calc(100% + 10px);
+    width: min(296px, calc(100vw - 100px));
+    transform-origin: top right;
+  }
+  .topcenter {
+    top: calc(var(--edge) + var(--safe-t) + 112px);
+    max-width: calc(100vw - 2 * 72px);
+  }
+  .toast__title {
+    font-size: 19px;
+  }
+  .toast__key {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .ridge {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+  .ridge__count {
+    width: 100%;
+  }
+  .ridge__main {
+    flex: 1 1 140px;
+  }
+}
+
+/* Night: the HUD paper dims a little and the map turns to dusk, so it doesn't glare over the dark
+   valley. Panels and the classic view keep their daylight paper for reading. */
+.ui[data-night] .hud {
+  --paper: #f2e8d6;
+  --paper-2: #e8dcc6;
+}
+.ui[data-night] .minimap__svg {
+  background: #6f8a6a;
+}
+.ui[data-night] .mm-ground {
+  fill: #a3b897;
+}
+.ui[data-night] .hint {
+  background: rgba(20, 22, 28, 0.86);
+}
+.ui[data-night] .fade {
+  background: #1c1f26;
+}
