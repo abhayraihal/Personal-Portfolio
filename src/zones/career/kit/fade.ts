@@ -4,6 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Box3, Matrix4, Ray, Vector3 } from 'three';
 import type { Material, MeshStandardMaterial, Object3D } from 'three';
 import { car } from '../../../state/car.ts';
+import { events } from '../../../state/events.ts';
 import type { V3 } from './frame.ts';
 import { flatMaterial, glowMaterial, paintMaterial } from './paint.ts';
 
@@ -40,6 +41,11 @@ export function useOcclusionFade(root: RefObject<Object3D | null>, box: Region, 
   const region = useMemo(() => (beyond ? new Box3(new Vector3(...beyond.min), new Vector3(...beyond.max)) : null), [beyond]);
   const labels = useRef<(TextLike | null)[]>([]);
   const opacity = useRef(1);
+  // The camera cuts on a teleport: jump straight to the new opacity instead of fading in view.
+  const snapUntil = useRef(0);
+  useEffect(() => events.on('teleported', () => {
+    snapUntil.current = performance.now() + 400;
+  }), []);
   useEffect(() => () => {
     for (const m of mats.all) m.dispose();
   }, [mats]);
@@ -70,7 +76,7 @@ export function useOcclusionFade(root: RefObject<Object3D | null>, box: Region, 
     }
     if (opacity.current === target) return;
     let o = opacity.current + (target - opacity.current) * (1 - Math.exp(-Math.min(delta, 0.1) * 10));
-    if (Math.abs(o - target) < 0.01) o = target;
+    if (Math.abs(o - target) < 0.01 || performance.now() < snapUntil.current) o = target;
     opacity.current = o;
     for (const m of mats.all) m.opacity = o;
     for (const l of labels.current) {
