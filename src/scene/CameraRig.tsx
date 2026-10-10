@@ -80,6 +80,16 @@ function overridePose(o: CameraOverride, fp: Pose, portrait: number, out: Pose):
   return out;
 }
 
+// Same owner, new values: a jump (another board, another angle) is blended like a new framing;
+// small changes (a target that moves every frame) are followed directly.
+function jumped(a: CameraOverride, b: CameraOverride): boolean {
+  if (!!a.target !== !!b.target) return true;
+  if (a.target && b.target && Math.hypot(a.target[0] - b.target[0], a.target[1] - b.target[1], a.target[2] - b.target[2]) > 2) return true;
+  if (Math.abs((a.distance ?? 0) - (b.distance ?? 0)) > 1) return true;
+  if (Math.abs((a.azimuth ?? CAMERA.azimuth) - (b.azimuth ?? CAMERA.azimuth)) > 0.05) return true;
+  return Math.abs((a.elevation ?? CAMERA.elevation) - (b.elevation ?? CAMERA.elevation)) > 0.05;
+}
+
 function sourcePose(src: Source, fp: Pose, portrait: number, out: Pose): Pose {
   if (src.kind === 'follow') return copyPose(out, fp);
   if (src.kind === 'override') return overridePose(src.o, fp, portrait, out);
@@ -272,11 +282,12 @@ export function CameraRig() {
       s.blendT = 1;
     }
 
-    if (id !== s.toId) {
+    if (id !== s.toId || (o && s.to && o !== s.to && jumped(o, s.to))) {
       // A new framing was asked for (or the old one cleared). Blend from what is on screen now: a
       // live source if the camera is at rest on one, a frozen copy if a blend was still running.
       const prevBlend = s.to?.blend;
-      s.source = s.blendT < 1 ? { kind: 'frozen', pose: { ...s.shown } } : s.to ? { kind: 'override', o: s.to } : { kind: 'follow' };
+      const sameOwner = id !== null && id === s.toId;
+      s.source = s.blendT < 1 || sameOwner ? { kind: 'frozen', pose: { ...s.shown } } : s.to ? { kind: 'override', o: s.to } : { kind: 'follow' };
       s.blendDuration = Math.max(0.05, (o ? o.blend : prevBlend) ?? DEFAULT_BLEND);
       s.blendT = 0;
       s.toId = id;
