@@ -4,6 +4,7 @@ import type { PanelId } from '../../data/profile.ts';
 import { useStore } from '../../state/store.ts';
 import { CloseIcon } from '../icons.tsx';
 import { useFocusTrap } from '../lib.ts';
+import { useUi } from '../uiStore.ts';
 import { PanelContent } from './PanelContent.tsx';
 
 const EXIT_MS = 220; // matches the sheet-out animation in sheet.css
@@ -22,7 +23,9 @@ export function PanelSheet() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  useFocusTrap(sheetRef, id !== null, titleRef);
+  // Help can open on top of a panel; it takes the focus trap until it closes.
+  const help = useUi((s) => s.help);
+  useFocusTrap(sheetRef, id !== null && !help, titleRef);
 
   // Keep the last panel on screen while it animates out.
   useEffect(() => {

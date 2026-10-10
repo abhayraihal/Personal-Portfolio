@@ -62,6 +62,11 @@ function Settings() {
     };
   }, []);
 
+  // Opening a panel (Enter on a pad) closes it too.
+  useEffect(() => useStore.subscribe((s, prev) => {
+    if (s.panel && !prev.panel) useUi.getState().setSettings(false);
+  }), []);
+
   // A press anywhere outside the popover (except on the gear, which toggles it) closes it.
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
