@@ -69,12 +69,15 @@ function ZoneMark({ zone, visited, current, onPick }: { zone: ZoneDef; visited: 
   );
 }
 
-// Expanded by default on wide screens with a mouse; a pill button on phones, tablets and narrow windows.
+// Expanded by default on wide, tall enough screens with a mouse; a pill button on phones, tablets
+// and narrow or short windows, where the open map would cover too much of the valley.
+const ROOMY = '(min-width: 1000px) and (min-height: 700px)';
+
 export function useMapOpen(): boolean {
   const coarse = useMediaQuery(COARSE);
-  const wide = useMediaQuery(WIDE);
+  const roomy = useMediaQuery(ROOMY);
   const choice = useUi((s) => s.map);
-  return choice ?? (wide && !coarse);
+  return choice ?? (roomy && !coarse);
 }
 
 export function Minimap() {
