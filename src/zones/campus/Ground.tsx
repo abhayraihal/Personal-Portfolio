@@ -15,10 +15,10 @@ const LAWN_DARK = '#7db65d';
 
 // Footpaths from the loop to the doors and corners, as control points.
 const FOOTPATHS: { pts: P2[]; width: number }[] = [
-  // to the main building's door
-  { pts: [[-4.6, -12.2], [-4.6, -15.6]], width: 2.4 },
-  // to the hostel door
-  { pts: [[-9.4, -10.6], [-12.4, -12.8]], width: 2.2 },
+  // to the main building's door (front door at native x -0.14 of the model)
+  { pts: [[-2.5, -12.2], [-2.5, -16.9]], width: 2.4 },
+  // to the hostel door (front door at the model's centre line)
+  { pts: [[-9.4, -10.6], [-15.2, -13.6]], width: 2.2 },
   // monument forecourt
   { pts: [[MONUMENT.x - 3.6, -18.6], [MONUMENT.x + 3.2, -18.6]], width: 2.2 },
   // research corner apron
