@@ -24,10 +24,13 @@ const GLOWS: V3[] = [[-HALF, PILLAR_H + 0.62, 0], [HALF, PILLAR_H + 0.62, 0]];
 
 // The sign panel is what hides the car; the arch above it is open.
 const OCCLUDER = { min: [-HALF, SIGN_Y - SIGN_H / 2, -0.2] as V3, max: [HALF, SIGN_Y + SIGN_H / 2, FACE_Z + 0.05] as V3 };
+// Once the car is through, the whole gate stands between the camera and the plaza: keep it faint
+// until the camera has passed it too.
+const PLAZA = { min: [-30, -5, -60] as V3, max: [30, 30, -1.3] as V3, opacity: 0.16 };
 
 export function AmazonGate({ position, title, dates }: { position: V3; title: string; dates: string }) {
   const root = useRef<Group>(null);
-  const fade = useOcclusionFade(root, OCCLUDER, 0.25);
+  const fade = useOcclusionFade(root, OCCLUDER, 0.25, PLAZA);
   const [lit, face] = useMemo(() => {
     const orange = COLORS.amazon;
     const dark = shade(COLORS.ink, 0.08);
