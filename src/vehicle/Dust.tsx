@@ -45,6 +45,9 @@ function surfaceAt(x: number, z: number): Surface {
 }
 
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
+// Lifts the shaded side of a puff by day. Mostly off at night, where it would make dust glow.
+const PUFF_EMISSIVE = new Color('#5a5852');
+const NIGHT_EMISSIVE = 0.2;
 
 const _m = new Matrix4();
 const _q = new Quaternion();
@@ -60,7 +63,7 @@ export function Dust() {
   const res = useMemo(() => {
     const puffGeo = new IcosahedronGeometry(1, 1);
     // Emissive lifts the shaded side so puffs read as soft dust, not stones.
-    const puffMat = new MeshLambertMaterial({ color: '#ffffff', emissive: '#5a5852' });
+    const puffMat = new MeshLambertMaterial({ color: '#ffffff', emissive: PUFF_EMISSIVE });
     const skidGeo = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
     const skidMat = new MeshBasicMaterial({
       color: '#262830', transparent: true, opacity: 0.2, depthWrite: false,
@@ -80,6 +83,7 @@ export function Dust() {
     next: 0,
   }), []);
   const emitAcc = useRef([0, 0]);
+  const nightK = useRef(0);
   const skid = useRef({ active: [false, false], last: [new Vector3(), new Vector3()], next: 0, count: 0 });
 
   useEffect(() => () => {
@@ -132,6 +136,13 @@ export function Dust() {
     if (!pm || !sm || !car.ready) return;
     const dt = Math.min(delta, 0.05);
     const s = useStore.getState();
+    const nightGoal = s.night ? 1 : 0;
+    if (nightK.current !== nightGoal) {
+      // Same pace as the world's day/night blend.
+      const k = nightK.current + (nightGoal - nightK.current) * (1 - Math.exp(-dt * 1.4));
+      nightK.current = Math.abs(nightGoal - k) < 0.002 ? nightGoal : k;
+      res.puffMat.emissive.copy(PUFF_EMISSIVE).multiplyScalar(1 - (1 - NIGHT_EMISSIVE) * nightK.current);
+    }
     const low = s.quality === 'low';
     const rateScale = (low ? 0.5 : 1) * (s.reducedMotion ? 0.6 : 1);
     const speed = Math.abs(car.speed);

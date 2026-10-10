@@ -94,7 +94,7 @@ function applyPose(camera: Camera, p: Pose) {
 function setLens(cam: PerspectiveCamera, fov: number, shift: number, w: number, h: number) {
   const shifted = Math.abs(shift) >= 0.5;
   const v = cam.view;
-  const same = Math.abs(cam.fov - fov) < 1e-5
+  const same = cam.fov === fov
     && (shifted ? !!v?.enabled && Math.abs(v.offsetX + shift) < 0.25 && v.fullWidth === w && v.fullHeight === h : !v?.enabled);
   if (same) return;
   cam.fov = fov;
