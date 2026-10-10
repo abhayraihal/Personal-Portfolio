@@ -15,7 +15,7 @@ import { env, LOOK } from '../world/env.ts';
 // While driving, the shadow frustum is 60 m across, follows the car and is snapped to whole
 // shadow-map texels in light space. Behind the start card it widens to cover the whole idle
 // overview, centred where the idle camera looks, and eases back during the intro. Nothing moves
-// much behind the card, so that wide shadow map is only re-rendered a few times a second.
+// much behind the card, so that wide shadow map is rendered on load and then every 4 s.
 const DIR = new Vector3(-23.3, 24.5, -3.1).normalize();
 const PLAY_HALF = 30;
 const IDLE_HALF = 88;
@@ -46,7 +46,7 @@ export function SunLight() {
     const goal = idle ? 1 : 0;
     frames.current = idle ? frames.current + 1 : 0;
     gl.shadowMap.autoUpdate = !idle;
-    if (idle && (frames.current < 60 || frames.current % 60 === 0)) gl.shadowMap.needsUpdate = true;
+    if (idle && (frames.current < 60 || frames.current % 240 === 0)) gl.shadowMap.needsUpdate = true;
     const rate = phase === 'intro' ? 1.8 : 8;
     wide.current += (goal - wide.current) * (1 - Math.exp(-Math.min(delta, 0.1) * rate));
     if (Math.abs(goal - wide.current) < 0.001) wide.current = goal;

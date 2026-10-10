@@ -169,7 +169,15 @@ export function PrayerFlags({ plan }: { plan: Plan }) {
   const flags = useMemo(() => buildFlags(plan.strings), [plan]);
   const rope = useMemo(() => ropeGeometry(plan.strings), [plan]);
   const ropeMat = useMemo(() => new MeshStandardMaterial({ color: '#5a4636', roughness: 1 }), []);
-  useEffect(() => () => flags.dispose(), [flags]);
+  useEffect(
+    () => () => {
+      flags.dispose();
+      flags.geometry.dispose();
+      (flags.material as MeshStandardMaterial).dispose();
+    },
+    [flags],
+  );
+  useEffect(() => () => rope.dispose(), [rope]);
   return (
     <group name="valley-flags">
       <Poles plan={plan} />

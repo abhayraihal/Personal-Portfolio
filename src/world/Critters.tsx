@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, ShaderMaterial, Vector3 } from 'three';
 import type { Points } from 'three';
@@ -87,6 +87,13 @@ function Fireflies({ plan, count }: { plan: Plan; count: number }) {
     });
     return { geometry: g, material: m };
   }, [plan, count]);
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
   // About 0.45 m across on screen, whatever the viewport.
   material.uniforms.uScale.value = (0.45 * size.height * dpr) / (2 * Math.tan((CAMERA.fov * Math.PI) / 360));
   useFrame(() => {
@@ -169,6 +176,14 @@ function Butterflies({ plan, count }: { plan: Plan; count: number }) {
     m.name = 'valley-butterflies';
     return m;
   }, [plan, count]);
+  useEffect(
+    () => () => {
+      mesh.dispose();
+      mesh.geometry.dispose();
+      (mesh.material as MeshBasicMaterial).dispose();
+    },
+    [mesh],
+  );
   useFrame(() => {
     mesh.visible = env.night.value < 0.4;
   });

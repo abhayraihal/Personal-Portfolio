@@ -115,6 +115,14 @@ function Halos({ lamps }: { lamps: Lamp[] }) {
     m.name = 'valley-lamp-halos';
     return m;
   }, [lamps]);
+  useEffect(
+    () => () => {
+      mesh.dispose();
+      mesh.geometry.dispose();
+      (mesh.material as ShaderMaterial).dispose();
+    },
+    [mesh],
+  );
   useFrame(() => {
     mesh.visible = env.night.value > 0.01;
   });
