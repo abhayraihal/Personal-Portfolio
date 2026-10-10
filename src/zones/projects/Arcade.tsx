@@ -1,4 +1,4 @@
-import { use, useMemo } from 'react';
+import { use, useEffect, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, CylinderGeometry, PlaneGeometry, SphereGeometry, SRGBColorSpace } from 'three';
@@ -9,11 +9,14 @@ import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { earlyProjects } from '../../data/profile.ts';
+import { useStore } from '../../state/store.ts';
 import { loadCanvasFonts } from './canvas.ts';
+import { worldX, worldZ } from './frame.ts';
 import { posterTexture } from './posters.ts';
 
 // Early projects corner: four arcade cabinets under a striped awning, one per early project in
-// profile.ts, with its screenshot (or a drawn poster) on the screen. One pad opens the panel.
+// profile.ts, with its screenshot (or a drawn poster) on the screen. One pad opens the panel;
+// parking on it brings the camera closer so the screens and cabinet names can be read.
 
 const CAB_W = 1.62;
 const CAB_D = 1.05;
@@ -24,6 +27,8 @@ const SCREEN = { w: 1.2, h: 0.92, y: 1.56, z: 0.47, tilt: -0.2 };
 const WALL_H = 4.0;
 const VALANCE = 0.42;
 const AWNING_FRONT = 1.75; // how far the awning reaches in front of the wall
+const CAMERA_ID = 'projects-arcade';
+const CLOSE_UP = 19; // camera distance while parked on the pad
 
 const years = [...new Set(earlyProjects.map((p) => p.year))].toSorted((a, b) => a - b);
 const YEARS = years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : String(years[0]);
@@ -136,6 +141,17 @@ export function Arcade({ x, z, padZ }: { x: number; z: number; padZ: number }) {
   const booth = useMemo(() => boothGeometry(wallW), [wallW]);
   const wallZ = -CAB_D / 2 - 0.25;
   const frontZ = wallZ + AWNING_FRONT + 0.3;
+  useEffect(() => () => useStore.getState().clearCameraOverride(CAMERA_ID), []);
+  const closeUp = (on: boolean) => {
+    const store = useStore.getState();
+    if (!on) return store.clearCameraOverride(CAMERA_ID);
+    if (store.reducedMotion) return;
+    // Look between the car and the cabinets; on narrow screens keep the car centred, clear of the
+    // interact button below it.
+    const narrow = window.innerWidth < window.innerHeight;
+    const tz = narrow ? padZ : padZ - 1.3;
+    store.setCameraOverride({ id: CAMERA_ID, target: [worldX(x, tz), 1, worldZ(x, tz)], distance: CLOSE_UP, blend: 1.2 });
+  };
   return (
     <group>
       <group position={[x, 0, z]}>
@@ -152,11 +168,12 @@ export function Arcade({ x, z, padZ }: { x: number; z: number; padZ: number }) {
         {earlyProjects.map((_, i) => (
           <Cabinet key={i} index={i} x={-span / 2 + CAB_W / 2 + i * (CAB_W + GAP)} />
         ))}
-        <Label font="display" size={0.3} color={COLORS.paper} position={[0, WALL_H - 0.38 - VALANCE / 2 + 0.01, frontZ + 0.05]}>
+        <Label font="display" size={0.36} color={COLORS.paper} position={[0, WALL_H - 0.38 - VALANCE / 2 + 0.01, frontZ + 0.05]}>
           {`Early projects · ${YEARS}`}
         </Label>
       </group>
-      <Pad id="projects-early" label="Read about the early projects" action={{ kind: 'panel', panel: 'project-early' }} position={[x, 0, padZ]} />
+      <Pad id="projects-early" label="Read about the early projects" action={{ kind: 'panel', panel: 'project-early' }} position={[x, 0, padZ]}
+        onEnter={() => closeUp(true)} onLeave={() => closeUp(false)} />
     </group>
   );
 }
