@@ -7,6 +7,7 @@ import { FACE_CAMERA_Y, INSPECT, params } from '../config/world.ts';
 import { useStore } from '../state/store.ts';
 import { Bridge } from './Bridge.tsx';
 import { Critters } from './Critters.tsx';
+import { FarRange } from './FarRange.tsx';
 import { Ground } from './Ground.tsx';
 import { Hills } from './Hills.tsx';
 import { Lamps } from './Lamps.tsx';
@@ -96,6 +97,7 @@ export function World() {
         <Stream mask={mask} />
         <Bridge />
         <Hills mask={mask} />
+        <FarRange />
         <Scatter plan={plan} />
         <PrayerFlags plan={plan} />
         <Lamps plan={plan} />

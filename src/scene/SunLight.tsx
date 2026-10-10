@@ -6,7 +6,7 @@ import { SPAWN } from '../config/layout.ts';
 import { screenToWorld } from '../config/world.ts';
 import { carObject } from '../state/car.ts';
 import { useStore } from '../state/store.ts';
-import { env, LOOK } from '../world/env.ts';
+import { env, LOOK, SUN_DIR } from '../world/env.ts';
 
 // Morning sun by day, moonlight at night (same light, eased by env.night). The sun comes from over
 // the camera's left shoulder (screen left and slightly towards the camera, 46 deg up), so faces
@@ -16,7 +16,7 @@ import { env, LOOK } from '../world/env.ts';
 // shadow-map texels in light space. Behind the start card it widens to cover the whole idle
 // overview, centred where the idle camera looks, and eases back during the intro. Nothing moves
 // much behind the card, so that wide shadow map is rendered on load and then every 4 s.
-const DIR = new Vector3(-23.3, 24.5, -3.1).normalize();
+const DIR = SUN_DIR;
 const PLAY_HALF = 30;
 const IDLE_HALF = 88;
 const LIGHT_BASIS = new Matrix4().lookAt(DIR, new Vector3(), new Vector3(0, 1, 0));
