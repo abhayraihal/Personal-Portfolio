@@ -663,10 +663,12 @@
   }
 }
 
+/* Paper: a flat, resume-style layout. No cards or shadows, chips become a dotted list, and
+   colour only in the job bars, the bullets and the chart. */
 @media print {
   @page {
     size: A4;
-    margin: 13mm 12mm;
+    margin: 12mm 13mm;
   }
   html,
   body,
@@ -676,8 +678,8 @@
     background: #fff !important;
   }
   body {
-    font-size: 10pt;
-    line-height: 1.4;
+    font-size: 9.5pt;
+    line-height: 1.38;
   }
   .scene,
   .layers,
@@ -686,7 +688,8 @@
   .cv-note,
   .cv-chart__table,
   .cv-project__img,
-  .cv-link .icon {
+  .cv-link .icon,
+  .cv-foot {
     display: none !important;
   }
   .ui {
@@ -704,115 +707,244 @@
     display: block;
     padding: 0;
   }
+
   .cv-head {
-    gap: 18px;
+    gap: 14pt;
   }
   .cv-head__photo {
-    width: 86px;
-    height: 86px;
-    border-radius: 14px;
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
     box-shadow: none;
     transform: none;
   }
   .cv-head__name {
-    font-size: 26pt;
+    font-size: 22pt;
   }
   .cv-head__role {
-    margin-top: 4px;
-    font-size: 12pt;
+    margin-top: 3pt;
+    font-size: 11pt;
+  }
+  .cv-head__team {
+    font-size: 9.5pt;
+  }
+  .cv-head__links {
+    gap: 2pt 14pt;
+    margin-top: 5pt;
   }
   .cv > .chips {
-    margin-top: 10px;
+    margin-top: 8pt;
   }
+
   .cv-section {
-    margin-top: 16pt;
+    margin-top: 12pt;
   }
   .cv-section__title {
-    margin-bottom: 8pt;
-    font-size: 15pt;
+    gap: 8pt;
+    margin-bottom: 6pt;
+    font-size: 13pt;
     break-after: avoid;
+  }
+  .cv-section__title::after {
+    height: 1.5pt;
   }
   .cv-text,
   .cv-bullets li {
     max-width: none;
-    font-size: 10pt;
+    font-size: 9.5pt;
+    line-height: 1.38;
   }
-  .cv-bullets li {
+  .cv-text {
+    margin-bottom: 4pt;
+  }
+  .cv-bullets {
     margin-bottom: 3pt;
   }
-  .cv-item,
-  .cv-stat,
-  .cv-chart,
-  .cv-contact li,
-  .chips > li {
-    box-shadow: none !important;
-    border: 1px solid #d8d2c8;
+  .cv-bullets li {
+    margin-bottom: 1.5pt;
+    padding-left: 12pt;
   }
+  .cv-bullets li::before {
+    top: 0.55em;
+    left: 2pt;
+    width: 4.5pt;
+    height: 4.5pt;
+  }
+  .cv-minor {
+    margin: 8pt 0 4pt;
+    font-size: 10.5pt;
+  }
+
+  /* Entries: flat, one after another. Jobs and education keep their coloured bar. */
   .cv-item {
-    padding: 9pt 12pt;
-    margin-bottom: 8pt;
+    margin: 0 0 9pt;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none !important;
     break-inside: avoid;
   }
-  /* Amazon's block runs most of a page: let it break between its parts instead. */
+  .cv-item--bar {
+    padding-left: 10pt;
+  }
+  .cv-item--bar::before {
+    top: 2pt;
+    bottom: 2pt;
+    left: 0;
+    width: 2.5pt;
+  }
+  /* Amazon's block runs most of a page: its parts go in two columns and may break between them. */
   .cv-item:has(.cv-part) {
     break-inside: auto;
   }
-  .cv-item--bar {
-    padding-left: 16pt;
-  }
-  .cv-item--bar::before {
-    top: 10pt;
-    bottom: 10pt;
-    left: 6pt;
-    width: 3pt;
-  }
-  .cv-item__title {
-    font-size: 13pt;
+  .cv-parts {
+    columns: 2;
+    column-gap: 16pt;
   }
   .cv-part {
-    margin-top: 8pt;
+    margin: 0 0 6pt;
+    padding: 0;
+    border: 0;
     break-inside: avoid;
   }
   .cv-part + .cv-part {
-    padding-top: 6pt;
+    padding-top: 0;
+    border: 0;
   }
+  .cv-part__title {
+    margin-bottom: 2pt;
+    font-size: 10pt;
+  }
+  .cv-item__head {
+    margin-bottom: 3pt;
+  }
+  .cv-item__title {
+    font-size: 12pt;
+  }
+  .cv-item__when {
+    font-size: 9pt;
+  }
+  .cv-item__sub {
+    margin-top: 1pt;
+    font-size: 9.5pt;
+  }
+  .cv-item .chips {
+    margin: 2pt 0 3pt;
+  }
+  .cv-item .cv-links {
+    margin-top: 3pt;
+  }
+  /* Projects are long: they may break between paragraphs and bullets, never after the head. */
   .cv-project {
     display: block;
+    break-inside: auto;
   }
-  .cv-stats {
-    gap: 6pt;
+  .cv-item__head {
+    break-after: avoid;
   }
-  .cv-stat {
-    padding: 6pt 9pt;
-  }
-  .cv-stat dd {
-    font-size: 16pt;
-  }
-  .cv-chart {
-    padding: 8pt 10pt;
+  .cv-text,
+  .cv-bullets li {
     break-inside: avoid;
   }
-  .cv-chart__plot {
-    min-width: 0;
+  /* The header already has the email, phone, LinkedIn and GitHub; the coding profiles are in the
+     competitive programming section. */
+  #cv-contact {
+    display: none;
+  }
+
+  .chips {
+    gap: 0;
+  }
+  .chips > li,
+  .chips--small > li {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none !important;
+    color: var(--ink-2);
+    font-size: 8.5pt;
+  }
+  .chips > li:not(:last-child)::after {
+    content: '·';
+    margin: 0 4pt;
+    color: var(--ink-3);
+  }
+  .cv > .chips > li {
+    color: var(--ink);
+    font-size: 9.5pt;
+    font-weight: 700;
+  }
+
+  .cv-links {
+    gap: 2pt 12pt;
   }
   .cv-link {
     color: var(--ink);
+    font-size: 9pt;
   }
   .cv-url {
     display: inline !important;
     color: #555;
     font-weight: 400;
   }
+
+  .cv-stats {
+    gap: 6pt;
+    margin-bottom: 8pt;
+  }
+  .cv-stat {
+    padding: 4pt 8pt;
+    border: 1px solid #d8d2c8;
+    box-shadow: none !important;
+  }
+  .cv-stat dt {
+    font-size: 8.5pt;
+  }
+  .cv-stat dd {
+    margin-top: 1pt;
+    font-size: 14pt;
+  }
+  .cv-chart {
+    margin-bottom: 6pt;
+    padding: 0;
+    border: 0;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  .cv-chart__caption {
+    margin-bottom: 4pt;
+  }
+  .cv-chart__sub {
+    font-size: 9pt;
+  }
+  .cv-chart__plot {
+    min-width: 0;
+    max-width: 150mm;
+  }
+
+  .cv-skills {
+    gap: 6pt 18pt;
+  }
+  .cv-skill__title {
+    margin-bottom: 2pt;
+    font-size: 9.5pt;
+  }
+  .cv-contact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4pt 14pt;
+  }
+  .cv-contact li {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none !important;
+  }
   .cv-contact .cv-url {
     display: block !important;
     margin-left: 0;
-  }
-  .cv-foot {
-    margin-top: 18pt;
     font-size: 8.5pt;
-  }
-  .cv-foot .cv-links {
-    display: none;
   }
   * {
     -webkit-print-color-adjust: exact;
