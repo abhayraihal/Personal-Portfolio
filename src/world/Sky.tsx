@@ -1,13 +1,15 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, Fog, ShaderMaterial, SphereGeometry, SRGBColorSpace, Vector3 } from 'three';
-import type { HemisphereLight, Points } from 'three';
+import type { HemisphereLight, Mesh, PerspectiveCamera, Points } from 'three';
 import { car } from '../state/car.ts';
 import { useStore } from '../state/store.ts';
 import { env, LOOK } from './env.ts';
 import { rng, smoothstep } from './rand.ts';
 
 const NIGHT_RATE = 1.4; // 1/s, about 2.5 s from day to night
+const DEG = Math.PI / 180;
+const _fwd = new Vector3();
 
 // Advances the shared clock and eases the day/night blend. Mounted once, before everything else.
 export function EnvDriver() {
@@ -22,19 +24,18 @@ export function EnvDriver() {
     env.night.value = Math.abs(target - n) < 0.002 ? target : n + (target - n) * (1 - Math.exp(-dt * NIGHT_RATE));
     env.car.value.set(car.x, car.y + 0.8, car.z);
     env.cam.value.copy(camera.position);
+    camera.getWorldDirection(_fwd);
+    const pitch = Math.asin(Math.min(1, Math.max(-1, -_fwd.y)));
+    env.topEdge.value = ((camera as PerspectiveCamera).fov ?? 40) * 0.5 * DEG - pitch;
   }, -10);
   return null;
 }
-
-const DEG = Math.PI / 180;
-const _fwd = new Vector3();
 
 // Background, fog and sky light. Fog and background share one colour so distant ground melts
 // into the sky. A low camera (the horizon in frame) gets thinner fog, so the far hills and the
 // snow peaks behind them read as layers instead of a white wall.
 export function Atmosphere() {
   const scene = useThree((s) => s.scene);
-  const camera = useThree((s) => s.camera);
   const hemi = useRef<HemisphereLight>(null);
   const fog = useMemo(() => new Fog(LOOK.day.fog.clone(), 95, 300), []);
   const bg = useMemo(() => LOOK.day.fog.clone(), []);
@@ -52,8 +53,7 @@ export function Atmosphere() {
     const k = env.night.value;
     fog.color.lerpColors(LOOK.day.fog, LOOK.night.fog, k);
     bg.copy(fog.color);
-    camera.getWorldDirection(_fwd);
-    const low = 1 - smoothstep(16 * DEG, 24 * DEG, Math.asin(Math.min(1, Math.max(-1, -_fwd.y))));
+    const low = smoothstep(-4 * DEG, 4 * DEG, env.topEdge.value);
     fog.near = 95 - 25 * k + 60 * low;
     fog.far = 300 - 90 * k + 180 * low;
     const h = hemi.current;
@@ -120,14 +120,16 @@ function SkyDome() {
     },
     [geometry, material],
   );
+  const ref = useRef<Mesh>(null);
   useFrame(() => {
+    if (ref.current) ref.current.visible = env.topEdge.value > -2 * DEG;
     const k = env.night.value;
     const u = material.uniforms;
     _sky.lerpColors(LOOK.day.fog, LOOK.night.fog, k).getRGB(u.uHorizon.value as Color, SRGBColorSpace);
     _sky.lerpColors(LOOK.day.skyLow, LOOK.night.skyLow, k).getRGB(u.uLow.value as Color, SRGBColorSpace);
     _sky.lerpColors(LOOK.day.skyTop, LOOK.night.skyTop, k).getRGB(u.uZenith.value as Color, SRGBColorSpace);
   });
-  return <mesh geometry={geometry} material={material} frustumCulled={false} renderOrder={-2} name="valley-sky" />;
+  return <mesh ref={ref} geometry={geometry} material={material} frustumCulled={false} renderOrder={-2} name="valley-sky" />;
 }
 
 const STAR_VERT = /* glsl */ `
@@ -193,7 +195,7 @@ function Stars() {
   }, []);
   material.uniforms.uDpr.value = dpr;
   useFrame(() => {
-    if (ref.current) ref.current.visible = env.night.value > 0.02;
+    if (ref.current) ref.current.visible = env.night.value > 0.02 && env.topEdge.value > -2 * DEG;
   });
   return <points ref={ref} geometry={geometry} material={material} frustumCulled={false} renderOrder={-1} />;
 }

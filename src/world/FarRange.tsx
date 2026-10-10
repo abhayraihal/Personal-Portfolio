@@ -1,5 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, Color, ShaderMaterial, SRGBColorSpace, Vector3 } from 'three';
+import type { Mesh } from 'three';
 import { SPAWN } from '../config/layout.ts';
 import { COLORS } from '../config/palette.ts';
 import { env, LOOK, SUN_DIR } from './env.ts';
@@ -145,8 +147,13 @@ export function FarRange() {
   );
   const day = useMemo(() => ({ rock: new Color(COLORS.rock), pine: new Color(COLORS.pine).multiplyScalar(0.8), snow: new Color(COLORS.snow) }), []);
   const night = useMemo(() => ({ rock: new Color('#2a3150'), pine: new Color('#16243a'), snow: new Color('#8fa3d6') }), []);
+  const ref = useRef<Mesh>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.visible = env.topEdge.value > -0.05;
+  });
   return (
     <mesh
+      ref={ref}
       name="valley-far-range"
       geometry={geometry}
       material={material}

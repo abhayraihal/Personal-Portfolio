@@ -9,6 +9,9 @@ export const env = {
   motion: { value: 1 }, // 1 normally, 0.25 with reduced motion (wind, flags, water speed)
   car: { value: new Vector3() }, // world position of the car body, for see-through trees
   cam: { value: new Vector3(0, 50, 50) },
+  // Elevation of the top edge of the view above the horizon (radians). Below zero the frame holds
+  // no sky, so the sky, stars and far peaks skip their draw calls.
+  topEdge: { value: -0.4 },
 };
 
 // Day and night looks. Fog and background match so the far ground fades into the sky.
