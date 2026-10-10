@@ -25,6 +25,10 @@ export type CarState = {
   steps: number; // physics steps since the controller was created
   controllers: number; // live vehicle controllers in the world; must stay 1 under StrictMode
   controllersCreated: number;
+  brakeLight: boolean; // player is braking or reversing (drives the tail lights)
+  slip: number; // m/s of sideways sliding while wheels are on the ground
+  airTime: number; // seconds since the last wheel contact (0 on the ground)
+  recovering: boolean; // the car is being lifted back onto its wheels
 };
 
 export const car: CarState = {
@@ -32,6 +36,13 @@ export const car: CarState = {
   x: 0, y: 0, z: 0, u: 0, v: 0, yaw: 0, speed: 0, vx: 0, vy: 0, vz: 0,
   tilt: 0, contacts: 0, steer: 0, throttle: 0, braking: false, boosting: false, airborne: false,
   steps: 0, controllers: 0, controllersCreated: 0,
+  brakeLight: false, slip: 0, airTime: 0, recovering: false,
+};
+
+// Commands the vehicle registers while it is mounted. Safe to call from the HTML UI (entry chunk),
+// e.g. a touch horn button: carActions.honk().
+export const carActions = {
+  honk: () => {},
 };
 
 declare global {

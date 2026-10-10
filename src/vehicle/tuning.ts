@@ -1,3 +1,5 @@
+import { COLORS } from '../config/palette.ts';
+
 // Vehicle tuning shared by <Vehicle> and the headless sim (scripts/sim-vehicle.ts).
 // Chassis frame: +X forward, +Y up, +Z right. These are rapier's defaults
 // (indexForwardAxis = 0, indexUpAxis = 1), so the controller axes are never changed.
@@ -90,3 +92,50 @@ export const MODEL = {
   // chassis = R(scale * model) + offset; puts the axles at x = +-0.99 and the ground at y = -1.0
   offset: { x: -0.15, y: -1.0, z: 0 } as Vec3,
 };
+
+// Paint: the body panels take the site accent (the pink polo in Abhay's photo). The hardtop (roof,
+// rear quarters, tailgate) is painted separately; bumpers, flares and grille stay Kenney grey.
+// Pink on the hardtop too: from the 45 degree camera the roof is most of what you see.
+export const PAINT = {
+  panels: COLORS.accent,
+  hardtop: COLORS.accent as string | undefined,
+  roughness: 0.62,
+};
+
+export const LIGHTS = {
+  tailColor: '#ff2b3a',
+  headColor: '#fff1c2',
+  beamColor: '#ffe9b8',
+  brakeIntensity: 2.6, // emissive, braking or reversing
+  tailNightIntensity: 0.9, // running lights at night
+  headIntensity: 2.2,
+  tailGlowSize: 0.9, // m, additive halo sprite
+  headGlowSize: 1.3,
+  spotIntensity: 130, // cd
+  spotDistance: 30,
+  spotAngle: 0.46, // rad, half angle; with penumbra 0.6 the bright core misses the bumper area
+};
+
+// Visual body lean on a spring (the physics chassis does not move): nose up under acceleration,
+// down under braking, outwards in turns. Radians per m/s^2, capped at max.
+export const LEAN = { pitch: 0.0055, roll: 0.0045, max: 0.07, stiffness: 140, damping: 0.42 };
+
+// Flip recovery: tilted past tiltDeg for `seconds`, the car is lifted and turned upright in place.
+export const RECOVERY = {
+  tiltDeg: 70,
+  seconds: 1.5,
+  maxSpeed: 4, // m/s; a car still sliding on its roof gets up to `forceAfter` seconds to stop
+  forceAfter: 3,
+  duration: 1.0, // s, lift and turn
+  lift: 1.3, // m, extra height at the middle of the move
+  endY: 1.3, // chassis height when released (rest is 1.0)
+};
+
+// Throttle held for `seconds` with less than `minProgress` metres of travel: a small hop.
+export const UNSTUCK = { seconds: 2, minProgress: 0.5, hop: 3.0, push: 1.2, spin: 0.9 };
+
+// H key. hop is the vertical speed change in m/s.
+export const HORN = { cooldown: 0.6, hop: 2.1 };
+
+// Impact events for audio: closing speed in m/s, at most one event per minGapMs.
+export const IMPACT = { minStrength: 1.5, minGapMs: 80, landingMinSpeed: 3, landingAirTime: 0.3 };
