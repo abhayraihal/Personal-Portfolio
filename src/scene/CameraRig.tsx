@@ -132,7 +132,9 @@ export function CameraRig() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (!playing()) return;
-      zoom.current.goal = clampGoal(zoom.current.goal * Math.exp(e.deltaY * 0.0015));
+      // deltaMode 1 = lines, 2 = pages (Firefox). A trackpad pinch arrives as ctrl+wheel with small deltas.
+      const px = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1);
+      zoom.current.goal = clampGoal(zoom.current.goal * Math.exp(px * (e.ctrlKey ? 0.01 : 0.0015)));
     };
     let pinch: { d0: number; g0: number } | null = null;
     const spread = (e: TouchEvent) => {
