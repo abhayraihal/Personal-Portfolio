@@ -24,9 +24,6 @@ export const storage = {
 
 export const COARSE = '(pointer: coarse)';
 export const WIDE = '(min-width: 1000px)';
-// Phones, tablets and narrow windows: the map sits under the contact chip and zone arrivals show
-// at the top centre. Matches the media query of the same layout in hud.css.
-export const COMPACT = '(max-width: 640px), (pointer: coarse)';
 
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(query).matches);
