@@ -138,8 +138,9 @@ export const RECOVERY = {
   endY: 1.3, // chassis height when released (rest is 1.0)
 };
 
-// Throttle held for `seconds` with less than `minProgress` metres of travel: a small hop.
-export const UNSTUCK = { seconds: 2, minProgress: 0.5, hop: 3.0, push: 1.2, spin: 0.9 };
+// Throttle held for `seconds` with less than `minProgress` metres of travel: a small hop. The same
+// hop frees a car resting on something with no wheel on the ground for `perchSeconds`.
+export const UNSTUCK = { seconds: 2, minProgress: 0.5, hop: 3.0, push: 1.2, spin: 0.9, perchSeconds: 0.7, perchSpeed: 0.8 };
 
 // H key. hop is the vertical speed change in m/s.
 export const HORN = { cooldown: 0.6, hop: 2.1 };
