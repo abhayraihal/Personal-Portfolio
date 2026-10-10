@@ -51,6 +51,8 @@ function weatherParts() {
       { g: new BoxGeometry(6.0, 0.14, 2.0), color: '#cfc6b6', at: [-0.25, 0.07, 0] },
       { g: new BoxGeometry(0.16, LEG.y, 0.16), color: COLORS.inkSoft, at: [BOARD.x - 1.5, LEG.y / 2, LEG.z] },
       { g: new BoxGeometry(0.16, LEG.y, 0.16), color: COLORS.inkSoft, at: [BOARD.x + 1.5, LEG.y / 2, LEG.z] },
+      // short front feet, so the board does not look as if it floats over the base
+      ...[-1.5, 1.5].map((x): Part => ({ g: new BoxGeometry(0.14, BOARD.lift, 0.14), color: COLORS.inkSoft, at: [BOARD.x + x, BOARD.lift / 2, BOARD.z - 0.12] })),
       { g: new BoxGeometry(BOARD.w, BOARD.h, BOARD.t), color: COLORS.ink, at: [BOARD.x, boardY(BOARD.h / 2, -BOARD.t / 2), boardZ(BOARD.h / 2, -BOARD.t / 2)], rot: [-TILT, 0, 0] },
       ...legs,
       { g: new BoxGeometry(0.66, 0.66, 0.56), color: '#fbfaf6', at: [SCREEN_AT.x, 1.42, SCREEN_AT.z] },
