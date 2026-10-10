@@ -4,6 +4,7 @@ import { ExtrudeGeometry, MeshStandardMaterial, Shape } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { codeforces } from '../../data/codeforces.ts';
+import { useStore } from '../../state/store.ts';
 
 const TAGS = codeforces.topTags.slice(0, 6);
 const TIP = 0.5;
@@ -35,6 +36,8 @@ function plankGeometry(len: number) {
 // A trail signpost: a header board, then one arrow per most-solved tag, pointing alternately left
 // and right.
 export function TagSign({ position }: { position: [number, number, number] }) {
+  // Text is unlit, so ink that reads on the wood by day is lost on it at night.
+  const ink = useStore((st) => (st.night ? COLORS.paper : COLORS.ink));
   const parts = useMemo(
     () => ({
       planks: TAGS.map(([tag, count]) => {
@@ -69,7 +72,7 @@ export function TagSign({ position }: { position: [number, number, number] }) {
         return (
           <group key={tag} position={[dir * 0.06, y, 0.2]}>
             <mesh geometry={geometry} material={parts.wood} scale={[dir, 1, 1]} castShadow receiveShadow />
-            <Label font="bodyBold" size={TEXT} color={COLORS.ink} position={[dir * (len - TIP) * 0.5, 0, 0.1]}>
+            <Label font="bodyBold" size={TEXT} color={ink} position={[dir * (len - TIP) * 0.5, 0, 0.1]}>
               {text}
             </Label>
           </group>
