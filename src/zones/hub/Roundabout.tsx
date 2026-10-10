@@ -11,6 +11,7 @@ import { COLORS } from '../../config/palette.ts';
 import { DEG } from '../../config/world.ts';
 import { hubAt } from './layout.ts';
 import { mergeParts } from './merge.ts';
+import { glowAtNight } from './nightGlow.ts';
 import { wood } from './PhotoBoard.tsx';
 import { textWidth } from './textWidth.ts';
 
@@ -106,7 +107,7 @@ const BOARDS = mergeParts(
     color: `#${new Color(ZONE_BY_ID[p.zone].color).multiplyScalar(1.12).getHexString()}`,
   })),
 );
-const boardMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7 });
+const boardMaterial = glowAtNight(new MeshStandardMaterial({ vertexColors: true, roughness: 0.7 }), 0.2);
 
 function SignLabel({ sign }: { sign: Placed }) {
   const pos = new Vector3(sign.textX, 0.01, SIGN_D + 0.045).applyMatrix4(sign.matrix);

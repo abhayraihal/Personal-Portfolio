@@ -7,9 +7,11 @@ import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { panels, skillBricks } from '../../data/profile.ts';
+import { useStore } from '../../state/store.ts';
 import { HubBody } from './HubBody.tsx';
 import type { HomeGroup } from './homes.ts';
 import { hubAt, SPOT } from './layout.ts';
+import { glowAtNight } from './nightGlow.ts';
 import { textWidth } from './textWidth.ts';
 
 // The 23 skill bricks as a toy-brick wall the car can smash through. Brick length follows its
@@ -121,40 +123,48 @@ const materials = new Map<string, MeshStandardMaterial>();
 function brickMaterial(color: string) {
   let m = materials.get(color);
   if (!m) {
-    m = new MeshStandardMaterial({ color, roughness: 0.55, emissive: color, emissiveIntensity: 0.08 });
+    m = glowAtNight(new MeshStandardMaterial({ color, roughness: 0.55, emissive: color, emissiveIntensity: 0.08 }), 0.14);
     materials.set(color, m);
   }
   return m;
 }
-const labelMaterial = new MeshStandardMaterial({ roughness: 0.8 });
+const labelMaterial = glowAtNight(new MeshStandardMaterial({ roughness: 0.8 }), 0.35);
 
 const WALL = layoutBricks();
 
 const LEGEND_TEXT = 0.42;
 const SWATCH = 0.48;
+const LEGEND_ROWS = 2; // one row would be wider than the wall
+const LEGEND_PITCH = 0.74; // row to row
 
-// The colour key painted on the grass in front of the wall, one entry per skill group.
+// The colour key painted on the grass in front of the wall, one entry per skill group, in profile
+// order across then down, in columns so the swatches line up.
 function WallLegend() {
+  const night = useStore((s) => s.night);
   const groups = skillGroups();
-  const widths = groups.map((g) => textWidth(g.label, 'display', LEGEND_TEXT));
   const gapIn = 0.16;
   const gapOut = 0.62;
-  const total = widths.reduce((a, w) => a + SWATCH + gapIn + w, 0) + gapOut * (groups.length - 1);
-  const [wu] = SPOT.wall;
-  let x = -total / 2;
+  const cols = Math.ceil(groups.length / LEGEND_ROWS);
+  const widths = groups.map((g) => SWATCH + gapIn + textWidth(g.label, 'display', LEGEND_TEXT));
+  const colW = Array.from({ length: cols }, (_, c) => Math.max(...widths.filter((_w, i) => i % cols === c)));
+  const total = colW.reduce((a, w) => a + w, 0) + gapOut * (cols - 1);
+  const rows = Math.ceil(groups.length / cols);
   const items = groups.map((g, i) => {
-    const at = x;
-    x += SWATCH + gapIn + widths[i] + gapOut;
-    return { ...g, at };
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    const x = -total / 2 + colW.slice(0, c).reduce((a, w) => a + w + gapOut, 0);
+    const z = (r - (rows - 1) / 2) * LEGEND_PITCH; // first row furthest from the camera
+    return { ...g, x, z };
   });
+  const [wu] = SPOT.wall;
   return (
     <group position={hubAt(wu, SPOT.wallLegendV)}>
       {items.map((g) => (
-        <group key={g.label} position={[g.at, 0, 0]}>
+        <group key={g.label} position={[g.x, 0, g.z]}>
           <mesh material={brickMaterial(g.color)} position={[SWATCH / 2, 0.025, 0]} receiveShadow>
             <boxGeometry args={[SWATCH, 0.05, SWATCH]} />
           </mesh>
-          <Label flat font="display" size={LEGEND_TEXT} color={COLORS.ink} material={labelMaterial} anchorX="left" position={[SWATCH + gapIn, 0.05, 0.02]}>
+          <Label flat font="display" size={LEGEND_TEXT} color={night ? COLORS.paper : COLORS.ink} material={labelMaterial} anchorX="left" position={[SWATCH + gapIn, 0.05, 0.02]}>
             {g.label}
           </Label>
         </group>
