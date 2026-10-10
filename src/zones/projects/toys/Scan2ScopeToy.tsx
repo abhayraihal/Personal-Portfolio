@@ -5,6 +5,7 @@ import { BoxGeometry, CanvasTexture, DoubleSide, Matrix4, PlaneGeometry, Quatern
 import type { InstancedMesh, Mesh, MeshBasicMaterial } from 'three';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
+import { CAMERA } from '../../../config/world.ts';
 import { useStore } from '../../../state/store.ts';
 import { carNearZone, worldX, worldZ } from '../frame.ts';
 import { mergeParts } from '../geom.ts';
@@ -193,10 +194,11 @@ export function Scan2ScopeToy({ position, pad }: { position: [number, number, nu
       if (parked) {
         s.t = store.reducedMotion ? TOTAL : 0;
         s.fade = 1;
-        // Frame the house, its plan and the bay together while parked. Narrow screens step back.
+        // Frame the house, its plan and the pad together while parked. Narrow screens use the
+        // default distance even when zoomed in, since the user's zoom may not fit both.
         if (!store.reducedMotion) {
           const narrow = typeof window !== 'undefined' && window.innerWidth < window.innerHeight;
-          store.setCameraOverride({ id: CAMERA_ID, target: [worldX(VIEW[0], VIEW[1]), 1, worldZ(VIEW[0], VIEW[1])], distance: narrow ? 40 : undefined, blend: 1.2 });
+          store.setCameraOverride({ id: CAMERA_ID, target: [worldX(VIEW[0], VIEW[1]), 1, worldZ(VIEW[0], VIEW[1])], distance: narrow ? CAMERA.distance : undefined, blend: 1.2 });
         }
       } else store.clearCameraOverride(CAMERA_ID);
     }

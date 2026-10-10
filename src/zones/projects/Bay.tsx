@@ -1,18 +1,20 @@
-import { use, useMemo } from 'react';
+import { use, useMemo, useRef } from 'react';
 import { useTexture } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import { ConvexHullCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, SRGBColorSpace } from 'three';
-import type { BufferGeometry, Texture } from 'three';
+import type { BufferGeometry, Material, Texture } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
+import { useStore } from '../../state/store.ts';
 import { loadCanvasFonts, textWidth } from './canvas.ts';
 import { IMAGE_H, IMAGE_W, ROWS } from './layout.ts';
 import type { Bay as BayDef } from './layout.ts';
-import { posterTexture } from './posters.ts';
-import { ZONE } from './frame.ts';
+import { coverTexture } from './posters.ts';
+import { carNearZone, carX, carZ, ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
 
 const FRAME = 0.28; // border around the image
@@ -63,11 +65,39 @@ const billboardFrame = () =>
     { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 1, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
   ]));
 
+// From the fixed 45-degree camera a billboard hides the ground behind it for about its own height.
+// While the car is in that strip the board fades, so the car never disappears behind it. The
+// materials stay transparent at full opacity otherwise, so fading never recompiles a shader.
+const HIDES = LIFT + BOARD_H + 0.3;
+const FADED = 0.22;
+
+function useBehindFade(x: number, z: number) {
+  const mats = useRef<(Material | null)[]>([]);
+  const k = useRef(1);
+  useFrame((_, delta) => {
+    const near = carNearZone();
+    const cz = carZ();
+    const behind = near && Math.abs(carX() - x) < BOARD_W / 2 + 1.6 && cz < z - BOARD_DEPTH && cz > z - HIDES - 1;
+    const goal = behind ? FADED : 1;
+    if (k.current === goal) return;
+    // fade while the car is around; snap back once it has left (a teleport out, say)
+    const next = near ? k.current + (goal - k.current) * Math.min(1, delta * 8) : goal;
+    k.current = Math.abs(goal - next) < 0.01 ? goal : next;
+    for (const m of mats.current) {
+      if (!m) continue;
+      m.opacity = k.current;
+      m.depthWrite = k.current === 1;
+    }
+  });
+  return useMemo(() => [0, 1, 2].map((i) => (m: Material | null) => void (mats.current[i] = m)), []);
+}
+
 function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain'; x: number; z: number }) {
   const img = map.image as { width?: number; height?: number } | undefined;
   const aspect = img?.width && img.height ? img.width / img.height : IMAGE_W / IMAGE_H;
   const geometry = useMemo(() => imageGeometry(aspect, fit), [aspect, fit]);
   const frame = useMemo(billboardFrame, []);
+  const fadeRefs = useBehindFade(x, z);
   return (
     <group position={[x, 0, z]}>
       <RigidBody type="fixed" colliders={false}>
@@ -76,16 +106,16 @@ function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain';
         <CuboidCollider args={[0.18, POST_H / 2, 0.18]} position={[POST_X, POST_H / 2, -BOARD_DEPTH - 0.1]} />
       </RigidBody>
       <mesh geometry={frame} castShadow receiveShadow>
-        <meshStandardMaterial vertexColors roughness={0.85} />
+        <meshStandardMaterial ref={fadeRefs[0]} vertexColors roughness={0.85} transparent />
       </mesh>
       {fit === 'contain' && (
         <mesh position={[0, BOARD_CY, 0.006]}>
           <planeGeometry args={[IMAGE_W, IMAGE_H]} />
-          <meshBasicMaterial color="#ffffff" toneMapped={false} />
+          <meshBasicMaterial ref={fadeRefs[1]} color="#ffffff" toneMapped={false} transparent />
         </mesh>
       )}
       <mesh geometry={geometry} position={[0, BOARD_CY, 0.012]}>
-        <meshBasicMaterial map={map} toneMapped={false} />
+        <meshBasicMaterial ref={fadeRefs[2]} map={map} toneMapped={false} transparent />
       </mesh>
     </group>
   );
@@ -101,7 +131,7 @@ function ImageBillboard({ url, ...rest }: { url: string; fit: 'cover' | 'contain
 function PosterBillboard({ bay, ...rest }: { bay: BayDef; fit: 'cover' | 'contain'; x: number; z: number }) {
   use(loadCanvasFonts());
   const p = bay.project;
-  const map = posterTexture(p.panel, { title: p.title, tagline: p.tagline, chips: p.stack, year: p.year, art: bay.art ?? 'map' });
+  const map = coverTexture(p.panel, p.title, bay.art ?? 'map');
   return <Billboard map={map} {...rest} />;
 }
 
@@ -154,16 +184,33 @@ const CHIP_H = 0.52;
 const CHIP_PAD = 0.2;
 const CHIP_GAP = 0.13;
 
+// Wrap width for a tagline: the full room if it fits on one line, otherwise the narrowest width
+// that still gives two lines, so the second line is never one or two stray words.
+function taglineWidth(text: string, room: number): number {
+  if (textWidth(text, 'body', TAG) <= room) return room;
+  const words = text.split(' ');
+  let best = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const a = textWidth(words.slice(0, i).join(' '), 'body', TAG);
+    const b = textWidth(words.slice(i).join(' '), 'body', TAG);
+    best = Math.min(best, Math.max(a, b));
+  }
+  return best <= room ? best + 0.12 : room;
+}
+
 function Lectern({ bay, z }: { bay: BayDef; z: number }) {
   use(loadCanvasFonts());
   const p = bay.project;
   const wedge = useMemo(() => (sharedWedge ??= wedgeGeometry()), []);
+  // At night the paper glows a little, like the lit billboards, so the ink text stays readable.
+  const night = useStore((s) => s.night);
   const x0 = -LECTERN_W / 2 + 0.42;
   const top = SLANT / 2;
   const titleY = top - 0.62;
   const titleW = textWidth(p.title, 'display', TITLE);
   const year = String(p.year);
   const yearW = textWidth(year, 'bodyBold', 0.32) + 0.44;
+  const tagW = useMemo(() => taglineWidth(p.tagline, LECTERN_W - 0.84), [p.tagline]);
 
   // Chips run left to right along the bottom edge, scaled down if the stack is too long to fit.
   const { chips, k } = useMemo(() => {
@@ -199,7 +246,7 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
         <ConvexHullCollider args={[wedgeHull]} />
       </RigidBody>
       <mesh geometry={wedge} castShadow receiveShadow>
-        <meshStandardMaterial color={COLORS.paper} roughness={0.9} />
+        <meshStandardMaterial color={COLORS.paper} roughness={0.9} emissive={COLORS.paper} emissiveIntensity={night ? 0.42 : 0} />
       </mesh>
       <group position={[0, FRONT_H + RISE / 2, 0]} rotation={[-Math.PI / 4, 0, 0]}>
         <mesh geometry={chipGeometry} position={[0, 0, faceZ]}>
@@ -212,7 +259,7 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
           position={[x0 + titleW + 0.3 + yearW / 2, titleY - 0.02, faceZ + 0.03]}>
           {year}
         </Label>
-        <Label size={TAG} color={COLORS.inkSoft} anchorX="left" anchorY="top" maxWidth={LECTERN_W - 0.84} lineHeight={1.22}
+        <Label size={TAG} color={COLORS.inkSoft} anchorX="left" anchorY="top" maxWidth={tagW} lineHeight={1.22}
           position={[x0, top - 1.12, faceZ + 0.01]}>
           {p.tagline}
         </Label>

@@ -162,6 +162,53 @@ function drawChart(g: CanvasRenderingContext2D, x: number, y: number, w: number,
 
 const ART: Record<PosterArt, typeof drawMap> = { map: drawMap, weather: drawWeather, chart: drawChart };
 
+// Billboard cover for a bay with no screenshot: the title and a large drawing, nothing else. The
+// lectern in front already shows the tagline, year and stack at a readable size. 1024 x 600, the
+// billboard image aspect. Call after loadCanvasFonts().
+export function coverTexture(key: string, title: string, art: PosterArt): CanvasTexture {
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const [W, H] = [1024, 600];
+  const [c, g] = makeCanvas(W, H);
+  g.fillStyle = COLORS.paper;
+  g.fillRect(0, 0, W, H);
+  g.fillStyle = COLORS.accent;
+  g.fillRect(0, 0, 26, H);
+
+  // Title in the left column, centred vertically, shrunk until every line fits.
+  const left = 70;
+  const colW = 410;
+  let px = 116;
+  let lines: string[] = [];
+  for (;;) {
+    g.font = cssFont('display', px);
+    lines = wrap(g, title, colW);
+    if ((lines.length <= 2 && lines.every((l) => g.measureText(l).width <= colW)) || px <= 70) break;
+    px -= 4;
+  }
+  g.fillStyle = COLORS.ink;
+  g.textBaseline = 'alphabetic';
+  const lineH = px * 1.02;
+  let y = H / 2 - (lines.length * lineH) / 2 + px * 0.8;
+  for (const line of lines) {
+    g.fillText(line, left, y);
+    y += lineH;
+  }
+
+  // The drawing, scaled up from the slide layout's art box so line widths grow with it.
+  const box = { x: 520, y: 56, w: 460, h: 470 };
+  const k = Math.min(box.w / (1024 * 0.31), box.h / (600 * 0.54));
+  g.save();
+  g.translate(box.x, box.y);
+  g.scale(k, k);
+  ART[art](g, 0, 0, box.w / k, box.h / k);
+  g.restore();
+
+  const tex = canvasTexture(c, 8);
+  cache.set(key, tex);
+  return tex;
+}
+
 // 1024 x 600 poster, matching the billboard image area (6.0 x 3.5 m). Call after loadCanvasFonts().
 export function posterTexture(key: string, spec: PosterSpec, size: [number, number] = [1024, 600]): CanvasTexture {
   const hit = cache.get(key);
