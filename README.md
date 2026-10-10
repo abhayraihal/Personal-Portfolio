@@ -22,7 +22,7 @@ If you'd rather read than drive, the page opens with a plain HTML summary, and t
 - [React Three Fiber](https://github.com/pmndrs/react-three-fiber) and [drei](https://github.com/pmndrs/drei) on three.js, with [Rapier](https://rapier.rs) physics through `@react-three/rapier`. The car is a Rapier ray-cast vehicle.
 - [zustand](https://github.com/pmndrs/zustand) for state, Vite and TypeScript for the build, and synthesized Web Audio for sound (no audio files).
 - The Codeforces data is baked in at build time (`src/data/codeforces.ts`), so the site calls no APIs.
-- Every fact on the site lives in `src/data/profile.ts`.
+- Every fact on the site lives in `src/data/profile.ts` and `src/data/codeforces.ts`.
 - Deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`.
 
 Run it locally:

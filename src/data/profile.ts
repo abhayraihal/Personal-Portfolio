@@ -322,7 +322,7 @@ export const panels: Record<PanelId, Panel> = {
     bullets: [
       'The network, ray casting and polygon collision are plain JavaScript on two canvases.',
       'The car that gets furthest can be saved to localStorage; the next run starts from it plus mutated copies.',
-      "There is a manual mode with the arrow keys, and the second canvas draws the leading car's network as it drives.",
+      "Switching the control type in main.js gives a manual mode with the arrow keys, and the second canvas draws the leading car's network as it drives.",
     ],
     meta: ['JavaScript', 'Canvas', 'localStorage'],
     image: { src: `${BASE}images/projects/self-driving-car.jpg`, alt: 'Self-driving car simulation: cars on a three-lane road with sensor rays, and the network drawn beside it' },
@@ -337,6 +337,7 @@ export const panels: Record<PanelId, Panel> = {
       'Gemini 1.5 Flash runs in JSON mode; trips are saved to Firestore behind Google sign-in.',
       'Destination search runs over a bundled list of 44,383 cities, and each card has Pixabay photos and a Google Maps link.',
       'The landing page has an animated 3D avatar rendered with React Three Fiber.',
+      'It was built on Gemini 1.5 Flash, which Google has since retired, so trip generation on the demo may no longer work.',
     ],
     meta: ['React', 'Gemini', 'Firebase', 'Tailwind', 'shadcn/ui', 'Vercel'],
     links: [repo('ai-trip-planner-web'), demo('https://ai-trip-planner-web-omega.vercel.app')],
@@ -461,7 +462,7 @@ export const panels: Record<PanelId, Panel> = {
     bullets: [
       'Led rides for the Mountain Biking Club (MTB) at IIT Mandi.',
       'Led a Design Practicum project building assistive wearable tech to help visually impaired people get around.',
-      'Ran community surveys for an Interdisciplinary Socio-Technical Practicum (ISTP) project, collecting and analysing data on local problems.',
+      'Ran community surveys for an Interactive Socio-Technical Practicum (ISTP) project, collecting and analysing data on local problems.',
     ],
     related: ['education'],
   },
