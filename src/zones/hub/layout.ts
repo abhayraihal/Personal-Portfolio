@@ -31,8 +31,10 @@ export const SPOT = {
   photo: [-10.6, 0.7] as const,
   photoPad: [-11.5, -2.5] as const, // 0.35 m clear of the campus road's upper edge
   wallLegendV: 5.95, // painted between the wall and its pad
-  wall: [-19.4, 7.4] as const, // centre of the wall's base; it is about 11 m long
-  wallPad: [-19.4, 2.3] as const,
+  // Centre of the wall's base; it is about 11 m long and its right end stays clear of the easel's
+  // frame in the spawn view.
+  wall: [-20.6, 7.4] as const,
+  wallPad: [-20.6, 2.3] as const,
   // Right of the spine.
   hut: HUT, // hut recipe origin, the middle of its front row of cells; the door faces the camera
   contactBoard: [12.8, 4.5] as const, // its right edge stays clear of the lantern behind it
