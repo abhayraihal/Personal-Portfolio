@@ -5,7 +5,7 @@ import { Color, CylinderGeometry, InstancedBufferAttribute, Matrix4, MeshBasicMa
 import type { Group, InstancedMesh, Mesh } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { Label } from '../../../components/Label.tsx';
-import { Model } from '../../../components/Model.tsx';
+import { Model, modelSize } from '../../../components/Model.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
@@ -25,7 +25,9 @@ const PILLAR_X = [-3.6, -2.15, 2.15, 3.6];
 const PILLAR_Z = 0.05;
 const PILLAR_H = 1.9;
 const LAMP_Y = PILLAR_H + 0.12;
-const CRATE_S = 0.9; // crate-wood is 1 m at scale 1
+const CRATE = 0.9; // crate edge, metres
+const CRATE_S = CRATE / modelSize('crate-wood')[1];
+const PAD_TOP = 0.06; // landing pad surface
 const DROP = 9;
 const T_LAND = 0.85;
 const T_SRC = 1.25;
@@ -147,7 +149,7 @@ function OncallAgentToy({ clock }: ToyProps) {
       const poof = seg(t, T_POOF, T_POOF + 0.25);
       const s = poof > 0 ? (poof < 0.35 ? 1 + poof * 0.4 : (1 - poof) * 1.6) : 1;
       g.visible = playing && t > 0 && poof < 1;
-      g.position.y = Math.max(0.04, y);
+      g.position.y = Math.max(PAD_TOP, y);
       g.rotation.y = (1 - fall) * 1.4;
       g.scale.set(s * (1 + 0.08 * squash), s * (1 - 0.14 * squash), s * (1 + 0.08 * squash));
       if (phase === 'play' && t >= T_LAND && !fired.current.land) {
@@ -231,7 +233,7 @@ function OncallAgentToy({ clock }: ToyProps) {
         </mesh>
         <group ref={crate} visible={false}>
           <Model name="crate-wood" scale={CRATE_S} />
-          <Plaque text={TOY_TEXT.ticket} size={0.2} position={[0, 0.62, CRATE_S / 2 + 0.03]} depth={0.03} />
+          <Plaque text={TOY_TEXT.ticket} size={0.2} position={[0, 0.62, CRATE / 2 + 0.035]} depth={0.03} />
         </group>
         <group ref={card} position={[0, CARD_LOW, -0.1]} visible={false}>
           <ReportCard />

@@ -3,9 +3,10 @@ import { useFrame } from '@react-three/fiber';
 import { Color, Euler, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
 import type { Group, InstancedMesh } from 'three';
 import { Label } from '../../../components/Label.tsx';
-import { modelScale, useMerged } from '../../../components/Model.tsx';
+import { modelScale, modelSize, useMerged } from '../../../components/Model.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
+import { useStore } from '../../../state/store.ts';
 import { TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
 import { Plaque, StationBoard } from '../parts.tsx';
@@ -24,8 +25,7 @@ const LANE_X1 = 2.75;
 const LANE_W = 0.82;
 const LANE_COLORS = ['#c60b1e', '#0055a4', '#012169', '#009246'];
 const RACK_X = 3.6;
-const CRATE_S = 0.42; // crate-wood-banded, 0.5 m
-const CRATE = 0.504;
+const CRATE = 0.5; // crate-wood-banded edge, metres
 const OLD_SLOTS = [-2.12, -1.05];
 const NEW_SLOTS = [1.05, 2.12];
 const CAR_S = 0.24; // pickup, 1.06 m long
@@ -82,7 +82,7 @@ function MigrationToy({ clock }: ToyProps) {
   const lanes = useBoxes(LANES);
   const foot = useBoxes(FOOTPRINT);
   const stripes = useRef<InstancedMesh>(null);
-  const crateScale = modelScale('crate-wood-banded') * CRATE_S;
+  const crateScale = modelScale('crate-wood-banded') * (CRATE / modelSize('crate-wood-banded')[1]);
   const carScale = modelScale('vehicle-alt-pickup-truck') * CAR_S;
 
   useLayoutEffect(() => {
@@ -127,7 +127,7 @@ function MigrationToy({ clock }: ToyProps) {
           for (let h = 0; h < 2; h++) {
             const i = side * 8 + lane * 2 + h;
             const x = (side ? RACK_X : -RACK_X) + (side ? 0 : shake);
-            const y = h * CRATE - (side ? 0 : sink * SINK * 2);
+            const y = h * (CRATE + 0.01) - (side ? 0 : sink * SINK * 2);
             _p.set(x, y, LANE_Z[lane]);
             _q.identity();
             c.setMatrixAt(i, _m.compose(_p, _q, _s.setScalar(crateScale)));
@@ -157,6 +157,7 @@ function MigrationToy({ clock }: ToyProps) {
     // Real cars: lane by lane, front car first; rewind slides them back.
     const k = cars.current;
     const g = ghosts.current;
+    const reduced = useStore.getState().reducedMotion;
     if (k && g) {
       let ghostsVisible = false;
       for (let lane = 0; lane < 4; lane++) {
@@ -167,7 +168,7 @@ function MigrationToy({ clock }: ToyProps) {
           const t0 = T_REAL + lane * 0.6 + (1 - slot) * 0.22;
           const m = phase === 'idle' ? 0 : easeInOutCubic(seg(t, t0, t0 + DRIVE)) * rw;
           const hop = phase === 'play' ? Math.sin(Math.PI * seg(t, t0, t0 + DRIVE)) * 0.08 : 0;
-          const idleBob = phase === 'idle' ? Math.abs(Math.sin(state.clock.elapsedTime * 7 + i * 1.7)) * 0.012 : 0;
+          const idleBob = phase === 'idle' && !reduced ? Math.abs(Math.sin(state.clock.elapsedTime * 7 + i * 1.7)) * 0.012 : 0;
           _p.set(from + (to - from) * m, 0.04 + hop + idleBob, LANE_Z[lane]);
           _q.setFromEuler(_e.set(-hop * 0.8, Math.PI / 2, 0, 'YXZ'));
           k.setMatrixAt(i, _m.compose(_p, _q, _s.setScalar(carScale)));
