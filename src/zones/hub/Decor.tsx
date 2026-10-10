@@ -51,7 +51,7 @@ function segmentDistance(u: number, v: number, a: [number, number], b: [number, 
 
 const KEEP_OUT: [number, number, number][] = [
   [SPOT.photo[0], SPOT.photo[1], 3], [SPOT.photoPad[0], SPOT.photoPad[1], 3], [SPOT.wallPad[0], SPOT.wallPad[1], 3.2],
-  [SPOT.hut[0], SPOT.hut[1] + 1.5, 5], [SPOT.contactPad[0], SPOT.contactPad[1], 3.2], [SPOT.contactBoard[0], SPOT.contactBoard[1], 3.4],
+  [SPOT.hut[0], SPOT.hut[1] + 1.5, 5], [SPOT.contactPad[0], SPOT.contactPad[1], 3.2], [SPOT.contactBoard[0], SPOT.contactBoard[1], 3.9],
   [SPOT.bench[0], SPOT.bench[1], 2], [SPOT.creditsPad[0], SPOT.creditsPad[1], 2.4], [SPOT.mailbox[0], SPOT.mailbox[1], 1.2],
 ];
 
