@@ -218,7 +218,7 @@ function OncallAgentToy({ clock }: ToyProps) {
       <instancedMesh ref={beams} args={[geo.beam, mats.beam, 4]} visible={false} />
       <Static>
         {PILLAR_X.map((x, i) => (
-          <Plaque key={x} text={TOY_TEXT.sources[i]} size={0.24} position={[x, 1.18, PILLAR_Z + 0.4]} depth={0.05} />
+          <Plaque key={x} text={TOY_TEXT.sources[i]} size={0.28} position={[x, 1.18, PILLAR_Z + 0.4]} depth={0.05} />
         ))}
       </Static>
 

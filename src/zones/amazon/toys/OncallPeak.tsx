@@ -166,7 +166,7 @@ function OncallPeakToy({ clock }: ToyProps) {
       {/* Count in the middle of the ring: "30+ high-severity tickets" */}
       <group position={[RING.x, 0, RING.z]}>
         <Static>
-          {[-1.15, 1.15].map((x) => (
+          {[-1.35, 1.35].map((x) => (
             <mesh key={x} position={[x, 0.15, -0.05]} material={M.slate}>
               <boxGeometry args={[0.08, 0.3, 0.08]} />
             </mesh>
@@ -174,12 +174,12 @@ function OncallPeakToy({ clock }: ToyProps) {
         </Static>
         <group ref={count} position={[0, 0.95, 0]}>
           <mesh position={[0, 0, -0.05]} material={M.paper}>
-            <boxGeometry args={[2.9, 1.3, 0.1]} />
+            <boxGeometry args={[3.3, 1.3, 0.1]} />
           </mesh>
           <Label font="display" size={0.8} color={COLORS.amazon} position={[0, 0.2, 0.005]}>
             {TOY_TEXT.tickets[0]}
           </Label>
-          <Label font="bodyBold" size={0.24} color={COLORS.ink} position={[0, -0.38, 0.005]}>
+          <Label font="bodyBold" size={0.27} color={COLORS.ink} position={[0, -0.38, 0.005]}>
             {TOY_TEXT.tickets[1]}
           </Label>
         </group>
