@@ -85,10 +85,12 @@ export function Minimap() {
   const zone = useStore((s) => s.zone);
   const carRef = useRef<SVGGElement>(null);
 
-  // The car arrow follows the telemetry every animation frame, without React renders.
+  // The car arrow follows the telemetry every animation frame (every third on the low quality
+  // tier), without React renders.
   useEffect(() => {
     if (!open) return;
     let raf = 0;
+    let frame = 0;
     let lastU = NaN;
     let lastV = NaN;
     let lastYaw = NaN;
@@ -96,6 +98,7 @@ export function Minimap() {
       raf = requestAnimationFrame(tick);
       const g = carRef.current;
       if (!g) return;
+      if (useStore.getState().quality === 'low' && frame++ % 3 !== 0) return;
       if (!car.ready) {
         g.setAttribute('visibility', 'hidden');
         return;

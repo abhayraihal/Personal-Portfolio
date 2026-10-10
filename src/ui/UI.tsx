@@ -48,6 +48,7 @@ export function UI() {
   const webgl = useStore((s) => s.webgl);
   const classic = useStore((s) => s.classicOpen);
   const reduced = useStore((s) => s.reducedMotion);
+  const night = useStore((s) => s.night);
   useGlobalKeys();
   useMotionPreference();
   usePromptAnnouncements();
@@ -57,7 +58,7 @@ export function UI() {
   }, []);
 
   return (
-    <div className="ui" data-motion={reduced ? 'reduced' : 'full'}>
+    <div className="ui" data-motion={reduced ? 'reduced' : 'full'} data-night={night || undefined}>
       {webgl && (
         <div className="layers" inert={classic || undefined}>
           <Card />

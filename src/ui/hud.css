@@ -659,3 +659,22 @@
     flex: 1 1 140px;
   }
 }
+
+/* Night: the HUD paper dims a little and the map turns to dusk, so it doesn't glare over the dark
+   valley. Panels and the classic view keep their daylight paper for reading. */
+.ui[data-night] .hud {
+  --paper: #f2e8d6;
+  --paper-2: #e8dcc6;
+}
+.ui[data-night] .minimap__svg {
+  background: #6f8a6a;
+}
+.ui[data-night] .mm-ground {
+  fill: #a3b897;
+}
+.ui[data-night] .hint {
+  background: rgba(20, 22, 28, 0.86);
+}
+.ui[data-night] .fade {
+  background: #1c1f26;
+}
