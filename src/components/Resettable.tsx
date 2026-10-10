@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { RigidBody } from '@react-three/rapier';
 import type { RapierRigidBody, RigidBodyProps } from '@react-three/rapier';
 import { car } from '../state/car.ts';
+import { events } from '../state/events.ts';
 
 type Props = RigidBodyProps & {
   children: ReactNode;
@@ -29,6 +30,20 @@ export function Resettable({ children, idleSeconds = 14, carDistance = 14, ...pr
     });
     return () => cancelAnimationFrame(id);
   }, []);
+
+  // A teleport cuts the camera, so anything displaced can go home at once without being seen.
+  useEffect(() => events.on('teleported', () => {
+    const b = body.current;
+    const h = home.current;
+    if (!b || !h) return;
+    const t = b.translation();
+    if (Math.hypot(t.x - h.t.x, t.y - h.t.y, t.z - h.t.z) < 0.4) return;
+    b.setTranslation(h.t, true);
+    b.setRotation(h.r, true);
+    b.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    b.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    idle.current = 0;
+  }), []);
 
   useFrame((_, delta) => {
     check.current += delta;

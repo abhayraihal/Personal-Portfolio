@@ -170,6 +170,7 @@ float dash = step(fract(dashT / period), 0.5);
 float lineW = 0.12;
 float lineM = (1.0 - smoothstep(lineW - aa, lineW + aa, lane)) * dash;
 if (!onRing && ringDist < uRing.z + uRing.w + 0.6) lineM = 0.0;
+if (!onRing && abs(p.x) < 4.5 && p.y > -17.0 && p.y < 18.0) lineM = 0.0; // hub spine carries painted text
 road = mix(road, uLine, lineM * 0.92);
 // kerb: light stone band with joints, a gutter line on the road side
 float kerbW = 0.36;

@@ -169,5 +169,11 @@ export function playSound(o: Out, name: SoundName, volume = 1) {
     case 'thud':
       playImpact(o, 7, undefined, v);
       break;
+    case 'splash':
+      // A wash of lowpassed noise plus a few falling droplet blips.
+      noise(o, t, 0.55, 0.42 * v, 'lowpass', 2200, 420, 0.7, 0.02);
+      noise(o, t + 0.03, 0.25, 0.22 * v, 'bandpass', 1400, 800, 1.6, 0.01);
+      for (let i = 0; i < 4; i++) tone(o, 'sine', rand(700, 1300), rand(250, 420), t + 0.05 + i * rand(0.04, 0.09), 0.06, 0.07 * v, 0.002);
+      break;
   }
 }

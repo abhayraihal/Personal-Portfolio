@@ -38,11 +38,11 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: 'amazon', key: '3', title: 'Amazon', subtitle: 'SDE, May 2025 to now', color: '#ff9900',
-    center: [0, 122], area: circle(0, 122, 26), respawn: { u: 0, v: 100, du: 0, dv: 1 }, panel: 'amazon',
+    center: [0, 122], area: circle(0, 122, 26), respawn: { u: 0, v: 106, du: 0, dv: 1 }, panel: 'amazon',
   },
   {
     id: 'projects', key: '4', title: 'Projects', subtitle: 'Things I built', color: '#7c5cff',
-    center: [80, 26], area: circle(80, 26, 28), respawn: { u: 50, v: 26, du: 1, dv: 0 }, panel: 'projects',
+    center: [80, 26], area: circle(80, 26, 28), respawn: { u: 60, v: 26, du: 1, dv: 0 }, panel: 'projects',
   },
   {
     id: 'ridge', key: '5', title: 'Rating ridge', subtitle: 'Codeforces, 2021 to 2025', color: '#2b59c3',
@@ -50,11 +50,11 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: 'campus', key: '6', title: 'IIT Mandi', subtitle: 'B.Tech, research, hackathons', color: '#2f6b55',
-    center: [-58, -50], area: circle(-58, -50, 30), respawn: { u: -34, v: -30, du: -1, dv: -1 }, panel: 'education',
+    center: [-58, -50], area: circle(-58, -50, 30), respawn: { u: -40, v: -36, du: -1, dv: -1 }, panel: 'education',
   },
   {
     id: 'sports', key: '7', title: 'Sports ground', subtitle: 'Football and table tennis', color: '#4caf50',
-    center: [52, -46], area: circle(52, -46, 22), respawn: { u: 32, v: -28, du: 1, dv: -1 }, panel: 'sports',
+    center: [52, -46], area: circle(52, -46, 22), respawn: { u: 40, v: -36, du: 1, dv: -1 }, panel: 'sports',
   },
 ];
 

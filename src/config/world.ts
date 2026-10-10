@@ -8,9 +8,9 @@ export const CAMERA = {
   azimuth: 45 * DEG,
   elevation: 45 * DEG,
   fov: 40,
-  distance: 24,
-  minDistance: 12,
-  maxDistance: 48,
+  distance: 32,
+  minDistance: 14,
+  maxDistance: 56,
 };
 
 // Kenney kits are scaled relative to the jeep at 1x; the jeep is drawn at 1.5x (3.8 m), so every

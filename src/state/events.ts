@@ -1,7 +1,7 @@
 // Tiny typed event bus for one-off happenings that several modules react to (sound, confetti, toasts).
 
 export type SoundName =
-  | 'click' | 'open' | 'close' | 'pad' | 'zone' | 'goal' | 'win' | 'horn' | 'teleport' | 'coin' | 'whoosh' | 'thud';
+  | 'click' | 'open' | 'close' | 'pad' | 'zone' | 'goal' | 'win' | 'horn' | 'teleport' | 'coin' | 'whoosh' | 'thud' | 'splash';
 
 export type Events = {
   // Something hit something. strength is roughly the closing speed in m/s.

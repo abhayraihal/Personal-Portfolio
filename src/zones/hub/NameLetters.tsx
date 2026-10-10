@@ -96,7 +96,7 @@ function Row({ glyphs, v, style, group }: { glyphs: Glyph[]; v: number; style: R
   );
 }
 
-// 'ABHAY' in big pink letters across the spine, 'SINGH RAIHAL' in smaller ink letters behind it.
+// 'ABHAY' in big pink letters across the spine, 'SINGH RAIHAL' in smaller ink letters in front of it.
 export function NameLetters({ group }: { group: HomeGroup }) {
   const font = useFont(FONTS.display3d) as unknown as Font;
   const [first, ...rest] = profile.name.toUpperCase().split(' ');

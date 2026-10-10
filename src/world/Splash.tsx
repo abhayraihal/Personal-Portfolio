@@ -103,7 +103,7 @@ export function Splash() {
     const speed = Math.abs(car.speed);
     const inWater = car.ready && streamEdgeAt(car.u, car.v) < -0.3 && !onBridge(car.u, car.v);
     const st = useStore.getState();
-    if (inWater && speed > 4 && !s.wet && st.phase === 'play') playSound('whoosh', 0.35);
+    if (inWater && speed > 4 && !s.wet && st.phase === 'play') playSound('splash', 0.7);
     s.wet = inWater && speed > 1.5;
     const fx = Math.cos(car.yaw);
     const fz = -Math.sin(car.yaw);

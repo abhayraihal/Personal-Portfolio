@@ -160,7 +160,7 @@ export const useStore = create<State>()((set, get) => ({
   },
   dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
   announcement: '',
-  announce: (announcement) => set({ announcement }),
+  announce: (text) => set({ announcement: text === get().announcement.replace(/\u200b$/, '') && !get().announcement.endsWith('\u200b') ? `${text}\u200b` : text }),
 
   sound: stored('sound', 'off') === 'on',
   toggleSound: () => {

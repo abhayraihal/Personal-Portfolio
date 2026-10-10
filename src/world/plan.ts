@@ -5,7 +5,7 @@ import { BOUNDS, ZONE_BY_ID } from '../config/layout.ts';
 import type { ModelName } from '../config/models.ts';
 import type { Quality } from '../state/store.ts';
 import { streamEdgeAt } from './field.ts';
-import { ASPHALT, BRIDGE, DIRT, RING, ISLAND_R, STREAM_PATH, TRAIL, TRAIL_HALF, hillHeight, outside, roadDist, trailDist, zoneDist } from './geo.ts';
+import { ASPHALT, BRIDGE, DIRT, RING, STREAM_PATH, TRAIL, TRAIL_HALF, hillHeight, outside, roadDist, trailDist, zoneDist } from './geo.ts';
 import type { V2 } from './geo.ts';
 import { clamp, fbm, hash2, pick, range, rng, smoothstep, vnoise } from './rand.ts';
 
@@ -468,12 +468,6 @@ function build(): Plan {
       const name: ModelName = blue ? 'flowers-blue-poppy' : 'flowers-tall';
       cover.push({ name, u, v, y: 0, s: blue ? range(r, 0.42, 0.62) : range(r, 0.5, 0.72), ry: r() * 6.28, keep: hash2(i * 13 + k, 17) });
     }
-  }
-  // A ring of flowers just inside the roundabout island's kerb; the middle stays clear for signs.
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2 + 0.2;
-    const rr = ISLAND_R - 0.95;
-    cover.push({ name: i % 2 ? 'flowers-blue-poppy' : 'flowers-tall', u: RING.u + Math.cos(a) * rr, v: RING.v + Math.sin(a) * rr, y: ISLAND_Y, s: 0.5, ry: a * 3, keep: 0 });
   }
   // Mushrooms under some trees.
   for (const t of trees) {

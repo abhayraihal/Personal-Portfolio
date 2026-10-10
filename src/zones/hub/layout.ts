@@ -15,11 +15,10 @@ const HUT = [20.2, 10.4] as const;
 // (0, -8) facing up. Keep clear of the world's roads: hub-spine |u| <= 4 from v -16 to 18, the
 // campus and sports dirt roads leaving (+-6, -6) diagonally downwards, and the roundabout ring.
 export const SPOT = {
-  // Name letters stand across the spine; the car drives straight into them. Close enough to the
-  // spawn that both rows are in the first frame: from this camera the 2.2 m ABHAY row hides about
-  // 4.5 m of ground behind it, so the surname row sits 5 m further back.
-  abhayV: 3.0,
-  surnameV: 8.0,
+  // Name letters stand across the spine; the car drives straight into them. The big ABHAY row stands
+  // behind the smaller surname row, so from this camera the rows read top to bottom.
+  abhayV: 8.5,
+  surnameV: 3.2,
   // Painted on the road, sized to fit its 8 m width.
   roleV: -3.3, // centre of the role line block, between the car and the letters
   controlsV: -11.25, // first of the three control lines, just behind the car
