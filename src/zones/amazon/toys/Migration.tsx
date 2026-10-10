@@ -241,8 +241,9 @@ function MigrationToy({ clock }: ToyProps) {
       <group ref={footprint} position={[-RACK_X, 0.01, FOOT_Z]} visible={false}>
         <mesh geometry={foot} material={M.orange} />
       </group>
-      <group ref={dublin} position={[-RACK_X + 0.35, 0.5, FOOT_Z + 0.3]} visible={false}>
-        <Plaque text={TOY_TEXT.dublin} size={0.3} material={M.ink} color="#ffffff" legs={0.25} />
+      {/* The result stands where the old rack's header was; it grows from the ground. */}
+      <group ref={dublin} position={[-RACK_X + 0.55, 0, -1.45]} visible={false}>
+        <Plaque text={TOY_TEXT.dublin} size={0.32} material={M.ink} color="#ffffff" position={[0, 1.05, 0]} legs={0.76} />
       </group>
       <Plaque text={TOY_TEXT.noImpact} size={0.28} position={[2.25, 0.36, 3.0]} legs={0.16} color={COLORS.ink} />
     </>
