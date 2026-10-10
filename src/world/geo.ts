@@ -252,3 +252,46 @@ export function onBridge(u: number, v: number, margin = 0.5): boolean {
   const across = -du * BRIDGE.dir[1] + dv * BRIDGE.dir[0];
   return Math.abs(along) < BRIDGE.length / 2 + margin && Math.abs(across) < BRIDGE.width / 2 + margin;
 }
+
+// ---------------------------------------------------------------- bike trail
+
+// A narrow single-track loop through the woods south-west of the stream, for the mountain biking
+// Abhay did at IIT Mandi. Closed centripetal Catmull-Rom through hand-placed points.
+const TRAIL_CTRL: V2[] = [
+  [-95, -22], [-110, -30], [-126, -25], [-142, -36], [-152, -55], [-140, -72], [-119, -80], [-101, -71], [-96, -53], [-104, -40],
+];
+export const TRAIL_HALF = 0.8;
+
+function closedPath(ctrl: V2[], spacing: number): V2[] {
+  const n = ctrl.length;
+  const dense: V2[] = [];
+  for (let i = 0; i < n; i++)
+    for (let k = 0; k < 24; k++) dense.push(catmull(ctrl[(i - 1 + n) % n], ctrl[i], ctrl[(i + 1) % n], ctrl[(i + 2) % n], k / 24));
+  dense.push(dense[0]);
+  const out: V2[] = [dense[0]];
+  let acc = 0;
+  for (let i = 1; i < dense.length; i++) {
+    acc += Math.hypot(dense[i][0] - dense[i - 1][0], dense[i][1] - dense[i - 1][1]);
+    if (acc >= spacing) {
+      out.push(dense[i]);
+      acc = 0;
+    }
+  }
+  out.push(out[0]);
+  return out;
+}
+
+export const TRAIL = closedPath(TRAIL_CTRL, 1.5);
+
+// Distance to the trail's centreline.
+export function trailDist(u: number, v: number): number {
+  let best = Infinity;
+  for (let i = 0; i < TRAIL.length - 1; i++) {
+    const a = TRAIL[i];
+    const b = TRAIL[i + 1];
+    if (Math.abs(u - a[0]) > best + 3 || Math.abs(v - a[1]) > best + 3) continue;
+    const d = segDist(u, v, a[0], a[1], b[0], b[1]);
+    if (d < best) best = d;
+  }
+  return best;
+}

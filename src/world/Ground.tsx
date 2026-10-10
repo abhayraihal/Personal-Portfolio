@@ -126,6 +126,12 @@ dirt = mix(dirt, dirt * vec3(1.18, 1.14, 1.06), peb * fine * 0.7);
 dirt *= 1.0 - 0.1 * smoothstep(-0.9, 0.0, dD); // darker, packed edge
 col = mix(col, dirt, onDirt);
 
+// ---- the bike trail through the woods (mask alpha on dry ground)
+float trail = msk.a * smoothstep(1.2, 2.0, se);
+col = mix(col, col * vec3(0.88, 0.84, 0.72), smoothstep(0.0, 0.35, trail) * 0.55);
+vec3 trailCol = uDirtCol * vec3(0.8, 0.74, 0.68) * (0.9 + 0.2 * vw_noise(p * 1.1));
+col = mix(col, trailCol, smoothstep(0.4, 0.75, trail + (vw_noise(p * 1.7) - 0.5) * 0.3));
+
 // ---- asphalt: straight roads and the roundabout, filleted where they meet
 float dA = 1e5;
 float near = 1e5;

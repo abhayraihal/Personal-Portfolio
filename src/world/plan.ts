@@ -5,7 +5,7 @@ import { BOUNDS, ZONE_BY_ID } from '../config/layout.ts';
 import type { ModelName } from '../config/models.ts';
 import type { Quality } from '../state/store.ts';
 import { streamEdgeAt } from './field.ts';
-import { ASPHALT, BRIDGE, DIRT, RING, ISLAND_R, STREAM_PATH, hillHeight, outside, roadDist, zoneDist } from './geo.ts';
+import { ASPHALT, BRIDGE, DIRT, RING, ISLAND_R, STREAM_PATH, TRAIL, TRAIL_HALF, hillHeight, outside, roadDist, trailDist, zoneDist } from './geo.ts';
 import type { V2 } from './geo.ts';
 import { clamp, fbm, hash2, pick, range, rng, smoothstep, vnoise } from './rand.ts';
 
@@ -25,18 +25,20 @@ export type Collider = { kind: 'cyl'; u: number; v: number; r: number; h: number
 export type Lamp = { kind: 'street' | 'lantern'; u: number; v: number; ry: number; head: [number, number, number] };
 export type FlagString = { a: [number, number, number]; b: [number, number, number]; sag: number };
 export type Pole = { u: number; v: number; y: number; h: number; mast: boolean }; // mast: draw the Kenney pole
+export type Marker = { u: number; v: number; ry: number };
 
 export type Plan = {
   trees: Item[];
   hillTrees: Item[];
   rocks: Item[];
-  cover: Item[]; // grass, flowers, mushrooms, plants (no colliders)
+  cover: Item[]; // grass, flowers, mushrooms (no colliders)
   props: Item[]; // logs, stumps, river stones
   lamps: Lamp[];
   strings: FlagString[];
   poles: Pole[];
   darchog: Item[];
   foam: { u: number; v: number; r: number }[]; // white water around rocks in the stream
+  markers: Marker[]; // trail marker posts along the bike trail
 };
 
 const HUB = ZONE_BY_ID.hub.center;
@@ -56,14 +58,14 @@ const ROCK_R: Partial<Record<ModelName, [number, number]>> = {
 
 const insideBounds = (u: number, v: number, m: number) => u > BOUNDS.u0 + m && u < BOUNDS.u1 - m && v > BOUNDS.v0 + m && v < BOUNDS.v1 - m;
 
-type Clear = { zone: number; road: number; stream: number; ring?: number };
-const TREE_CLEAR: Clear = { zone: 4, road: 4, stream: 3 };
+type Clear = { zone: number; road: number; stream: number; trail?: number };
+const TREE_CLEAR: Clear = { zone: 4, road: 4, stream: 3, trail: 2.4 };
 
 function isClear(u: number, v: number, c: Clear, extra = 0): boolean {
   if (zoneDist(u, v) < c.zone + extra) return false;
   if (roadDist(u, v) < c.road + extra) return false;
   if (streamEdgeAt(u, v) < c.stream + extra) return false;
-  if (c.ring !== undefined && Math.hypot(u - RING.u, v - RING.v) < c.ring) return false;
+  if (c.trail !== undefined && trailDist(u, v) < c.trail + TRAIL_HALF + extra) return false;
   return true;
 }
 
@@ -95,6 +97,12 @@ class Spacing {
     return true;
   }
 }
+
+// Screen point on the bridge: `along` the road from the deck centre, `across` to its left.
+export const bridgePoint = (along: number, across: number): [number, number] => [
+  BRIDGE.u + BRIDGE.dir[0] * along - BRIDGE.dir[1] * across,
+  BRIDGE.v + BRIDGE.dir[1] * along + BRIDGE.dir[0] * across,
+];
 
 // Lamps a zone module asks for (see addLamps); merged into the plan when it is first built.
 const extraLamps: Lamp[] = [];
@@ -157,18 +165,11 @@ function buildLamps(): Lamp[] {
   for (const k of [-1, 1]) {
     const along = (BRIDGE.length / 2 + 0.9) * k;
     const across = (BRIDGE.width / 2 + 0.5) * k;
-    const u = BRIDGE.u + BRIDGE.dir[0] * along - BRIDGE.dir[1] * across;
-    const v = BRIDGE.v + BRIDGE.dir[1] * along + BRIDGE.dir[0] * across;
-    lamps.push({ kind: 'lantern', u, v, ry: 0, head: [u, v, 4.15] });
+    const [u, v] = bridgePoint(along, across);
+    lamps.push(makeLamp('lantern', u, v, 0, 1));
   }
   return lamps;
 }
-
-// Screen point on the bridge: `along` the road from the deck centre, `across` to its left.
-export const bridgePoint = (along: number, across: number): [number, number] => [
-  BRIDGE.u + BRIDGE.dir[0] * along - BRIDGE.dir[1] * across,
-  BRIDGE.v + BRIDGE.dir[1] * along + BRIDGE.dir[0] * across,
-];
 
 function buildFlags(r: () => number) {
   const strings: FlagString[] = [];
@@ -276,6 +277,19 @@ function build(): Plan {
   for (const p of poles) spacing.add(p.u, p.v, 1.2);
   const darchog = buildDarchog(r);
   for (const d of darchog) spacing.add(d.u, d.v, 1.0);
+  // Marker posts every 20 m along the bike trail, on alternating sides.
+  const markers: Marker[] = [];
+  for (let i = 4, side = 1; i < TRAIL.length - 1; i += 13, side = -side) {
+    const [au, av] = TRAIL[i];
+    const [bu, bv] = TRAIL[i + 1];
+    const l = Math.hypot(bu - au, bv - av) || 1;
+    const nu = -(bv - av) / l;
+    const nv = (bu - au) / l;
+    const u = au + nu * (TRAIL_HALF + 0.7) * side;
+    const v = av + nv * (TRAIL_HALF + 0.7) * side;
+    markers.push({ u, v, ry: Math.atan2(nu, -nv) });
+    spacing.add(u, v, 0.8);
+  }
 
   // ---- trees inside the valley
   const cell = 5.5;
@@ -311,7 +325,7 @@ function build(): Plan {
     const se = streamEdgeAt(u, v);
     const want = 0.05 + 0.5 * (1 - smoothstep(0, 30, edge)) + 0.5 * (1 - smoothstep(3, 14, se));
     if (r() > want) continue;
-    if (!isClear(u, v, { zone: 4, road: 4, stream: 2.2 }, 0.6)) continue;
+    if (!isClear(u, v, { zone: 4, road: 4, stream: 2.2, trail: 1.6 }, 0.6)) continue;
     const snow = edge < 22 && r() < 0.5;
     const name = snow ? (r() < 0.35 ? 'rocks-snowcap-large' : 'rocks-snowcap-small') : pick(r, rockNames);
     const s = snow ? range(r, 0.75, 1.1) : range(r, 0.7, 1.6);
@@ -366,7 +380,7 @@ function build(): Plan {
   }
 
   // ---- logs and stumps in the woods
-  for (let i = 0; i < 900 && props.filter((p) => p.name === 'log' || p.name === 'stump' || p.name === 'log-small').length < 34; i++) {
+  for (let i = 0, n = 0; i < 900 && n < 34; i++) {
     const t = trees[Math.floor(r() * trees.length)];
     if (!t) break;
     const a = r() * Math.PI * 2;
@@ -378,23 +392,20 @@ function build(): Plan {
     if (kind < 0.45) {
       if (!spacing.free(u, v, 1.6)) continue;
       spacing.add(u, v, 1.4);
-      const name: ModelName = 'log';
-      const s = range(r, 0.9, 1.15);
-      const ry = r() * Math.PI;
-      props.push({ name, u, v, y: 0.18, s, ry, keep: hash2(Math.round(u * 5), Math.round(v * 5)) });
+      props.push({ name: 'log', u, v, y: 0.18, s: range(r, 0.9, 1.15), ry: r() * Math.PI, keep: hash2(Math.round(u * 5), Math.round(v * 5)) });
     } else {
       if (!spacing.free(u, v, 0.9)) continue;
       spacing.add(u, v, 0.7);
-      const s = range(r, 0.9, 1.3);
-      props.push({ name: 'stump', u, v, y: 0, s, ry: r() * 6.28, keep: hash2(Math.round(u * 5), Math.round(v * 5)) });
+      props.push({ name: 'stump', u, v, y: 0, s: range(r, 0.9, 1.3), ry: r() * 6.28, keep: hash2(Math.round(u * 5), Math.round(v * 5)) });
     }
+    n++;
   }
 
   // ---- ground cover
   const cover: Item[] = [];
   // Grass may grow close to road edges (it softens them and nothing collides with it); flowers
   // and mushrooms keep the full 4 m from zones.
-  const COVER_CLEAR: Clear = { zone: 3, road: 1.2, stream: 0.7 };
+  const COVER_CLEAR: Clear = { zone: 3, road: 1.2, stream: 0.7, trail: 0.3 };
   const coverOk = (u: number, v: number, zone = 3) =>
     insideBounds(u, v, 1) && isClear(u, v, { ...COVER_CLEAR, zone }) && Math.hypot(u - RING.u, v - RING.v) > RING.r + RING.half + 0.8;
   // Grass in clumps.
@@ -421,7 +432,7 @@ function build(): Plan {
       cover.push({ name, u, v, y: 0, s: name === 'grass-tuft' ? range(r, 0.42, 0.68) : range(r, 0.4, 0.6), ry: r() * 6.28, keep: hash2(i * 7 + k, 11) });
     }
   }
-  // Grass along the stream banks and the road edges.
+  // Grass along the stream banks.
   for (let i = 4; i < sp.pts.length - 4; i += 2) {
     if (outside(sp.pts[i][0], sp.pts[i][1]) > 4) continue;
     for (const side of [-1, 1]) {
@@ -534,7 +545,7 @@ function build(): Plan {
       const forest = smoothstep(0.3, 0.55, fbm(u / 40 - 2.2, v / 40 + 5.3, 3));
       const want = (0.3 + 0.7 * forest) * (1 - smoothstep(22, 32, h)) * (1 - 0.5 * smoothstep(22, 40, s0));
       if (roll > want) continue;
-      const snowy = h > 19 + 6 * vnoise(u / 20, v / 20);
+      const snowy = h > 14 + 6 * vnoise(u / 20, v / 20);
       const name: ModelName = snowy ? 'tree-pine-snow' : pick(r, ['tree-deodar-tall', 'tree-deodar', 'tree-pine-cone', 'tree-pine-full'] as ModelName[]);
       // Sunk by the slope so the downhill side of the trunk never floats.
       hillTrees.push({ name, u, v, y: h - 0.35 - slope * 0.6, s: range(r, 0.85, 1.25), ry: r() * 6.28, keep: hash2(Math.round(u), Math.round(v) + 999) });
@@ -553,10 +564,8 @@ function build(): Plan {
     n++;
   }
 
-  return { trees, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam };
+  return { trees, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam, markers };
 }
-
-
 
 // Share of decor kept in the low tier.
 const LOW_KEEP = { trees: 0.62, hillTrees: 0.55, rocks: 0.6, props: 0.7 };
@@ -572,7 +581,7 @@ export function getPlan(quality: Quality): Plan {
       trees: full.trees.filter((t) => t.keep < LOW_KEEP.trees),
       hillTrees: full.hillTrees.filter((t) => t.keep < LOW_KEEP.hillTrees),
       rocks: full.rocks.filter((t) => t.keep < LOW_KEEP.rocks),
-      props: full.props.filter((t) => t.keep < LOW_KEEP.props || t.name === 'log' || t.name === 'stump'),
+      props: full.props.filter((t) => t.keep < LOW_KEEP.props),
       // No grass on the low tier; a few flowers stay for colour.
       cover: full.cover.filter((c) => !c.name.startsWith('grass') && c.keep < 0.45),
     };
@@ -593,12 +602,13 @@ export function collidersFor(p: Plan): Collider[] {
   }
   for (const q of p.poles) if (q.mast && outside(q.u, q.v) < -0.3) out.push({ kind: 'cyl', u: q.u, v: q.v, r: 0.3, h: 6 });
   for (const d of p.darchog) out.push({ kind: 'cyl', u: d.u, v: d.v, r: 0.17, h: 4 });
+  for (const m of p.markers) out.push({ kind: 'cyl', u: m.u, v: m.v, r: 0.14, h: 1.1 });
   for (const k of p.props) {
     if (outside(k.u, k.v) > -0.5) continue;
     if (k.name === 'stump') out.push({ kind: 'cyl', u: k.u, v: k.v, r: 0.42 * k.s, h: 1.15 * k.s });
-    else if (k.name === 'log' || k.name === 'log-small') {
+    else if (k.name === 'log') {
       // A lying log is a row of balls along its axis (local Z), so the car rolls over it.
-      const half = (k.name === 'log' ? 1.15 : 0.7) * k.s;
+      const half = 1.15 * k.s;
       const au = -Math.sin(k.ry);
       const av = Math.cos(k.ry);
       for (const f of [-0.6, 0, 0.6]) out.push({ kind: 'ball', u: k.u + au * half * f, v: k.v + av * half * f, r: 0.32 * k.s, y: 0.12 });

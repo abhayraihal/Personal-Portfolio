@@ -2,9 +2,10 @@
 //   R: signed distance to the stream's water edge, (e + 4) / 16
 //   G: lamp light pools (night)
 //   B: contact shading under trees, rocks and poles
-//   A: white water around boulders in the stream
+//   A: white water around boulders in the stream; the bike trail on dry ground (never overlap)
 import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType } from 'three';
 import { FIELD, FIELD_MAX, streamField, texelRange, texelU, texelV } from './field.ts';
+import { TRAIL, TRAIL_HALF, segDist } from './geo.ts';
 import type { Plan } from './plan.ts';
 
 export const MASK_RECT = [FIELD.u0, FIELD.v0, 1 / (FIELD.u1 - FIELD.u0), 1 / (FIELD.v1 - FIELD.v0)] as const;
@@ -45,6 +46,22 @@ export function buildMask(plan: Plan): DataTexture {
   for (const d of plan.darchog) stamp(ao, d.u, d.v, 0.7, 0.3, 'add');
   for (const l of plan.lamps) stamp(ao, l.u, l.v, 0.8, 0.35, 'add');
   for (const f of plan.foam) stamp(foam, f.u, f.v, f.r, 1, 'max');
+  // Bike trail: a soft-edged line into the same channel.
+  for (let i = 0; i < TRAIL.length - 1; i++) {
+    const [au, av] = TRAIL[i];
+    const [bu, bv] = TRAIL[i + 1];
+    const reach = TRAIL_HALF + 1;
+    const { i0, i1, j0, j1 } = texelRange((au + bu) / 2, (av + bv) / 2, Math.hypot(bu - au, bv - av) / 2 + reach);
+    for (let j = j0; j <= j1; j++) {
+      const v = texelV(j);
+      for (let k = i0; k <= i1; k++) {
+        const d = segDist(texelU(k), v, au, av, bu, bv);
+        const t = Math.min(1, Math.max(0, (TRAIL_HALF + 0.55 - d) / 0.9));
+        const o = j * FIELD.w + k;
+        if (t > foam[o]) foam[o] = t;
+      }
+    }
+  }
 
   const data = new Uint8Array(n * 4);
   for (let k = 0; k < n; k++) {

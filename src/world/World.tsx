@@ -16,6 +16,7 @@ import { PrayerFlags } from './PrayerFlags.tsx';
 import { QualityMonitor } from './QualityMonitor.tsx';
 import { Scatter, ScatterColliders } from './Scatter.tsx';
 import { Atmosphere, EnvDriver } from './Sky.tsx';
+import { TrailMarkers } from './Trail.tsx';
 import { Splash } from './Splash.tsx';
 import { Stream } from './Stream.tsx';
 
@@ -38,14 +39,15 @@ declare global {
   }
 }
 
-// Test hooks: ?night starts at night, ?quality=low|high picks a tier, ?inspect exposes the store.
+// ?night starts at night. With ?inspect (harness only): ?quality=low|high picks a tier, and the
+// store plus a teleport helper are exposed on window.
 function DebugHooks() {
   useEffect(() => {
     const s = useStore.getState();
     if (params.has('night') && !s.night) s.toggleNight();
-    const q = params.get('quality');
-    if ((q === 'low' || q === 'high') && q !== s.quality) s.setQuality(q);
     if (INSPECT) {
+      const q = params.get('quality');
+      if ((q === 'low' || q === 'high') && q !== s.quality) s.setQuality(q);
       window.__store = useStore;
       // Teleport the car anywhere: borrows the hub's respawn for one synchronous teleport.
       window.__tp = (u, v, du = 0, dv = 1) => {
@@ -97,6 +99,7 @@ export function World() {
         <Scatter plan={plan} />
         <PrayerFlags plan={plan} />
         <Lamps plan={plan} />
+        <TrailMarkers markers={plan.markers} />
         <Critters plan={plan} low={low} />
         <ScatterColliders plan={plan} />
         <Walls />
