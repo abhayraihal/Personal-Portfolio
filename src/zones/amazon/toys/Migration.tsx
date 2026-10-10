@@ -227,14 +227,14 @@ function MigrationToy({ clock }: ToyProps) {
       {/* Rack headers on posts behind the stacks. The old one sinks with its rack. */}
       <group ref={oldHeader} position={[-RACK_X, 1.38, -1.45]}>
         <Plaque text={TOY_TEXT.oldRegion} size={0.28} material={M.paper} />
-        <mesh position={[0, -0.72, -0.06]} material={M.slate}>
-          <boxGeometry args={[0.08, 1.16, 0.08]} />
+        <mesh position={[0, -0.76, -0.06]} material={M.slate}>
+          <boxGeometry args={[0.08, 1.24, 0.08]} />
         </mesh>
       </group>
       <group position={[RACK_X, 1.38, -1.45]}>
         <Plaque text={TOY_TEXT.newRegions} size={0.28} material={M.paper} />
-        <mesh position={[0, -0.72, -0.06]} material={M.slate}>
-          <boxGeometry args={[0.08, 1.16, 0.08]} />
+        <mesh position={[0, -0.76, -0.06]} material={M.slate}>
+          <boxGeometry args={[0.08, 1.24, 0.08]} />
         </mesh>
       </group>
       {/* Where the old rack stood: an outline and the result. */}
