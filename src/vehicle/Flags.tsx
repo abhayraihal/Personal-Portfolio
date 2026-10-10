@@ -9,10 +9,10 @@ import { useStore } from '../state/store.ts';
 
 // Prayer flags strung across the front of the roof, like the jeeps on the hill roads around
 // Mandi. They hang over the windscreen at rest and stream back over the roof at speed.
-// Body-mesh units (the model is drawn at 1.5x).
-const LEFT = new Vector3(-0.47, 1.36, 0.24);
-const RIGHT = new Vector3(0.47, 1.36, 0.24);
-const POST = 0.07; // tie posts at the roof corners
+// Body-mesh units (the model is drawn at 1.5x): the roof top is y = 1.10, its front edge z = 0.25.
+const LEFT = new Vector3(-0.42, 1.19, 0.22);
+const RIGHT = new Vector3(0.42, 1.19, 0.22);
+const POST = 0.1; // tie posts at the roof corners, base just inside the roof
 const SAG = 0.03;
 const FLAG_W = 0.15;
 const FLAG_H = 0.13;

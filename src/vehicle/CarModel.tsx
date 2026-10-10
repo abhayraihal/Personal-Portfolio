@@ -8,13 +8,15 @@ import { car } from '../state/car.ts';
 import { useStore } from '../state/store.ts';
 import { Flags } from './Flags.tsx';
 import { repaintPalette, splitBody } from './paint.ts';
-import { LIGHTS, MODEL, PAINT, WHEELS } from './tuning.ts';
+import { LEAN, LIGHTS, MODEL, PAINT, WHEELS } from './tuning.ts';
 
 // public/models/car-kit/vehicle-jeep-suv.glb references Textures/colormap.png relative to itself.
 // BASE_URL is vite.config `base` ('/portfolio/' unless BASE_PATH is set), in dev too.
 const MODEL_URL = `${import.meta.env.BASE_URL}${MODEL.url}`;
 // Second argument false: no DRACOLoader. drei would otherwise point it at www.gstatic.com.
 const USE_DRACO = false;
+
+const clampLean = (v: number) => Math.max(-LEAN.max, Math.min(LEAN.max, v));
 
 function mesh(meshes: Record<string, Mesh>, name: string): Mesh {
   const m = meshes[name];
@@ -77,6 +79,8 @@ export function CarModel({ wheelRefs }: { wheelRefs: RefObject<(Group | null)[]>
   const sprites = useRef<(Sprite | null)[]>([]);
   const target = useMemo(() => new Object3D(), []);
   const level = useRef({ brake: 0, head: 0 });
+  const bodyRef = useRef<Group>(null);
+  const lean = useRef({ speed: 0, yaw: 0, accel: 0, pitch: 0, pitchV: 0, roll: 0, rollV: 0, init: false });
   // The beam costs a light in every lit shader, so the low tier keeps only the lamp glow.
   const beam = useStore((s) => s.quality) === 'high';
 
@@ -99,6 +103,32 @@ export function CarModel({ wheelRefs }: { wheelRefs: RefObject<(Group | null)[]>
     parts.headGlow.opacity = l.head * 0.85;
     for (const sp of sprites.current) if (sp) sp.visible = (sp.material === parts.tailGlow ? parts.tailGlow.opacity : parts.headGlow.opacity) > 0.01;
     if (spot.current) spot.current.intensity = l.head * LIGHTS.spotIntensity;
+
+    // Body lean from the car's acceleration, on a damped spring so it settles with a small bounce.
+    const b = bodyRef.current;
+    const ln = lean.current;
+    if (b && dt > 0) {
+      if (!ln.init || car.recovering) {
+        ln.init = true;
+        ln.speed = car.speed;
+        ln.yaw = car.yaw;
+      }
+      const accel = (car.speed - ln.speed) / dt;
+      const yawRate = Math.atan2(Math.sin(car.yaw - ln.yaw), Math.cos(car.yaw - ln.yaw)) / dt;
+      ln.speed = car.speed;
+      ln.yaw = car.yaw;
+      ln.accel += (accel - ln.accel) * (1 - Math.exp(-dt * 12));
+      const grounded = car.contacts > 1 && !car.recovering;
+      const pitchGoal = grounded ? clampLean(-ln.accel * LEAN.pitch) : 0; // nose up (negative about model X) when speeding up
+      const rollGoal = grounded ? clampLean(car.speed * yawRate * LEAN.roll) : 0; // left side up in a left turn
+      const k = LEAN.stiffness;
+      const c = 2 * Math.sqrt(k) * LEAN.damping;
+      ln.pitchV += (-(ln.pitch - pitchGoal) * k - ln.pitchV * c) * dt;
+      ln.pitch += ln.pitchV * dt;
+      ln.rollV += (-(ln.roll - rollGoal) * k - ln.rollV * c) * dt;
+      ln.roll += ln.rollV * dt;
+      b.rotation.set(ln.pitch, 0, ln.roll);
+    }
   });
 
   const { split } = parts;
@@ -109,7 +139,7 @@ export function CarModel({ wheelRefs }: { wheelRefs: RefObject<(Group | null)[]>
       scale={MODEL.scale}
       position={[MODEL.offset.x, MODEL.offset.y, MODEL.offset.z]}
     >
-      <group position={body.position}>
+      <group position={body.position} ref={bodyRef}>
         <mesh geometry={split.rest} material={parts.paint} castShadow receiveShadow>
           <mesh geometry={spare.geometry} material={parts.paint} position={spare.position} castShadow />
         </mesh>

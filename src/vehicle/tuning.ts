@@ -116,6 +116,10 @@ export const LIGHTS = {
   spotAngle: 0.46, // rad, half angle; with penumbra 0.6 the bright core misses the bumper area
 };
 
+// Visual body lean on a spring (the physics chassis does not move): nose up under acceleration,
+// down under braking, outwards in turns. Radians per m/s^2, capped at max.
+export const LEAN = { pitch: 0.0055, roll: 0.0045, max: 0.07, stiffness: 140, damping: 0.42 };
+
 // Flip recovery: tilted past tiltDeg for `seconds`, the car is lifted and turned upright in place.
 export const RECOVERY = {
   tiltDeg: 70,
