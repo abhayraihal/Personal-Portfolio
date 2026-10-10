@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useRapier } from '@react-three/rapier';
 import type { RapierRigidBody } from '@react-three/rapier';
-import { INSPECT, params, yawForScreenDir } from '../../config/world.ts';
+import { CAMERA, INSPECT, params, yawForScreenDir } from '../../config/world.ts';
 import { car } from '../../state/car.ts';
 import { events } from '../../state/events.ts';
 import { useStore } from '../../state/store.ts';
@@ -50,7 +50,7 @@ export function InspectTeleport() {
     if (!s.started) {
       s.started = true;
       const zoom = Number(params.get('pfzoom'));
-      if (zoom) dom.dispatchEvent(new WheelEvent('wheel', { deltaY: Math.log(zoom / 24) / 0.0015 }));
+      if (zoom) dom.dispatchEvent(new WheelEvent('wheel', { deltaY: Math.log(zoom / CAMERA.distance) / 0.0015 }));
       const store = useStore.getState();
       if (params.has('pfnight') && !store.night) store.toggleNight();
       if (params.has('pflow')) store.setQuality('low');
