@@ -29,7 +29,8 @@ export function YearStones() {
     () =>
       YEARS.map(({ year, index }) => {
         const f = cliffFoot(sContest(index));
-        return { year, x: f.x + f.n.x * 1.2, z: f.z + f.n.z * 1.2, yaw: Math.atan2(f.n.x, f.n.z) };
+        // straight out towards the camera, so the funnel and the plaza flare do not turn them
+        return { year, x: f.x, z: f.z + 1.2, yaw: 0 };
       }),
     [],
   );
@@ -81,9 +82,10 @@ export function YearStones() {
 }
 
 // Rating values painted on the cliff just above each stratum line, like the y axis of a chart,
-// repeated at a few places along the ridge.
-const AXIS_S = [24, 62, 100, 134];
-const AXIS_SIZE = 0.42;
+// repeated often enough that a phone's narrower view always has a column in it. Clear of the year
+// stones and of the plaza flare, where the face turns.
+const AXIS_S = [16, 38, 60, 80, 110, 136];
+const AXIS_SIZE = 0.46;
 
 export function RatingLabels() {
   const labels = useMemo(() => {
@@ -95,7 +97,10 @@ export function RatingLabels() {
         const y = ratingY(r) + 0.32;
         if (top < y + AXIS_SIZE * 0.6) continue;
         const f = frontFaceAt(s, y);
-        out.push({ key: `${s}-${r}`, text: String(r), pos: [-s, y, f.z + 0.03], tilt: -f.lean });
+        // in front of the face along the whole label: the face's lean changes along the ridge
+        let z = f.z;
+        for (let d = 0; d <= 1.8; d += 0.2) z = Math.max(z, frontFaceAt(s - d, y).z);
+        out.push({ key: `${s}-${r}`, text: String(r), pos: [-s, y, z + 0.03], tilt: -f.lean });
       }
     }
     return out;
@@ -103,7 +108,7 @@ export function RatingLabels() {
   return (
     <>
       {labels.map((l) => (
-        <Label key={l.key} font="bodyBold" size={AXIS_SIZE} color="#ffffff" fillOpacity={0.8} anchorX="left" rotation={[l.tilt, 0, 0]} position={[l.pos[0] + 0.3, l.pos[1], l.pos[2]]}>
+        <Label key={l.key} font="bodyBold" size={AXIS_SIZE} color="#ffffff" fillOpacity={0.92} outlineWidth={0.035} outlineColor={COLORS.ink} outlineOpacity={0.45} anchorX="left" rotation={[l.tilt, 0, 0]} position={[l.pos[0] + 0.3, l.pos[1], l.pos[2]]}>
           {l.text}
         </Label>
       ))}
