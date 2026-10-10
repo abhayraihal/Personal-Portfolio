@@ -147,7 +147,7 @@ export function Toolbar() {
       <ToolButton label="Night" tip={night ? 'Night' : 'Day'} shortcut="N" pressed={night} onClick={toggleNight}>
         {night ? <MoonIcon /> : <SunIcon />}
       </ToolButton>
-      <ToolButton label="Help" tip="Controls" shortcut="?" onClick={openHelp}>
+      <ToolButton label="Help" tip="Help" shortcut="?" onClick={openHelp}>
         <HelpIcon />
       </ToolButton>
       <ToolButton id="settings-button" label="Settings" tip="Settings" expanded={settings} onClick={toggleSettings}>

@@ -36,7 +36,7 @@ function usePromptAnnouncements() {
   useEffect(
     () =>
       useStore.subscribe((s, prev) => {
-        if (s.focus && s.focus.id !== prev.focus?.id && s.phase === 'play') s.announce(`${s.focus.label}. Press Enter or tap the prompt.`);
+        if (s.focus && s.focus.id !== prev.focus?.id && s.phase === 'play') s.announce(`${s.focus.label}. Press Enter or tap the button.`);
       }),
     [],
   );
