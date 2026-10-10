@@ -26,13 +26,13 @@ const TILT = 0.24; // radians the easel leans back, so the photo faces the raise
 const LEG_BELOW = LIFT / Math.cos(TILT) + 0.05; // leg length below the frame, down to the ground
 const CAPTION = 'At IIT Mandi, Kamand valley';
 
-// The back leg runs from a point behind the frame, 80% of the way up, to the ground 2 m behind.
+// The back leg runs from a point behind the frame, 80% of the way up, to the ground 1.6 m behind.
 const BACK_LEG = (() => {
   const y = OUTER_H * 0.8;
   const z = -0.2;
   const topY = LIFT + y * Math.cos(TILT) + z * Math.sin(TILT);
   const topZ = -y * Math.sin(TILT) + z * Math.cos(TILT);
-  const footZ = -2;
+  const footZ = -1.6;
   const length = Math.hypot(topY, topZ - footZ);
   return { y: topY / 2, z: (topZ + footZ) / 2, length, angle: Math.asin((topZ - footZ) / length) };
 })();
@@ -63,6 +63,7 @@ export function PhotoBoard() {
       <group position={hubAt(pu, pv)}>
         <RigidBody type="fixed" colliders={false}>
           <CuboidCollider args={[OUTER_W / 2, (LIFT + OUTER_H) / 2, 0.45]} position={[0, (LIFT + OUTER_H) / 2, -0.25]} />
+          <CuboidCollider args={[0.12, BACK_LEG.length / 2, 0.12]} position={[0, BACK_LEG.y, BACK_LEG.z]} rotation={[BACK_LEG.angle, 0, 0]} />
         </RigidBody>
         <mesh geometry={EASEL} material={woodDark} castShadow receiveShadow />
         <group position={[0, LIFT, 0]} rotation={[-TILT, 0, 0]}>

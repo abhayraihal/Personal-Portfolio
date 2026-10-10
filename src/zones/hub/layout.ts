@@ -25,9 +25,10 @@ export const SPOT = {
   // On the grass wedge between the spine and the sports road, right of the control lines (the map
   // panel covers the bottom left of the screen); the cluster stays 0.4 m clear of both roads.
   keycaps: [6.4, -12.6] as const, // the W key; A S D sit below it
-  // Left of the spine.
-  photo: [-10.6, 1.4] as const,
-  photoPad: [-11.2, -2.2] as const, // 0.4 m clear of the campus road's upper edge
+  // Left of the spine. The easel sits low so a car heading up-left from the spawn, towards the
+  // skill wall, passes behind it.
+  photo: [-10.6, 0.7] as const,
+  photoPad: [-11.5, -2.5] as const, // 0.35 m clear of the campus road's upper edge
   wallLegendV: 5.95, // painted between the wall and its pad
   wall: [-19.4, 7.4] as const, // centre of the wall's base; it is about 11 m long
   wallPad: [-19.4, 2.3] as const,
