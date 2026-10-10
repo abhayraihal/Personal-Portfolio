@@ -14,9 +14,9 @@ import type { Part } from '../geom.ts';
 // the left of this garage; straight-line distance between zone centres, from layout.ts) and a small
 // map of the valley with a dashed trip route starting here. All of it is drawn from the layout data.
 
-const POST_H = 4.4;
-const ARROW_H = 0.46;
-const TEXT = 0.24;
+const POST_H = 4.9;
+const ARROW_H = 0.6;
+const TEXT = 0.36;
 const MAP_X = -1.3;
 const MAP_Z = 0.3;
 const MAP_Y = 1.18;
@@ -120,7 +120,7 @@ export function SignpostToy({ position }: { position: [number, number, number] }
         const dist = Math.round(Math.hypot(du, dv) / 5) * 5;
         const text = `${z.title} · ${dist} m`;
         const len = textWidth(text, 'bodyBold', TEXT) + 0.85;
-        return { id, text, color: z.color, len, y: POST_H - 0.4 - i * 0.58 };
+        return { id, text, color: z.color, len, y: POST_H - 0.4 - i * 0.72 };
       }),
     [],
   );

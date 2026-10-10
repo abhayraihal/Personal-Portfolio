@@ -54,7 +54,7 @@ export function ProjectsZone() {
       <Scan2ScopeToy position={[-21.6, 0, -13.4]} pad={[BAYS[0].x, ROWS[BAYS[0].row].pad]} />
       <SelfDrivingToy />
       <AstToy position={[21, 0, -11]} />
-      <SignpostToy position={[-18.6, 0, 15.4]} />
+      <SignpostToy position={[-18.6, 0, 14]} />
       <WeatherToy position={[7, 0, 10.5]} />
       <TurretToy position={[20.5, 0, 15.6]} />
       <Arcade x={ARCADE.x} z={ARCADE.z} padZ={ARCADE.padZ} />
