@@ -81,24 +81,28 @@ function lampGeometry(): BufferGeometry {
   ]);
 }
 
-// Soft round spot, opaque in the middle and fading out: the lamp halos and the pools under them.
-let glowMap: CanvasTexture | null = null;
-function glowTexture(): CanvasTexture {
-  if (glowMap) return glowMap;
+// Soft round spots, opaque in the middle and fading out: `core` is the share of the radius that
+// stays fairly bright. Halos fall off fast; the pools under the lamps keep a wider lit patch.
+const glowMaps = new Map<number, CanvasTexture>();
+function glowTexture(core: number): CanvasTexture {
+  const hit = glowMaps.get(core);
+  if (hit) return hit;
   const [c, g] = makeCanvas(64, 64);
   const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
   grad.addColorStop(0, 'rgba(255,255,255,1)');
-  grad.addColorStop(0.4, 'rgba(255,255,255,0.45)');
+  grad.addColorStop(core, 'rgba(255,255,255,0.5)');
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 64, 64);
-  return (glowMap = canvasTexture(c, 1));
+  const tex = canvasTexture(c, 1);
+  glowMaps.set(core, tex);
+  return tex;
 }
 
 const WARM = '#ffc977';
 const BULB_DAY = new Color('#fff4d6');
 const BULB_NIGHT = new Color('#ffe2a8');
-const POOL_R = 3.8;
+const POOL_R = 4.2;
 // Bulb centre (zone-local) of each lamp, under its shade.
 const HEADS = LAMPS.map(([x, z, yaw = 0]) => [x + Math.cos(yaw) * ARM, LAMP_H - 0.36, z - Math.sin(yaw) * ARM] as const);
 
@@ -109,9 +113,12 @@ function Lamps() {
   const pools = useRef<InstancedMesh>(null);
   const glow = useRef(0);
   const mats = useMemo(() => {
-    const map = glowTexture();
-    const glowing = { map, color: WARM, blending: AdditiveBlending, transparent: true, depthWrite: false, opacity: 0, toneMapped: false, visible: false };
-    return { bulb: new MeshBasicMaterial({ color: BULB_DAY.clone(), toneMapped: false }), halo: new SpriteMaterial(glowing), pool: new MeshBasicMaterial(glowing) };
+    const glowing = { color: WARM, blending: AdditiveBlending, transparent: true, depthWrite: false, opacity: 0, toneMapped: false, visible: false };
+    return {
+      bulb: new MeshBasicMaterial({ color: BULB_DAY.clone(), toneMapped: false }),
+      halo: new SpriteMaterial({ ...glowing, map: glowTexture(0.35) }),
+      pool: new MeshBasicMaterial({ ...glowing, map: glowTexture(0.6) }),
+    };
   }, []);
   const poolGeometry = useMemo(() => new PlaneGeometry(POOL_R * 2, POOL_R * 2).rotateX(-Math.PI / 2), []);
   useLayoutEffect(() => {
@@ -134,7 +141,7 @@ function Lamps() {
     const k = Math.abs(goal - glow.current) < 0.005 ? goal : glow.current + (goal - glow.current) * Math.min(1, delta * 3);
     glow.current = k;
     mats.halo.opacity = k * 0.85;
-    mats.pool.opacity = k * 0.42;
+    mats.pool.opacity = k * 0.6;
     mats.bulb.color.copy(BULB_DAY).lerp(BULB_NIGHT, k);
     mats.halo.visible = mats.pool.visible = k > 0;
   });
