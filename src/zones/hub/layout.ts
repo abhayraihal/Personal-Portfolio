@@ -16,11 +16,12 @@ const HUT = [20.2, 10.4] as const;
 // campus and sports dirt roads leaving (+-6, -6) diagonally downwards, and the roundabout ring.
 export const SPOT = {
   // Name letters stand across the spine; the car drives straight into them. The big ABHAY row stands
-  // behind the smaller surname row, so from this camera the rows read top to bottom.
-  abhayV: 8.5,
+  // behind the smaller surname row, so from this camera the rows read top to bottom. ABHAY stays
+  // below the zone banner at the top of the screen in the spawn view.
+  abhayV: 8.0,
   surnameV: 3.2,
   // Painted on the road, sized to fit its 8 m width.
-  roleV: -3.3, // centre of the role line block, between the car and the letters
+  roleV: -2.7, // centre of the role line block, clear of the car's roof in the spawn view
   controlsV: -11.25, // first of the three control lines, just behind the car
   // On the grass wedge between the spine and the sports road, right of the control lines (the map
   // panel covers the bottom left of the screen); the cluster stays 0.4 m clear of both roads.
