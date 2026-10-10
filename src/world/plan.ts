@@ -316,6 +316,7 @@ function build(): Plan {
       const off = side * range(r, 0.25, 0.8) * w;
       const u = pu + nu * off;
       const v = pv + nv * off;
+      if (zoneDist(u, v) < 4) continue;
       const s = range(r, 0.75, 1.35);
       props.push({ name: pick(r, rockNames), u, v, y: -0.62, s, ry: r() * 6.28, keep: hash2(i, 3) });
       foam.push({ u, v, r: 0.9 * s + 0.5 });
@@ -330,7 +331,7 @@ function build(): Plan {
       const off = side * (w + range(r, 0.6, 1.6));
       const u = pu + nu * off;
       const v = pv + nv * off;
-      if (roadDist(u, v) < 3 || zoneDist(u, v) < 1) continue;
+      if (roadDist(u, v) < 3 || zoneDist(u, v) < 4) continue;
       const s = range(r, 0.6, 1.0);
       props.push({ name: pick(r, rockNames), u, v, y: -0.25, s, ry: r() * 6.28, keep: hash2(i, 7) });
     }
@@ -369,9 +370,11 @@ function build(): Plan {
 
   // ---- ground cover
   const cover: Item[] = [];
-  const COVER_CLEAR: Clear = { zone: 2, road: 1.2, stream: 0.7 };
-  const coverOk = (u: number, v: number) =>
-    insideBounds(u, v, 1) && isClear(u, v, COVER_CLEAR) && Math.hypot(u - RING.u, v - RING.v) > RING.r + RING.half + 0.8;
+  // Grass may grow close to road edges (it softens them and nothing collides with it); flowers
+  // and mushrooms keep the full 4 m from zones.
+  const COVER_CLEAR: Clear = { zone: 3, road: 1.2, stream: 0.7 };
+  const coverOk = (u: number, v: number, zone = 3) =>
+    insideBounds(u, v, 1) && isClear(u, v, { ...COVER_CLEAR, zone }) && Math.hypot(u - RING.u, v - RING.v) > RING.r + RING.half + 0.8;
   // Grass in clumps.
   const roadSegs = [...ASPHALT, ...DIRT];
   for (let i = 0; i < 300; i++) {
@@ -428,7 +431,7 @@ function build(): Plan {
     for (let k = 0; k < n; k++) {
       const u = cu + range(r, -2.2, 2.2);
       const v = cv + range(r, -2.2, 2.2);
-      if (!coverOk(u, v)) continue;
+      if (!coverOk(u, v, 4)) continue;
       const name: ModelName = blue ? 'flowers-blue-poppy' : 'flowers-tall';
       cover.push({ name, u, v, y: 0, s: blue ? range(r, 0.42, 0.62) : range(r, 0.5, 0.72), ry: r() * 6.28, keep: hash2(i * 13 + k, 17) });
     }
@@ -447,9 +450,42 @@ function build(): Plan {
     const d = range(r, 1.2, 2.6);
     const u = t.u + Math.cos(a) * d;
     const v = t.v + Math.sin(a) * d;
-    if (!coverOk(u, v)) continue;
+    if (!coverOk(u, v, 4)) continue;
     if (x > 0.12) continue;
     cover.push({ name: 'mushrooms', u, v, y: 0, s: range(r, 0.55, 0.8), ry: r() * 6.28, keep: t.keep });
+  }
+
+  // ---- along the foot of the valley walls: rocks and grass break up the straight seam
+  {
+    const per = 2 * (BOUNDS.u1 - BOUNDS.u0) + 2 * (BOUNDS.v1 - BOUNDS.v0);
+    for (let d = 0; d < per; d += 3.2) {
+      let u = 0;
+      let v = 0;
+      let nu = 0;
+      let nv = 0;
+      const w = BOUNDS.u1 - BOUNDS.u0;
+      const h = BOUNDS.v1 - BOUNDS.v0;
+      if (d < w) [u, v, nu, nv] = [BOUNDS.u0 + d, BOUNDS.v1, 0, 1];
+      else if (d < w + h) [u, v, nu, nv] = [BOUNDS.u1, BOUNDS.v1 - (d - w), 1, 0];
+      else if (d < 2 * w + h) [u, v, nu, nv] = [BOUNDS.u1 - (d - w - h), BOUNDS.v0, 0, -1];
+      else [u, v, nu, nv] = [BOUNDS.u0, BOUNDS.v0 + (d - 2 * w - h), -1, 0];
+      const off = range(r, -1.8, 1.4);
+      const along = range(r, -1.2, 1.2);
+      u += nu * off + nv * along;
+      v += nv * off - nu * along;
+      if (zoneDist(u, v) < 2 || streamEdgeAt(u, v) < 2.5 || roadDist(u, v) < 2) continue;
+      const roll = r();
+      if (roll < 0.22) {
+        const name = pick(r, rockNames);
+        const sc = range(r, 0.6, 1.25);
+        const [rr] = ROCK_R[name] ?? [0.8, 1];
+        if (!spacing.free(u, v, rr * sc + 0.3)) continue;
+        spacing.add(u, v, rr * sc + 0.2);
+        rocks.push({ name, u, v, y: Math.max(0, hillHeight(u, v, 24)) - 0.12 * sc, s: sc, ry: r() * 6.28, keep: hash2(Math.round(u * 3), Math.round(v * 3) + 31) });
+      } else if (roll < 0.75) {
+        cover.push({ name: r() < 0.6 ? 'grass-tuft' : 'grass-clump', u, v, y: Math.max(0, hillHeight(u, v, 24)) - 0.05, s: range(r, 0.5, 0.75), ry: r() * 6.28, keep: hash2(Math.round(u * 3), Math.round(v * 3) + 57) });
+      }
+    }
   }
 
   // ---- trees and rocks on the hills, where the camera can see them
@@ -461,7 +497,7 @@ function build(): Plan {
       const v = gv + r() * hcell;
       const roll = r();
       const s0 = outside(u, v);
-      if (s0 < 1.5 || s0 > 40) continue;
+      if (s0 < 1.5 || s0 > 34) continue;
       // Below the valley (towards the camera) trees would hide the car; keep them far out.
       if (v < BOUNDS.v0 && BOUNDS.v0 - v < 19) continue;
       const se = streamEdgeAt(u, v);
@@ -471,15 +507,17 @@ function build(): Plan {
       // Slope from central differences; skip cliffs.
       const gx = hillHeight(u + 1, v, se) - hillHeight(u - 1, v, se);
       const gy = hillHeight(u, v + 1, se) - hillHeight(u, v - 1, se);
-      if (Math.hypot(gx, gy) / 2 > 1.5) continue;
+      const slope = Math.hypot(gx, gy) / 2;
+      if (slope > 1.5) continue;
       const forest = smoothstep(0.3, 0.55, fbm(u / 40 - 2.2, v / 40 + 5.3, 3));
       const want = (0.3 + 0.7 * forest) * (1 - smoothstep(22, 32, h)) * (1 - 0.5 * smoothstep(22, 40, s0));
       if (roll > want) continue;
       const snowy = h > 19 + 6 * vnoise(u / 20, v / 20);
       const name: ModelName = snowy ? 'tree-pine-snow' : pick(r, ['tree-deodar-tall', 'tree-deodar', 'tree-pine-cone', 'tree-pine-full'] as ModelName[]);
-      hillTrees.push({ name, u, v, y: h - 0.45, s: range(r, 0.85, 1.25), ry: r() * 6.28, keep: hash2(Math.round(u), Math.round(v) + 999) });
+      // Sunk by the slope so the downhill side of the trunk never floats.
+      hillTrees.push({ name, u, v, y: h - 0.35 - slope * 0.6, s: range(r, 0.85, 1.25), ry: r() * 6.28, keep: hash2(Math.round(u), Math.round(v) + 999) });
     }
-  for (let i = 0; i < 1400 && rocks.length < 160; i++) {
+  for (let i = 0, n = 0; i < 1400 && n < 70; i++) {
     const u = range(r, BOUNDS.u0 - 50, BOUNDS.u1 + 50);
     const v = range(r, BOUNDS.v0 - 30, BOUNDS.v1 + 50);
     const s0 = outside(u, v);
@@ -490,6 +528,7 @@ function build(): Plan {
     if (h < 1) continue;
     const name: ModelName = h > 9 ? (r() < 0.5 ? 'rocks-snowcap-large' : 'rocks-snowcap-small') : pick(r, rockNames);
     rocks.push({ name, u, v, y: h - 0.35, s: range(r, 0.9, 1.6), ry: r() * 6.28, keep: hash2(Math.round(u * 3), Math.round(v * 3) + 77) });
+    n++;
   }
 
   return { trees, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam };
