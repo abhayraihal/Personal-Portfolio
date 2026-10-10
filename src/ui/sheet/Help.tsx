@@ -28,6 +28,7 @@ const KEYBOARD: [string, ReactNode][] = [
 const TOUCH: [string, ReactNode][] = [
   ['Drive', 'Drag anywhere on the left half of the screen'],
   ['Brake and boost', 'Hold the buttons at the bottom right'],
+  ['Horn', 'Tap the Horn button, left of Brake'],
   ['Read about something', 'Stop on a ring, then tap the button that appears'],
   ['Jump to a zone', 'Open the map and tap a zone'],
   ['Zoom', 'Pinch with two fingers on the right half'],

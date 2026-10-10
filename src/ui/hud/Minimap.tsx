@@ -18,7 +18,7 @@ const RAD2DEG = 180 / Math.PI;
 
 // Label anchor per zone (screen metres from the centre), nudged off roads and the spawn point.
 const LABEL_NUDGE: Partial<Record<ZoneDef['id'], [number, number]>> = {
-  hub: [17, 0],
+  hub: [28, -2],
   career: [0, 4],
   ridge: [-30, 12],
 };
@@ -50,19 +50,19 @@ function ZoneMark({ zone, visited, current, onPick }: { zone: ZoneDef; visited: 
       ) : (
         <rect className="mm-zone__area" x={a.u0} y={-a.v1} width={a.u1 - a.u0} height={a.v1 - a.v0} rx="8" />
       )}
-      <g className="mm-zone__badge" transform={`translate(${cx} ${cy - 9})`}>
-        <circle r="8.5" />
+      <g className="mm-zone__badge" transform={`translate(${cx} ${cy - 11})`}>
+        <circle r="10" />
         <text y="0.5" dominantBaseline="middle" textAnchor="middle">
           {zone.key}
         </text>
         {visited && (
-          <g className="mm-zone__tick" transform="translate(8 -7)">
-            <circle r="5.5" />
-            <path d="M-2.6 0.2 L-0.7 2.1 L2.8 -1.8" />
+          <g className="mm-zone__tick" transform="translate(9.5 -8.5)">
+            <circle r="6" />
+            <path d="M-2.9 0.2 L-0.8 2.3 L3.1 -2" />
           </g>
         )}
       </g>
-      <text className="mm-zone__label" x={cx} y={cy + 10} textAnchor="middle" dominantBaseline="middle">
+      <text className="mm-zone__label" x={cx} y={cy + 12} textAnchor="middle" dominantBaseline="middle">
         {zone.title}
       </text>
     </g>
@@ -151,8 +151,8 @@ export function Minimap() {
               <ZoneMark key={z.id} zone={z} visited={visited.includes(z.id)} current={zone === z.id} onPick={pick} />
             ))}
             <g ref={carRef} className="mm-car" visibility="hidden">
-              <circle r="7.5" />
-              <path d="M7 0 L-4.6 -5 L-2.2 0 L-4.6 5 Z" />
+              <circle r="9" />
+              <path d="M8.4 0 L-5.5 -6 L-2.6 0 L-5.5 6 Z" />
             </g>
           </svg>
         </div>

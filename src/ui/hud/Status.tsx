@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { SPAWN, ZONES, zoneAt } from '../../config/layout.ts';
 import { contests } from '../../data/codeforces.ts';
@@ -12,6 +12,16 @@ const TOAST_EXIT_MS = 260;
 // The car starts in this zone. Its arrival toast right after Start would only cover the view the
 // camera glides down to, so the first one is skipped (the live region still announces it).
 const SPAWN_TITLE = zoneAt(SPAWN.u, SPAWN.v)?.title;
+// Decided once, when the first zone toast arrives, outside React: the zone toasts remount when
+// the layout switches between phone and desktop.
+const skipped = new Set<number>();
+let decided = false;
+useStore.subscribe((s) => {
+  const first = decided ? undefined : s.toasts.find((t) => t.tone === 'zone');
+  if (!first) return;
+  decided = true;
+  if (first.text === SPAWN_TITLE) skipped.add(first.id);
+});
 
 function ToastView({ toast, leaving }: { toast: Toast; leaving: boolean }) {
   const zone = toast.tone === 'zone' ? ZONES.find((z) => z.title === toast.text) : undefined;
@@ -35,25 +45,31 @@ function ToastView({ toast, leaving }: { toast: Toast; leaving: boolean }) {
   );
 }
 
-// Zone arrivals and wins, top centre. Screen readers get these through the live region
-// (store.announce), so the stack itself is not live.
-export function Toasts() {
-  const toasts = useStore((s) => s.toasts);
-  const skip = useRef<number | null | undefined>(undefined); // id of the skipped toast, once known
-  if (skip.current === undefined) {
-    const first = toasts.find((t) => t.tone === 'zone');
-    if (first) skip.current = first.text === SPAWN_TITLE ? first.id : null;
-  }
-  const hidden = skip.current;
-  const shown = useMemo(() => (hidden == null ? toasts : toasts.filter((t) => t.id !== hidden)), [toasts, hidden]);
-  const items = usePresence(shown, TOAST_EXIT_MS);
+function ToastStack({ toasts, className }: { toasts: Toast[]; className: string }) {
+  const items = usePresence(toasts, TOAST_EXIT_MS);
   return (
-    <div className="toasts">
+    <div className={className}>
       {items.map(({ item, leaving }) => (
         <ToastView key={item.id} toast={item} leaving={leaving} />
       ))}
     </div>
   );
+}
+
+// Zone arrivals, newest only: next to the map on desktop, at the top centre on phones (Hud picks
+// the spot). Screen readers get toasts through the live region (store.announce), so the stacks
+// themselves are not live.
+export function ZoneToasts() {
+  const toasts = useStore((s) => s.toasts);
+  const shown = useMemo(() => toasts.filter((t) => t.tone === 'zone' && !skipped.has(t.id)).slice(-1), [toasts]);
+  return <ToastStack toasts={shown} className="toasts toasts--zone" />;
+}
+
+// Wins and notes (a goal, the ridge summit, every project seen), top centre.
+export function Toasts() {
+  const toasts = useStore((s) => s.toasts);
+  const shown = useMemo(() => toasts.filter((t) => t.tone !== 'zone'), [toasts]);
+  return <ToastStack toasts={shown} className="toasts" />;
 }
 
 // Contest readout while the car is on the rating ridge.
@@ -113,13 +129,26 @@ export function Prompt() {
 
 const HINT_INPUTS = 4; // driving inputs before the first-time hint fades
 
+// First-time controls. With a keyboard, the hub road already has them painted on it, so the hint
+// waits until the car leaves the hub before any driving (a jump with 1 to 7); driving out of the
+// hub counts as having read the road. On touch it shows from the start. While the interact prompt
+// is up, the prompt itself covers the "stop on a ring" part.
 export function ControlsHint() {
   const phase = useStore((s) => s.phase);
+  const zone = useStore((s) => s.zone);
+  const prompt = useStore((s) => s.focus !== null && s.panel === null);
   const done = useUi((s) => s.hintDone);
   const inputs = useUi((s) => s.driveInputs);
   const coarse = useMediaQuery(COARSE);
-  const show = phase === 'play' && !done;
+  const [away, setAway] = useState(false);
+  const leftHub = zone !== null && zone !== 'hub';
+  if (!coarse && !away && !done && leftHub && inputs === 0) setAway(true);
+  const show = phase === 'play' && !done && (coarse || away);
   const fading = inputs >= HINT_INPUTS;
+
+  useEffect(() => {
+    if (!coarse && !away && !done && leftHub && inputs > 0) useUi.getState().finishHint();
+  }, [coarse, away, done, leftHub, inputs]);
 
   useEffect(() => {
     if (!show || !fading) return;
@@ -137,7 +166,7 @@ export function ControlsHint() {
             Drag on the left to drive
           </span>
           <span className="hint__item">Hold Brake or Boost</span>
-          <span className="hint__item">Stop on a ring, then tap the button</span>
+          {!prompt && <span className="hint__item">Stop on a ring, then tap the button</span>}
         </>
       ) : (
         <>
@@ -156,9 +185,11 @@ export function ControlsHint() {
           <span className="hint__item">
             <kbd className="key">Shift</kbd> boost
           </span>
-          <span className="hint__item">
-            Stop on a ring, then <kbd className="key">Enter</kbd>
-          </span>
+          {!prompt && (
+            <span className="hint__item">
+              Stop on a ring, then <kbd className="key">Enter</kbd>
+            </span>
+          )}
         </>
       )}
     </div>
