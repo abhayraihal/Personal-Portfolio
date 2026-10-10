@@ -34,7 +34,7 @@ export function Scoreboard({ position }: { position: V3 }) {
       <Label font="bodyBold" size={0.42} color="#ffffff" position={[0, Y + H / 2 - 0.5, z]}>
         GOALS
       </Label>
-      <Label font="display" size={1.25} color="#f2c230" position={[0, Y - 0.34, z]}>
+      <Label font="display" size={goals > 999 ? 0.85 : 1.25} color="#f2c230" position={[0, Y - 0.34, z]}>
         {String(goals)}
       </Label>
       <RigidBody type="fixed" colliders={false}>

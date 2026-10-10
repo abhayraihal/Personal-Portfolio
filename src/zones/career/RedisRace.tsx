@@ -39,8 +39,14 @@ const BANNER_V = V1 - 0.45;
 const LIGHT_U = BARRIER_U;
 const LIGHT_Y = 1.17; // on top of the barrier
 
-type Racer = { s: number; vel: number; acc: number; vmax: number; brake: number; finished: boolean };
+type Racer = { s: number; vel: number; acc: number; vmax: number; brake: number; finished: boolean; drawn: number };
 type Phase = 'ready' | 'set' | 'go' | 'done' | 'back';
+
+function newRace() {
+  const a: Racer = { s: 0, vel: 0, acc: 12, vmax: 10, brake: 12, finished: false, drawn: Number.NaN };
+  const b: Racer = { s: 0, vel: 0, acc: 4, vmax: 4.5, brake: 8, finished: false, drawn: Number.NaN };
+  return { phase: 'ready' as Phase, t: 0, lastV: Number.NaN, a, b, both: [a, b] };
+}
 
 const REDIS = { color: COLORS.razorpay, label: 'with Redis' };
 const PLAIN = { color: '#9aa1ae', label: 'without Redis' };
@@ -161,13 +167,7 @@ export function RedisRace() {
   const plainCar = useMemo(() => racerGeometry(PLAIN.color), []);
   const bodyA = useRef<RapierRigidBody>(null);
   const bodyB = useRef<RapierRigidBody>(null);
-  const race = useRef({
-    phase: 'ready' as Phase,
-    t: 0,
-    lastV: Number.NaN,
-    a: { s: 0, vel: 0, acc: 12, vmax: 10, brake: 12, finished: false } as Racer,
-    b: { s: 0, vel: 0, acc: 4, vmax: 4.5, brake: 8, finished: false } as Racer,
-  });
+  const race = useRef(newRace());
 
   useLayoutEffect(() => setLamp(null), []);
 
@@ -189,7 +189,7 @@ export function RedisRace() {
       setLamp(LAMP_GREEN);
       playSound('whoosh', 0.6);
     } else if (r.phase === 'go') {
-      for (const racer of [r.a, r.b]) {
+      for (const racer of r.both) {
         if (!racer.finished) {
           racer.vel = Math.min(racer.vmax, racer.vel + racer.acc * dt);
           if (racer.s >= FINISH_S) {
@@ -216,7 +216,7 @@ export function RedisRace() {
     } else if (r.phase === 'back') {
       // Roll back to the grid, slowing down for the last metre.
       let home = 0;
-      for (const racer of [r.a, r.b]) {
+      for (const racer of r.both) {
         const speed = Math.min(4, 0.6 + racer.s * 1.6);
         racer.s = Math.max(0, racer.s - speed * dt);
         if (racer.s === 0) home++;
@@ -228,8 +228,8 @@ export function RedisRace() {
       }
     }
 
-    move(bodyA.current, LANE_A, r.a.s);
-    move(bodyB.current, LANE_B, r.b.s);
+    move(bodyA.current, GRID_A, r.a);
+    move(bodyB.current, GRID_B, r.b);
   });
 
   return (
@@ -266,10 +266,13 @@ export function RedisRace() {
 }
 
 const _t = { x: 0, y: 0, z: 0 };
-const [, , REST_Z] = p(0, REST_V);
-// Lane u is also the local x (the zone centre is at u = 0); s moves the car up the screen (-z).
-function move(body: RapierRigidBody | null, u: number, s: number) {
-  if (!body) return;
-  localToWorldInto(ZONE, u, REST_Z - s, _t);
+// Grid slots in the zone frame; a car's s moves it up the screen (towards -z).
+const GRID_A = p(LANE_A, REST_V);
+const GRID_B = p(LANE_B, REST_V);
+// Parked cars are left alone so their bodies can rest.
+function move(body: RapierRigidBody | null, grid: V3, racer: Racer) {
+  if (!body || racer.drawn === racer.s) return;
+  racer.drawn = racer.s;
+  localToWorldInto(ZONE, grid[0], grid[2] - racer.s, _t);
   body.setNextKinematicTranslation(_t);
 }

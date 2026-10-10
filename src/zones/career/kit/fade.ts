@@ -22,7 +22,11 @@ const CAR_POINTS = [-0.4, 0.5];
 // crosses `box` (in the structure's local frame, i.e. relative to `root`).
 export function useOcclusionFade(root: RefObject<Object3D | null>, box: { min: V3; max: V3 }, minOpacity = 0.3) {
   const camera = useThree((s) => s.camera);
-  const [mats] = useState(() => ({ lit: paintMaterial.clone(), flat: flatMaterial.clone() }));
+  const [mats] = useState(() => {
+    const lit = paintMaterial.clone();
+    const flat = flatMaterial.clone();
+    return { lit, flat, all: [lit, flat] as Material[] };
+  });
   const bounds = useMemo(() => new Box3(new Vector3(...box.min), new Vector3(...box.max)), [box]);
   const labels = useRef<(TextLike | null)[]>([]);
   const opacity = useRef(1);
@@ -57,7 +61,7 @@ export function useOcclusionFade(root: RefObject<Object3D | null>, box: { min: V
     if (Math.abs(o - target) < 0.01) o = target;
     opacity.current = o;
     const transparent = o < 1;
-    for (const m of [mats.lit, mats.flat] as Material[]) {
+    for (const m of mats.all) {
       if (m.transparent !== transparent) {
         m.transparent = transparent;
         m.needsUpdate = true;

@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
-import { CuboidCollider, RigidBody } from '@react-three/rapier';
+import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { BufferAttribute, BufferGeometry, CanvasTexture, DoubleSide, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 import { useStore } from '../../state/store.ts';
 import type { V3 } from '../career/kit/frame.ts';
-import { InstancedModel } from '../career/kit/instances.tsx';
+import { DynamicInstances, InstancedModel, useScaledMerged } from '../career/kit/instances.tsx';
 import type { Placement } from '../career/kit/instances.tsx';
 import { cyl, paint, paintMaterial } from '../career/kit/paint.ts';
 import type { Part } from '../career/kit/paint.ts';
@@ -178,10 +178,10 @@ function Goal({ side }: { side: -1 | 1 }) {
   );
 }
 
+const FLAG_SCALE = 0.55;
 const corner = (sx: number, sz: number): Placement => ({
   position: [PITCH.x + (sx * PITCH.length) / 2, 0, PITCH.z + (sz * PITCH.width) / 2],
   rotationY: sx < 0 ? 0 : Math.PI,
-  scale: 0.55,
 });
 const flags: Placement[] = [corner(-1, -1), corner(1, -1), corner(-1, 1), corner(1, 1)];
 const benches: Placement[] = [
@@ -198,6 +198,9 @@ export function Pitch() {
     return t;
   }, [gl]);
   useEffect(() => () => texture.dispose(), [texture]);
+  // Corner flags tip over when hit (a rigid post would stop the car dead) and stand back up later.
+  const flag = useScaledMerged('flag-pennant-red', FLAG_SCALE);
+  const flagCollider = useMemo(() => <CylinderCollider args={[0.92, 0.09]} position={[0, 0.92, 0]} mass={1.5} friction={0.6} />, []);
   return (
     <group>
       <mesh position={[PITCH.x, 0.035, PITCH.z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -206,14 +209,12 @@ export function Pitch() {
       </mesh>
       <Goal side={-1} />
       <Goal side={1} />
-      <InstancedModel name="flag-pennant-red" items={flags} shadows={!low} />
+      <DynamicInstances geometry={flag.geometry} material={flag.material} items={flags} collider={flagCollider}
+        linearDamping={0.5} angularDamping={0.8} shadows={!low} />
       <InstancedModel name="bench-wood" items={benches} shadows={!low} />
       <RigidBody type="fixed" colliders={false}>
         {benches.map((b, i) => (
           <CuboidCollider key={i} args={[1.15, 0.5, 0.55]} position={[b.position[0], 0.5, b.position[2]]} />
-        ))}
-        {flags.map((f, i) => (
-          <CuboidCollider key={`f${i}`} args={[0.06, 0.9, 0.06]} position={[f.position[0], 0.9, f.position[2]]} />
         ))}
       </RigidBody>
     </group>

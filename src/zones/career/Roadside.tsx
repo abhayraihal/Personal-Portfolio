@@ -38,6 +38,31 @@ const cones: Placement[] = [
   { position: p(6.4, 88.9) },
 ];
 
+// Low planting for colour, where the car rarely goes: at sign posts, benches, the milestone, the
+// gate and inside the van loop. No colliders.
+const flowers: Placement[] = [
+  { position: p(-14.2, 40.4), rotationY: 0.4 },
+  { position: p(-6.3, 40.7), rotationY: 2.1 },
+  { position: p(-15.2, 53.5), rotationY: 1.2 },
+  { position: p(-13.6, 63.4), rotationY: 0.7 },
+  { position: p(-15.1, 77.4), rotationY: 2.6 },
+  { position: p(-13.4, 85.0), rotationY: 1.9 },
+  { position: p(-9.2, 85.4), rotationY: 0.2 },
+  { position: p(6.0, 61.4), rotationY: 1.4 },
+];
+const leafy: Placement[] = [
+  { position: p(-8.9, 60.9), rotationY: 0.3 },
+  { position: p(11.5, 71.6), rotationY: 1.6 },
+  { position: p(11.5, 75.2), rotationY: 0.2 },
+  { position: p(11.5, 78.4), rotationY: 2.4 },
+  { position: p(-14.6, 49.6), rotationY: 1.1 },
+];
+const poppies: Placement[] = [
+  { position: p(-9.7, 91.6), rotationY: 0.5 },
+  { position: p(9.7, 91.6), rotationY: 2.0 },
+  { position: p(-14.4, 72.6), rotationY: 1.3 },
+];
+
 const fixed: BoxCollider[] = [
   ...LAMPS.map(([side, v]) => ({ position: p(side * LAMP_U, v, 3), half: [0.16, 3, 0.16] as V3 })),
   ...benches.map((b) => ({ position: [b.position[0], 0.5, b.position[2]] as V3, half: [1.15, 0.5, 0.55] as V3, rotationY: b.rotationY })),
@@ -52,6 +77,13 @@ export function Roadside() {
       <InstancedModel name="lamp-post-street" items={lamps} />
       <NightGlow positions={bulbs} radius={0.28} squash={0.45} />
       <InstancedModel name="bench-wood" items={benches} shadows={!low} />
+      {!low && (
+        <>
+          <InstancedModel name="flowers-tall" items={flowers} shadows={false} />
+          <InstancedModel name="plant-leafy" items={leafy} shadows={false} />
+          <InstancedModel name="flowers-blue-poppy" items={poppies} shadows={false} />
+        </>
+      )}
       <FixedBoxes boxes={fixed} />
       <DynamicInstances geometry={cone.geometry} material={cone.material} items={cones} collider={coneCollider}
         linearDamping={0.4} angularDamping={0.6} shadows={!low} />

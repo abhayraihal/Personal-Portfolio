@@ -51,8 +51,8 @@ paintMaterial.name = 'career-paint';
 export const flatMaterial = new MeshBasicMaterial({ vertexColors: true, toneMapped: false });
 flatMaterial.name = 'career-flat';
 
-// Rounded box (radius 0 gives a plain box).
-export function box(w: number, h: number, d: number, radius = 0.06, segments = 2): BufferGeometry {
+// Rounded box (radius 0 gives a plain box). One bevel segment keeps it at 108 triangles.
+export function box(w: number, h: number, d: number, radius = 0.06, segments = 1): BufferGeometry {
   return radius > 0 ? new RoundedBoxGeometry(w, h, d, segments, radius) : new BoxGeometry(w, h, d);
 }
 

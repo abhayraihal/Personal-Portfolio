@@ -12,7 +12,7 @@ export const p = (u: number, v: number, y = 0): V3 => at(ZONE, u, v, y);
 export const PLAN = {
   start: { board: [-10.1, 41.3], pad: [-9.5, 37.7] },
   razorpay: { v: 48, pad: [-10.2, 49.2], board: [-11.4, 53.8] },
-  milestone: [-7.8, 60],
+  milestone: [-6.9, 60.4],
   limeroad: { v: 72, pad: [-10.2, 73.2], board: [-11.4, 77.8] },
   amazon: { v: 92 },
   years: [

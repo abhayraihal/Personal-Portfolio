@@ -2,7 +2,7 @@ import { Board } from '../../components/Board.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { ZoneFrame } from '../../components/ZoneFrame.tsx';
 import { COLORS } from '../../config/palette.ts';
-import { jobs } from '../../data/profile.ts';
+import { jobs, panels } from '../../data/profile.ts';
 import { AmazonGate } from './AmazonGate.tsx';
 import { DeliveryLoop } from './DeliveryLoop.tsx';
 import { Gantry } from './Gantry.tsx';
@@ -25,7 +25,12 @@ const roadOrder = jobs.toReversed();
 
 // Short lines from the razorpay and limeroad panels in profile.ts.
 const RAZORPAY_LINES = ['Admin actions for payouts', 'Mapped the payout code flow', 'Faster data retrieval with Redis', 'Authorization checks'];
-const LIMEROAD_LINES = ['mcout: abandoned-cart leads', 'Reworked its edge cases', 'BlueDart logistics integration', 'Waybill, cancel and track APIs'];
+const LIMEROAD_LINES = ['mcout: abandoned-cart leads', 'Reworked its edge cases', 'BlueDart logistics integration', 'Create, cancel, track waybills'];
+
+// Milestone, from the education panel: 'B.Tech, ...', 'IIT Mandi', '2020 – 2024'.
+const edu = panels.education;
+const degree = (edu.kicker ?? '').split(',')[0];
+const gradYear = (edu.meta?.[0] ?? '').split('–').pop()?.trim() ?? '';
 
 const HIGHWAY_GREEN = '#1f6b45';
 
@@ -45,7 +50,7 @@ export function CareerZone() {
       <Pad id="career-razorpay" label="Read about Razorpay" action={{ kind: 'panel', panel: 'razorpay' }} position={p(...rp.pad)} color={COLORS.razorpay} icon="Razorpay" />
       <RedisRace />
 
-      <Milestone position={p(...PLAN.milestone)} cap="B.Tech" place="IIT Mandi" year="2024" />
+      <Milestone position={p(...PLAN.milestone)} cap={degree} place={edu.title} year={gradYear} />
 
       <Gantry position={p(0, lr.v)} title={limeroad.company.toUpperCase()} subtitle={`SDE · ${limeroad.dates} · ${limeroad.place}`} color={COLORS.limeroad} />
       <Board title="Limeroad" lines={LIMEROAD_LINES} width={6.8} lineSize={0.4} accent={COLORS.limeroad} position={p(...lr.board)} />
