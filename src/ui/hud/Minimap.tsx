@@ -16,11 +16,15 @@ const VIEW = `${BOUNDS.u0} ${-BOUNDS.v1} ${BOUNDS.u1 - BOUNDS.u0} ${BOUNDS.v1 - 
 const points = (list: [number, number][]) => list.map(([u, v]) => `${u},${-v}`).join(' ');
 const RAD2DEG = 180 / Math.PI;
 
-// Label anchor per zone (screen metres from the centre), nudged off roads and the spawn point.
+// Label anchor per zone (screen metres from the centre), nudged off roads and off each zone's
+// respawn point, so the car arrow never sits on the label right after a jump.
 const LABEL_NUDGE: Partial<Record<ZoneDef['id'], [number, number]>> = {
   hub: [28, -2],
   career: [0, 4],
+  amazon: [0, 12],
+  projects: [6, -4],
   ridge: [-30, 12],
+  sports: [8, 0],
 };
 
 function ZoneMark({ zone, visited, current, onPick }: { zone: ZoneDef; visited: boolean; current: boolean; onPick: (z: ZoneDef) => void }) {
@@ -141,7 +145,7 @@ export function Minimap() {
       >
         <MapIcon />
         <span className="minimap__title">Map</span>
-        <span className="minimap__keys">{open ? 'Click a zone or press 1 to 7' : '1 to 7'}</span>
+        <span className="minimap__keys">{open ? 'Click or press 1 to 7' : '1 to 7'}</span>
         <ChevronIcon />
       </button>
       {open && (

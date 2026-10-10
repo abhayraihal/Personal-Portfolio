@@ -343,7 +343,7 @@
   transform: translateX(-50%);
 }
 .hud[data-map='open'] .bottomcenter {
-  max-width: calc(100vw - 2 * 290px);
+  max-width: calc(100vw - 2 * 304px);
 }
 
 .prompt {
@@ -402,7 +402,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px 18px;
+  gap: 6px 14px;
   padding: 10px 18px;
   border-radius: 16px;
   background: rgba(35, 38, 45, 0.84);
@@ -456,6 +456,7 @@
   max-width: calc(100vw - 2 * var(--edge));
 }
 .minimap {
+  --map-w: 256px; /* the SVG; the open box is this plus its padding */
   border-radius: 20px;
   background: var(--paper);
   box-shadow: var(--shadow-m);
@@ -494,11 +495,17 @@
 .minimap__title {
   font: 400 17px/1 var(--font-display);
 }
+.minimap[data-open='true'] {
+  width: calc(var(--map-w) + 16px);
+}
 .minimap__keys {
+  min-width: 0;
   margin-left: auto;
-  padding-left: 14px;
+  padding-left: 10px;
+  overflow: hidden;
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: 12px;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .minimap__body {
@@ -506,7 +513,7 @@
 }
 .minimap__svg {
   display: block;
-  width: 240px;
+  width: var(--map-w);
   height: auto;
   border-radius: 14px;
   background: #b7d39b;
@@ -608,8 +615,8 @@
   }
 }
 @media (min-width: 1600px) and (min-height: 1000px) and (pointer: fine) {
-  .minimap__svg {
-    width: 290px;
+  .minimap {
+    --map-w: 290px;
   }
   .hud[data-map='open'] .bottomcenter {
     max-width: calc(100vw - 2 * 340px);
@@ -630,8 +637,8 @@
     min-height: 40px;
     padding: 6px 12px 6px 10px;
   }
-  .minimap__svg {
-    width: min(300px, calc(100vw - 112px));
+  .minimap {
+    --map-w: min(300px, calc(100vw - 112px));
   }
   /* The map opens downwards here, so the chevron flips. */
   .minimap__toggle > .icon:last-child {
