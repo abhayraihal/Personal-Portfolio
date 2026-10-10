@@ -24,7 +24,7 @@ const OUTER_H = MAT_H + FRAME * 2;
 const LIFT = 0.62; // bottom of the frame above the ground
 const TILT = 0.24; // radians the easel leans back, so the photo faces the raised camera more squarely
 const LEG_BELOW = LIFT / Math.cos(TILT) + 0.05; // leg length below the frame, down to the ground
-const CAPTION = 'At IIT Mandi, Kamand valley';
+const CAPTION = "Hi, I'm Abhay";
 
 // The back leg runs from a point behind the frame, 80% of the way up, to the ground 1.6 m behind.
 const BACK_LEG = (() => {

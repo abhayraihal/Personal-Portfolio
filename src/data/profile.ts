@@ -64,7 +64,9 @@ export const profile = {
   location: 'Bengaluru, India',
   roleLine: 'Software Development Engineer at Amazon, Bengaluru',
   teamLine: 'Payments and rewards points',
-  photo: { src: `${BASE}images/abhay-iit-mandi.jpg`, alt: 'Abhay standing in front of the IIT Mandi campus, with forested hills behind him' },
+  photo: { src: `${BASE}images/abhay.jpg`, alt: 'Abhay in a hat and sunglasses, leaning on a green railing, with a golden domed building behind him' },
+  // Shown on the easel in the IIT Mandi zone, where it was taken.
+  campusPhoto: { src: `${BASE}images/abhay-iit-mandi.jpg`, alt: 'Abhay standing in front of the IIT Mandi campus, with forested hills behind him' },
   avatar: `${BASE}images/abhay-avatar.jpg`,
   highlights: ['Codeforces Expert, max rating 1719', 'ICPR 2024 co-author', '2000+ problems solved'],
 };
@@ -170,7 +172,7 @@ export const panels: Record<PanelId, Panel> = {
       { label: 'Languages', items: ['C/C++', 'Python', 'Java', 'JavaScript', 'C#', 'SQL', 'Bash', 'HTML'] },
       { label: 'Frameworks and platforms', items: ['React', 'Spring', 'Node.js', 'ASP.NET', 'AWS', 'DynamoDB', 'EMR + Spark', 'Bedrock AgentCore', 'Firebase', 'MongoDB', 'MySQL'] },
       { label: 'AI', items: ['Agentic AI', 'MCP', 'Generative AI', 'PyTorch'] },
-      { label: 'Tools', items: ['Git', 'Linux', 'CI/CD', 'IntelliJ', 'Visual Studio', 'Postman', 'Unity', 'LaTeX'] },
+      { label: 'Tools', items: ['Git', 'Linux (Ubuntu)', 'Windows', 'CI/CD', 'IntelliJ', 'Visual Studio', 'Sublime Text', 'Postman', 'Unity', 'LaTeX'] },
       { label: 'Coursework', items: coursework },
     ],
   },
@@ -212,7 +214,7 @@ export const panels: Record<PanelId, Panel> = {
     title: 'Amazon',
     kicker: 'Software Development Engineer · Bengaluru',
     meta: ['May 2025 – now', 'Java', 'Python', 'AWS', 'CI/CD'],
-    body: ['I work on the team behind paying with rewards points on Amazon. Each of the six exhibits around this plaza is one piece of that work.'],
+    body: ['I work on the team behind paying with rewards points on Amazon. Each of the six exhibits on the Amazon plaza is one piece of that work.'],
     bullets: [
       'Rewards points as a payment option for Prime Video in Japan, the US and Brazil.',
       'An AI oncall agent that saves about 30 minutes of log-digging per ticket.',
@@ -434,7 +436,7 @@ export const panels: Record<PanelId, Panel> = {
     kicker: 'ICPR 2024 · co-author',
     body: ['A distributed convolutional attention module (DCAM), used only during training, improves multi-class anomaly detection by 3.92% over the baseline at the same inference latency.'],
     bullets: [
-      'Published in the ICPR 2024 proceedings, Springer LNCS (Pattern Recognition), pp. 254–270.',
+      'Published in the proceedings of the International Conference on Pattern Recognition (ICPR 2024), Springer Lecture Notes in Computer Science, pp. 254–270.',
       `Authors: ${paper.authors.join(', ')}.`,
     ],
     links: [
@@ -459,7 +461,7 @@ export const panels: Record<PanelId, Panel> = {
     bullets: [
       'Led rides for the Mountain Biking Club (MTB) at IIT Mandi.',
       'Led a Design Practicum project building assistive wearable tech to help visually impaired people get around.',
-      'Ran community surveys for the ISTP project, collecting and analysing data on local problems.',
+      'Ran community surveys for an Interdisciplinary Socio-Technical Practicum (ISTP) project, collecting and analysing data on local problems.',
     ],
     related: ['education'],
   },

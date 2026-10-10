@@ -73,7 +73,7 @@ export function Easel() {
       </mesh>
       <group position={onFrame(0, 0, 0)} rotation={[TILT, 0, 0]}>
         <NightWash width={FRAME_W - 0.1} height={FRAME_H - 0.1} position={[0, FRAME_H / 2, FRAME_D / 2 + 0.002]} />
-        <ImagePlane url={profile.photo.src} width={PHOTO} height={PHOTO} position={[0, FRAME_H - BORDER - PHOTO / 2, FRAME_D / 2 + 0.005]} />
+        <ImagePlane url={profile.campusPhoto.src} width={PHOTO} height={PHOTO} position={[0, FRAME_H - BORDER - PHOTO / 2, FRAME_D / 2 + 0.005]} />
         <Label size={0.34} maxWidth={PHOTO - 0.1} textAlign="center" lineHeight={1.15} color={COLORS.ink} position={[0, BORDER + STRIP / 2 - 0.05, FRAME_D / 2 + 0.005]}>
           {CAPTION}
         </Label>

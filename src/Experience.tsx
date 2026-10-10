@@ -40,7 +40,7 @@ const ZONE_MODULES = [
 
 // Start every model and picture download at once instead of zone by zone as each one suspends.
 for (const name of Object.keys(MODELS) as ModelName[]) useGLTF.preload(modelUrl(name), false);
-const images = new Set([profile.photo.src, ...projects.flatMap((p) => (p.image ? [p.image] : [])), ...Object.values(panels).flatMap((p) => (p.image ? [p.image.src] : []))]);
+const images = new Set([profile.photo.src, profile.campusPhoto.src, ...projects.flatMap((p) => (p.image ? [p.image] : [])), ...Object.values(panels).flatMap((p) => (p.image ? [p.image.src] : []))]);
 for (const url of images) useTexture.preload(url);
 
 const coarse = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
