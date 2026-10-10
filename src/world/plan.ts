@@ -2,7 +2,9 @@
 // flags. Screen coordinates throughout (see geo.ts). The low quality tier keeps a stable subset of
 // the high tier, so switching tiers never moves anything.
 import { BOUNDS, ZONE_BY_ID } from '../config/layout.ts';
+import { MODELS } from '../config/models.ts';
 import type { ModelName } from '../config/models.ts';
+import { WORLD_SCALE } from '../config/world.ts';
 import type { Quality } from '../state/store.ts';
 import { streamEdgeAt } from './field.ts';
 import { ASPHALT, BRIDGE, DIRT, RING, STREAM_PATH, TRAIL, TRAIL_HALF, hillHeight, outside, roadDist, trailDist, zoneDist } from './geo.ts';
@@ -50,10 +52,16 @@ const TREE_TYPES: ModelName[] = ['tree-deodar-tall', 'tree-deodar', 'tree-pine-f
 const TREE_R: Partial<Record<ModelName, number>> = {
   'tree-deodar-tall': 0.65, 'tree-deodar': 0.65, 'tree-pine-full': 0.6, 'tree-pine-cone': 0.5, 'tree-pine-snow': 0.6,
 };
-// Rough footprint radius (m at scale 1) and height for rocks, used for colliders and spacing.
+// Rough footprint radius and height for rocks at the kit's suggested scale, used for spacing.
 const ROCK_R: Partial<Record<ModelName, [number, number]>> = {
   'rock-grey-a': [0.7, 0.98], 'rock-grey-b': [0.95, 1.05], 'rock-grey-c': [0.85, 1.27],
   'rocks-snowcap-large': [2.0, 2.57], 'rocks-snowcap-small': [1.0, 0.97],
+};
+// The same at drawn size (models render WORLD_SCALE larger), for colliders the car meets where it
+// sees the rock. Spacing keeps the smaller table so the scatter does not move.
+const rockSize = (name: ModelName): [number, number] => {
+  const [r, h] = ROCK_R[name] ?? [0.8, 1];
+  return [r * WORLD_SCALE, h * WORLD_SCALE];
 };
 
 const insideBounds = (u: number, v: number, m: number) => u > BOUNDS.u0 + m && u < BOUNDS.u1 - m && v > BOUNDS.v0 + m && v < BOUNDS.v1 - m;
@@ -149,7 +157,8 @@ function buildLamps(): Lamp[] {
           const v = s.a[1] + tv * d + nv * (s.half + offset);
           if (zoneDist(u, v) < 1.5) continue;
           if (Math.hypot(u - RING.u, v - RING.v) < RING.r + RING.half + 2.5) continue;
-          if (Math.hypot(u - BRIDGE.u, v - BRIDGE.v) < BRIDGE.length / 2 + 3) continue;
+          // The bridge has its own lanterns on the abutments.
+          if (Math.hypot(u - BRIDGE.u, v - BRIDGE.v) < BRIDGE.length / 2 + 8.5) continue;
           if (streamEdgeAt(u, v) < 1.5) continue;
           if (roadDist(u, v) < offset - 0.3) continue; // too close to another road
           if (lamps.some((l) => Math.hypot(l.u - u, l.v - v) < spacing * 0.6)) continue;
@@ -185,19 +194,19 @@ function buildFlags(r: () => number) {
   // Gateway across the start of the career road.
   string(pole(-10.5, 34, POLE_H, 0), pole(10.5, 34, POLE_H, 0), 1.3);
 
-  // Across the campus road, between the hub and the bridge.
+  // Across the campus road, between the hub and the bridge: one string about 6 m before the
+  // bridge's own flags, so the two never stack up on screen.
   const camp = DIRT.find((s) => s.id === 'campus');
   if (camp) {
     const du = camp.b[0] - camp.a[0];
     const dv = camp.b[1] - camp.a[1];
     const len = Math.hypot(du, dv);
     const [tu, tv] = [du / len, dv / len];
-    for (const t of [0.47, 0.585]) {
-      const cu = camp.a[0] + du * t;
-      const cv = camp.a[1] + dv * t;
-      const off = camp.half + 2.6;
-      string(pole(cu - tv * off, cv + tu * off, 5.2, 0), pole(cu + tv * off, cv - tu * off, 5.2, 0), 0.9);
-    }
+    const t = 0.38;
+    const cu = camp.a[0] + du * t;
+    const cv = camp.a[1] + dv * t;
+    const off = camp.half + 2.6;
+    string(pole(cu - tv * off, cv + tu * off, 5.2, 0), pole(cu + tv * off, cv - tu * off, 5.2, 0), 0.9);
   }
 
   // Bridge: corner posts, a string along each rail and one across each end.
@@ -259,6 +268,20 @@ function buildDarchog(r: () => number): Item[] {
     }
   }
   return out;
+}
+
+// True when a tree's crown would hide a road or a zone: with the 45 deg camera a point h m up is
+// drawn over the ground h m further up the screen, so the cone is tested along +v.
+function hidesSomething(t: Item): boolean {
+  const m = MODELS[t.name];
+  const k = m.scale * WORLD_SCALE * t.s;
+  const R = Math.max(-m.min[0], m.max[0], -m.min[2], m.max[2]) * k;
+  const H = m.max[1] * k;
+  for (let h = 1.5; h < 0.85 * H; h += 1) {
+    const r = R * (1 - h / H) * 0.9;
+    for (const du of [-r, 0, r]) if (zoneDist(t.u + du, t.v + h) < 0.5 || roadDist(t.u + du, t.v + h) < 0.5) return true;
+  }
+  return false;
 }
 
 function treeType(r: () => number, edge: number): ModelName {
@@ -558,7 +581,9 @@ function build(): Plan {
     n++;
   }
 
-  return { trees, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam, markers };
+  // Filtered last so every placement above (and the random sequence) stays as it was.
+  const shown = trees.filter((t) => !hidesSomething(t));
+  return { trees: shown, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam, markers };
 }
 
 // Share of decor kept in the low tier.
@@ -590,7 +615,7 @@ export function collidersFor(p: Plan): Collider[] {
   for (const t of p.trees) out.push({ kind: 'cyl', u: t.u, v: t.v, r: (TREE_R[t.name] ?? 0.6) * t.s, h: 3.2 });
   for (const k of p.rocks) {
     if (outside(k.u, k.v) > -0.5) continue;
-    const [rr, hh] = ROCK_R[k.name] ?? [0.8, 1];
+    const [rr, hh] = rockSize(k.name);
     if (hh * k.s > 0.55) out.push({ kind: 'cyl', u: k.u, v: k.v, r: rr * k.s * 0.85, h: hh * k.s });
     else out.push({ kind: 'ball', u: k.u, v: k.v, r: rr * k.s * 0.7, y: -rr * k.s * 0.25 });
   }
@@ -608,7 +633,7 @@ export function collidersFor(p: Plan): Collider[] {
       for (const f of [-0.6, 0, 0.6]) out.push({ kind: 'ball', u: k.u + au * half * f, v: k.v + av * half * f, r: 0.32 * k.s, y: 0.12 });
     } else if (k.name.startsWith('rock-')) {
       // Stream and bank boulders: block like other rocks when they stand tall, else a low bump.
-      const [rr, hh] = ROCK_R[k.name] ?? [0.8, 1];
+      const [rr, hh] = rockSize(k.name);
       const top = k.y + hh * k.s;
       if (top > 0.45) out.push({ kind: 'cyl', u: k.u, v: k.v, r: rr * k.s * 0.78, h: top });
       else out.push({ kind: 'ball', u: k.u, v: k.v, r: 0.6 * k.s, y: top - 0.6 * k.s });

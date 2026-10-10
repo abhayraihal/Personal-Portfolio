@@ -1,15 +1,15 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Fog, ShaderMaterial } from 'three';
-import type { HemisphereLight, Points } from 'three';
-import { BOUNDS } from '../config/layout.ts';
-import { screenToWorld } from '../config/world.ts';
+import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, Fog, ShaderMaterial, SphereGeometry, SRGBColorSpace, Vector3 } from 'three';
+import type { HemisphereLight, Mesh, PerspectiveCamera, Points } from 'three';
 import { car } from '../state/car.ts';
 import { useStore } from '../state/store.ts';
 import { env, LOOK } from './env.ts';
-import { rng } from './rand.ts';
+import { rng, smoothstep } from './rand.ts';
 
 const NIGHT_RATE = 1.4; // 1/s, about 2.5 s from day to night
+const DEG = Math.PI / 180;
+const _fwd = new Vector3();
 
 // Advances the shared clock and eases the day/night blend. Mounted once, before everything else.
 export function EnvDriver() {
@@ -24,12 +24,16 @@ export function EnvDriver() {
     env.night.value = Math.abs(target - n) < 0.002 ? target : n + (target - n) * (1 - Math.exp(-dt * NIGHT_RATE));
     env.car.value.set(car.x, car.y + 0.8, car.z);
     env.cam.value.copy(camera.position);
+    camera.getWorldDirection(_fwd);
+    const pitch = Math.asin(Math.min(1, Math.max(-1, -_fwd.y)));
+    env.topEdge.value = ((camera as PerspectiveCamera).fov ?? 40) * 0.5 * DEG - pitch;
   }, -10);
   return null;
 }
 
 // Background, fog and sky light. Fog and background share one colour so distant ground melts
-// into the sky.
+// into the sky. A low camera (the horizon in frame) gets thinner fog, so the far hills and the
+// snow peaks behind them read as layers instead of a white wall.
 export function Atmosphere() {
   const scene = useThree((s) => s.scene);
   const hemi = useRef<HemisphereLight>(null);
@@ -49,8 +53,9 @@ export function Atmosphere() {
     const k = env.night.value;
     fog.color.lerpColors(LOOK.day.fog, LOOK.night.fog, k);
     bg.copy(fog.color);
-    fog.near = 95 - 25 * k;
-    fog.far = 300 - 90 * k;
+    const low = smoothstep(-4 * DEG, 4 * DEG, env.topEdge.value);
+    fog.near = 95 - 25 * k + 60 * low;
+    fog.far = 300 - 90 * k + 180 * low;
     const h = hemi.current;
     if (h) {
       h.color.lerpColors(LOOK.day.hemiSky, LOOK.night.hemiSky, k);
@@ -61,9 +66,70 @@ export function Atmosphere() {
   return (
     <>
       <hemisphereLight ref={hemi} args={[LOOK.day.hemiSky, LOOK.day.hemiGround, LOOK.day.hemi]} />
+      <SkyDome />
       <Stars />
     </>
   );
+}
+
+const SKY_VERT = /* glsl */ `
+varying vec3 vDir;
+void main() {
+  vDir = position;
+  vec4 p = projectionMatrix * vec4(mat3(viewMatrix) * position, 1.0);
+  gl_Position = vec4(p.xy, p.w * 0.99999, p.w); // on the far plane, behind everything
+}
+`;
+// Colours arrive in output (sRGB) space and are written as they are, so the horizon is exactly
+// the fog colour that the far ground and the background fade to.
+const SKY_FRAG = /* glsl */ `
+uniform vec3 uHorizon;
+uniform vec3 uLow;
+uniform vec3 uZenith;
+varying vec3 vDir;
+void main() {
+  float e = normalize(vDir).y;
+  vec3 col = mix(uHorizon, uLow, smoothstep(0.05, 0.22, e));
+  col = mix(col, uZenith, smoothstep(0.22, 0.9, e));
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+const _sky = new Color();
+
+// Gradient sky behind everything. Drawn after the opaque pass, so only pixels with nothing else
+// in them run its shader, and skipped when the frame holds no sky.
+function SkyDome() {
+  const { geometry, material } = useMemo(() => {
+    const m = new ShaderMaterial({
+      vertexShader: SKY_VERT,
+      fragmentShader: SKY_FRAG,
+      uniforms: { uHorizon: { value: new Color() }, uLow: { value: new Color() }, uZenith: { value: new Color() } },
+      side: BackSide,
+      depthWrite: false,
+      transparent: true,
+      fog: false,
+      toneMapped: false,
+    });
+    return { geometry: new SphereGeometry(1, 24, 12), material: m };
+  }, []);
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
+  const ref = useRef<Mesh>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.visible = env.topEdge.value > -2 * DEG;
+    const k = env.night.value;
+    const u = material.uniforms;
+    _sky.lerpColors(LOOK.day.fog, LOOK.night.fog, k).getRGB(u.uHorizon.value as Color, SRGBColorSpace);
+    _sky.lerpColors(LOOK.day.skyLow, LOOK.night.skyLow, k).getRGB(u.uLow.value as Color, SRGBColorSpace);
+    _sky.lerpColors(LOOK.day.skyTop, LOOK.night.skyTop, k).getRGB(u.uZenith.value as Color, SRGBColorSpace);
+  });
+  return <mesh ref={ref} geometry={geometry} material={material} frustumCulled={false} renderOrder={-2} name="valley-sky" />;
 }
 
 const STAR_VERT = /* glsl */ `
@@ -74,8 +140,9 @@ uniform float uNight;
 uniform float uDpr;
 varying float vAlpha;
 void main() {
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  gl_Position = projectionMatrix * mv;
+  // Directions on a unit sphere, drawn at infinity like the sky: anything in front hides them.
+  vec4 p = projectionMatrix * vec4(mat3(viewMatrix) * position, 1.0);
+  gl_Position = vec4(p.xy, p.w * 0.99999, p.w);
   float tw = 0.65 + 0.35 * sin(uTime * (1.3 + aPhase) + aPhase * 17.0);
   vAlpha = uNight * tw;
   gl_PointSize = aSize * uDpr;
@@ -90,7 +157,8 @@ void main() {
 }
 `;
 
-// A dome of stars, seen whenever a camera framing shows the sky at night.
+// Stars, seen whenever a camera framing shows the sky at night. Low cameras only show a few
+// degrees of sky above the far peaks, so the stars crowd towards the horizon.
 function Stars() {
   const ref = useRef<Points>(null);
   const dpr = useThree((s) => s.viewport.dpr);
@@ -100,14 +168,13 @@ function Stars() {
     const pos = new Float32Array(n * 3);
     const size = new Float32Array(n);
     const phase = new Float32Array(n);
-    const [cx, cz] = screenToWorld((BOUNDS.u0 + BOUNDS.u1) / 2, (BOUNDS.v0 + BOUNDS.v1) / 2);
     for (let i = 0; i < n; i++) {
       const a = r() * Math.PI * 2;
-      const el = Math.asin(0.08 + r() * 0.92);
-      const R = 430;
-      pos[i * 3] = cx + Math.cos(a) * Math.cos(el) * R;
-      pos[i * 3 + 1] = Math.sin(el) * R * 0.6 + 20;
-      pos[i * 3 + 2] = cz + Math.sin(a) * Math.cos(el) * R;
+      const t = r();
+      const el = Math.asin(0.035 + 0.965 * t * t);
+      pos[i * 3] = Math.cos(a) * Math.cos(el);
+      pos[i * 3 + 1] = Math.sin(el);
+      pos[i * 3 + 2] = Math.sin(a) * Math.cos(el);
       size[i] = 1.2 + r() * r() * 2.6;
       phase[i] = r() * 3;
     }
@@ -128,7 +195,7 @@ function Stars() {
   }, []);
   material.uniforms.uDpr.value = dpr;
   useFrame(() => {
-    if (ref.current) ref.current.visible = env.night.value > 0.02;
+    if (ref.current) ref.current.visible = env.night.value > 0.02 && env.topEdge.value > -2 * DEG;
   });
   return <points ref={ref} geometry={geometry} material={material} frustumCulled={false} renderOrder={-1} />;
 }
