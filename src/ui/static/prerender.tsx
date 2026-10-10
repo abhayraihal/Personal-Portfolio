@@ -85,7 +85,7 @@ function headTags(): string {
     font(FONTS.bodyBold),
     font(FONTS.display),
     // Without JavaScript there is nothing to start: swap the Start button for a pointer to the classic view.
-    '<noscript><style>.start, .card__hint, .card__classic .key { display: none !important; } .card__nojs { display: block !important; }</style></noscript>',
+    '<noscript><style>.start, .card__hint, .card__classic .key { display: none !important; } .card__classic { flex: 1 1 auto !important; } .card__nojs { display: block !important; }</style></noscript>',
     `<script type="application/ld+json">${JSON.stringify(person).replace(/</g, '\\u003c')}</script>`,
   ].join('\n    ');
 }
