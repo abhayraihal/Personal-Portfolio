@@ -21,11 +21,11 @@ export type ToySpec = { Component: ComponentType<ToyProps>; length: number; minH
 // Camera framing while the car is parked on a pad. `at` is a plaza point (u, v, optional height)
 // between the car and the exhibit. On portrait screens the camera aims at `portraitAt`, just in
 // front of the exhibit so it sits above the prompt button, and comes in until `fit` metres fill
-// the width. The rig scales override distances on tall screens by aspect^-0.8 (at most 2.2, see
-// CameraRig), so that factor is divided out here. Skipped with reduced motion, so the camera never
-// moves on its own.
+// the width. Override distances are landscape distances: on a tall screen the rig keeps the ground
+// width at aspect^0.3 of a square screen's (see CameraRig), so `fit` metres across needs this
+// landscape distance. Skipped with reduced motion, so the camera never moves on its own.
 const TAN_HALF_FOV = Math.tan((CAMERA.fov / 2) * DEG);
-const RIG_PORTRAIT = { exp: 0.8, max: 2.2 };
+const RIG_WIDTH_EXP = 0.3;
 
 export function frameCamera(id: string, f: Framing | null) {
   const s = useStore.getState();
@@ -37,8 +37,8 @@ export function frameCamera(id: string, f: Framing | null) {
   const aspect = window.innerWidth / Math.max(1, window.innerHeight);
   const portrait = aspect < 1;
   const p = portrait && f.portraitAt ? f.portraitAt : f.at;
-  const rig = Math.min(RIG_PORTRAIT.max, aspect ** -RIG_PORTRAIT.exp);
-  const distance = portrait && f.fit ? Math.min(CAMERA.maxDistance, f.fit / (2 * TAN_HALF_FOV * aspect)) / rig : undefined;
+  const a = Math.min(1, Math.max(0.35, aspect));
+  const distance = portrait && f.fit ? Math.min(CAMERA.maxDistance, f.fit / (2 * TAN_HALF_FOV * a ** RIG_WIDTH_EXP)) : undefined;
   const [cu, cv] = ZONE_BY_ID.amazon.center;
   const [x, z] = screenToWorld(cu + p[0], cv + p[1]);
   s.setCameraOverride({ id, target: [x, p[2] ?? 0.8, z], distance, blend: 1.1 });
