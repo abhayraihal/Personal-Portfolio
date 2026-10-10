@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ref } from 'react';
-import type { Group, Material } from 'three';
+import { Color, MeshStandardMaterial } from 'three';
+import type { Group, Material, Mesh, Object3D } from 'three';
 import { Board } from '../../components/Board.tsx';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import type { FontName } from '../../config/palette.ts';
+import { useStore } from '../../state/store.ts';
 import { BOARDS } from './copy.ts';
 import { useBoxes } from './geo.ts';
 import type { BoxSpec } from './geo.ts';
@@ -13,20 +15,49 @@ import { M } from './materials.ts';
 
 type V3 = [number, number, number];
 
+// Night: paper faces glow a little, like lit signs, so the dark text on them stays readable.
+export const NIGHT_GLOW = 0.42;
+const PAPER = new Color(COLORS.paper).getHex();
+
+function lightPaper(root: Object3D | null, on: boolean) {
+  root?.traverse((o) => {
+    const m = (o as Mesh).material;
+    if (m instanceof MeshStandardMaterial && m.color.getHex() === PAPER) {
+      m.emissive.set(on ? COLORS.paper : '#000000');
+      m.emissiveIntensity = NIGHT_GLOW;
+    }
+  });
+}
+
+// The plaza's shared paper material (plaques, the office band, the trophy plaque).
+export function NightPaper() {
+  const night = useStore((s) => s.night);
+  useEffect(() => {
+    M.paper.emissive.set(night ? COLORS.paper : '#000000');
+    M.paper.emissiveIntensity = NIGHT_GLOW;
+  }, [night]);
+  return null;
+}
+
 // Station board: the panel title and up to four short lines, standing at the back of the platform.
 export function StationBoard({ id, position, width = 7.2, titleSize = 0.62, lift = 0.8 }: { id: StationId; position: V3; width?: number; titleSize?: number; lift?: number }) {
   const b = BOARDS[id];
+  const group = useRef<Group>(null);
+  const night = useStore((s) => s.night);
+  useEffect(() => lightPaper(group.current, night), [night]);
   return (
-    <Board
-      title={b.title}
-      lines={b.lines}
-      width={width}
-      titleSize={titleSize}
-      lineSize={0.4}
-      lift={lift}
-      accent={COLORS.amazon}
-      position={position}
-    />
+    <group ref={group}>
+      <Board
+        title={b.title}
+        lines={b.lines}
+        width={width}
+        titleSize={titleSize}
+        lineSize={0.4}
+        lift={lift}
+        accent={COLORS.amazon}
+        position={position}
+      />
+    </group>
   );
 }
 

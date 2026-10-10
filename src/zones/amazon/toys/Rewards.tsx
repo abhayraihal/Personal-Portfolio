@@ -39,6 +39,7 @@ const TR = 1.25; // roll
 const TD = 0.32; // into the slot
 const GLOW_IDLE = 0.18;
 const GLOW_LIT = 0.75;
+const GLOW_NIGHT = 0.5; // idle glow at night, so the screen reads in the dark
 
 const surface = (x: number) => CHUTE.y0 + (x - CHUTE.x0) * SLOPE;
 
@@ -299,7 +300,8 @@ function RewardsToy({ clock }: ToyProps) {
     }
     const lit = clock.phase === 'idle' ? 0 : seg(t, plan[count - 1].end, plan[count - 1].end + 0.5) * (clock.phase === 'rewind' ? 1 - clock.r : 1);
     const flicker = lit > 0 && lit < 1 ? 0.6 + 0.4 * Math.sin(t * 70) : 1;
-    face.emissiveIntensity = GLOW_IDLE + (GLOW_LIT - GLOW_IDLE) * lit * flicker;
+    const idle = useStore.getState().night ? GLOW_NIGHT : GLOW_IDLE;
+    face.emissiveIntensity = idle + (GLOW_LIT - idle) * lit * flicker;
     const g = box.current;
     if (g) {
       gulp.current = Math.min(1, gulp.current + dt / 0.2);

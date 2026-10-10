@@ -5,6 +5,7 @@ import { STATIONS } from './layout.ts';
 import type { StationId } from './layout.ts';
 import { Office } from './Office.tsx';
 import { Parcels } from './Parcels.tsx';
+import { NightPaper } from './parts.tsx';
 import { Props } from './Props.tsx';
 import { Station } from './Station.tsx';
 import type { ToySpec } from './Station.tsx';
@@ -31,6 +32,7 @@ export function AmazonZone() {
   useInspect();
   return (
     <ZoneFrame zone="amazon">
+      <NightPaper />
       <Floor />
       <Office />
       <Trophy />
