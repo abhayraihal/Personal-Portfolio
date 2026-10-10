@@ -185,8 +185,8 @@ const corner = (sx: number, sz: number): Placement => ({
 });
 const flags: Placement[] = [corner(-1, -1), corner(1, -1), corner(-1, 1), corner(1, 1)];
 const benches: Placement[] = [
-  { position: [PITCH.x - 6.5, 0, PITCH.z - PITCH.width / 2 - 2.4] },
-  { position: [PITCH.x + 6.5, 0, PITCH.z - PITCH.width / 2 - 2.4] },
+  { position: [PITCH.x - 6.5, 0, PITCH.z - PITCH.width / 2 - 1.9] },
+  { position: [PITCH.x + 6.5, 0, PITCH.z - PITCH.width / 2 - 1.9] },
 ];
 
 export function Pitch() {
