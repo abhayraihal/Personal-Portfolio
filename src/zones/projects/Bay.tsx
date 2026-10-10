@@ -1,8 +1,9 @@
-import { use, useMemo } from 'react';
+import { use, useMemo, useRef } from 'react';
 import { useTexture } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import { ConvexHullCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, SRGBColorSpace } from 'three';
-import type { BufferGeometry, Texture } from 'three';
+import type { BufferGeometry, Material, Texture } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../components/Label.tsx';
@@ -13,7 +14,7 @@ import { loadCanvasFonts, textWidth } from './canvas.ts';
 import { IMAGE_H, IMAGE_W, ROWS } from './layout.ts';
 import type { Bay as BayDef } from './layout.ts';
 import { posterTexture } from './posters.ts';
-import { ZONE } from './frame.ts';
+import { carNearZone, carX, carZ, ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
 
 const FRAME = 0.28; // border around the image
@@ -64,11 +65,38 @@ const billboardFrame = () =>
     { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 1, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
   ]));
 
+// From the fixed 45-degree camera a billboard hides the ground behind it for about its own height.
+// While the car is in that strip the board fades, so the car never disappears behind it. The
+// materials stay transparent at full opacity otherwise, so fading never recompiles a shader.
+const HIDES = LIFT + BOARD_H + 0.3;
+const FADED = 0.22;
+
+function useBehindFade(x: number, z: number) {
+  const mats = useRef<(Material | null)[]>([]);
+  const k = useRef(1);
+  useFrame((_, delta) => {
+    if (!carNearZone()) return;
+    const cz = carZ();
+    const behind = Math.abs(carX() - x) < BOARD_W / 2 + 1.6 && cz < z - BOARD_DEPTH && cz > z - HIDES - 1;
+    const goal = behind ? FADED : 1;
+    if (k.current === goal) return;
+    const next = k.current + (goal - k.current) * Math.min(1, delta * 8);
+    k.current = Math.abs(goal - next) < 0.01 ? goal : next;
+    for (const m of mats.current) {
+      if (!m) continue;
+      m.opacity = k.current;
+      m.depthWrite = k.current === 1;
+    }
+  });
+  return useMemo(() => [0, 1, 2].map((i) => (m: Material | null) => void (mats.current[i] = m)), []);
+}
+
 function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain'; x: number; z: number }) {
   const img = map.image as { width?: number; height?: number } | undefined;
   const aspect = img?.width && img.height ? img.width / img.height : IMAGE_W / IMAGE_H;
   const geometry = useMemo(() => imageGeometry(aspect, fit), [aspect, fit]);
   const frame = useMemo(billboardFrame, []);
+  const fadeRefs = useBehindFade(x, z);
   return (
     <group position={[x, 0, z]}>
       <RigidBody type="fixed" colliders={false}>
@@ -77,16 +105,16 @@ function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain';
         <CuboidCollider args={[0.18, POST_H / 2, 0.18]} position={[POST_X, POST_H / 2, -BOARD_DEPTH - 0.1]} />
       </RigidBody>
       <mesh geometry={frame} castShadow receiveShadow>
-        <meshStandardMaterial vertexColors roughness={0.85} />
+        <meshStandardMaterial ref={fadeRefs[0]} vertexColors roughness={0.85} transparent />
       </mesh>
       {fit === 'contain' && (
         <mesh position={[0, BOARD_CY, 0.006]}>
           <planeGeometry args={[IMAGE_W, IMAGE_H]} />
-          <meshBasicMaterial color="#ffffff" toneMapped={false} />
+          <meshBasicMaterial ref={fadeRefs[1]} color="#ffffff" toneMapped={false} transparent />
         </mesh>
       )}
       <mesh geometry={geometry} position={[0, BOARD_CY, 0.012]}>
-        <meshBasicMaterial map={map} toneMapped={false} />
+        <meshBasicMaterial ref={fadeRefs[2]} map={map} toneMapped={false} transparent />
       </mesh>
     </group>
   );
