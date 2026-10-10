@@ -16,24 +16,28 @@ const HUT = [20.2, 10.4] as const;
 // campus and sports dirt roads leaving (+-6, -6) diagonally downwards, and the roundabout ring.
 export const SPOT = {
   // Name letters stand across the spine; the car drives straight into them. The big ABHAY row stands
-  // behind the smaller surname row, so from this camera the rows read top to bottom.
-  abhayV: 8.5,
+  // behind the smaller surname row, so from this camera the rows read top to bottom. ABHAY stays
+  // below the zone banner at the top of the screen in the spawn view.
+  abhayV: 8.0,
   surnameV: 3.2,
   // Painted on the road, sized to fit its 8 m width.
-  roleV: -3.3, // centre of the role line block, between the car and the letters
+  roleV: -2.7, // centre of the role line block, clear of the car's roof in the spawn view
   controlsV: -11.25, // first of the three control lines, just behind the car
-  // On the grass wedge between the spine and the campus road, left of the control lines; the
-  // whole cluster stays 0.5 m clear of both roads.
-  keycaps: [-6.4, -12.6] as const, // the W key; A S D sit below it
-  // Left of the spine.
-  photo: [-10.6, 1.4] as const,
-  photoPad: [-11.2, -2.2] as const, // 0.4 m clear of the campus road's upper edge
+  // On the grass wedge between the spine and the sports road, right of the control lines (the map
+  // panel covers the bottom left of the screen); the cluster stays 0.4 m clear of both roads.
+  keycaps: [6.4, -12.6] as const, // the W key; A S D sit below it
+  // Left of the spine. The easel sits low so a car heading up-left from the spawn, towards the
+  // skill wall, passes behind it.
+  photo: [-10.6, 0.7] as const,
+  photoPad: [-11.5, -2.5] as const, // 0.35 m clear of the campus road's upper edge
   wallLegendV: 5.95, // painted between the wall and its pad
-  wall: [-19.4, 7.4] as const, // centre of the wall's base; it is about 11 m long
-  wallPad: [-19.4, 2.3] as const,
+  // Centre of the wall's base; it is about 11 m long and its right end stays clear of the easel's
+  // frame in the spawn view.
+  wall: [-20.6, 7.4] as const,
+  wallPad: [-20.6, 2.3] as const,
   // Right of the spine.
   hut: HUT, // hut recipe origin, the middle of its front row of cells; the door faces the camera
-  contactBoard: [13.4, 4.9] as const,
+  contactBoard: [12.8, 4.5] as const, // its right edge stays clear of the lantern behind it
   lantern: [16.9, 7.9] as const,
   mailbox: [23.6, 5.2] as const,
   contactPad: [HUT[0] - 1.25, 4.0] as const, // in front of the door, which is the hut's left cell

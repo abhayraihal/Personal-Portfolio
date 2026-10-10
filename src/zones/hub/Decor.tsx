@@ -6,7 +6,7 @@ import { modelScale, modelSize, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
 import { ROADS, ROUNDABOUT, ZONE_BY_ID } from '../../config/layout.ts';
 import { useStore } from '../../state/store.ts';
-import { hubAt, SPOT } from './layout.ts';
+import { hubAt, SPOT, TOUCH } from './layout.ts';
 
 // Deodars and pines at the back corners (tall things go at the back), rocks along the edges, and
 // poppies and grass tufts. One InstancedMesh per model.
@@ -22,12 +22,14 @@ const TREES: { name: ModelName; spots: Spot[] }[] = [
 const ROCKS: { name: ModelName; spots: Spot[] }[] = [
   { name: 'rock-grey-b', spots: [[-23.3, -2.2, 0.6, 1.2], [-10.2, -16.4, 2.1, 0.65]] },
   { name: 'rock-grey-c', spots: [[24, 0.6, 1.4, 1.1], [11.2, -16.6, 0.2, 0.6]] },
-  { name: 'rock-grey-a', spots: [[9.2, 13.4, 2.6, 1.3], [-8.6, 13.6, 0.9, 1.2]] },
+  // Behind the contact board and in the trees behind the skill wall, out of the arcs a car takes
+  // leaving the spawn up-left or up-right.
+  { name: 'rock-grey-a', spots: [[14.2, 14.8, 2.6, 1.3], [-20, 16.4, 0.9, 1.2]] },
 ];
 
 const POPPIES: Spot[] = [
-  [-14.6, -0.6, 0.4, 0.8], [-7.6, -16.3, 1.2, 0.7], [7.3, -14.4, 2.4, 0.7], [-11, 18.6, 0.2, 0.75],
-  [-16, 17.3, 1.7, 0.7], [21.9, 0.9, 0.9, 0.7], [-24.2, 1.9, 2.9, 0.65], [14.4, 16.4, 1.3, 0.7],
+  [-14.6, -0.6, 0.4, 0.8], [-7.6, -16.3, 1.2, 0.7], [-6.9, -12.8, 2.4, 0.7], [-11, 18.6, 0.2, 0.75],
+  [-16, 17.3, 1.7, 0.7], [21.9, 0.9, 0.9, 0.7], [-25, 0.6, 2.9, 0.65], [14.4, 16.4, 1.3, 0.7],
 ];
 const TALL_FLOWERS: Spot[] = [[22.1, 7.7, 0.5, 0.9], [-13.3, 4.7, 1.9, 0.85], [-6.6, 11.5, 2.8, 0.8], [6.6, 12.4, 0.7, 0.8]];
 
@@ -49,7 +51,7 @@ function segmentDistance(u: number, v: number, a: [number, number], b: [number, 
 
 const KEEP_OUT: [number, number, number][] = [
   [SPOT.photo[0], SPOT.photo[1], 3], [SPOT.photoPad[0], SPOT.photoPad[1], 3], [SPOT.wallPad[0], SPOT.wallPad[1], 3.2],
-  [SPOT.hut[0], SPOT.hut[1] + 1.5, 5], [SPOT.contactPad[0], SPOT.contactPad[1], 3.2], [SPOT.contactBoard[0], SPOT.contactBoard[1], 3.4],
+  [SPOT.hut[0], SPOT.hut[1] + 1.5, 5], [SPOT.contactPad[0], SPOT.contactPad[1], 3.2], [SPOT.contactBoard[0], SPOT.contactBoard[1], 3.9],
   [SPOT.bench[0], SPOT.bench[1], 2], [SPOT.creditsPad[0], SPOT.creditsPad[1], 2.4], [SPOT.mailbox[0], SPOT.mailbox[1], 1.2],
 ];
 
@@ -61,7 +63,8 @@ function clear(u: number, v: number) {
   if (ring < ROUNDABOUT.r + ROUNDABOUT.width / 2 + 1.2) return false;
   // Name rows, painted text, keycaps and the skill wall.
   if (Math.abs(u) < 8 && v > -16 && v < 9.5) return false;
-  if (u > -9.5 && u < -4 && v > -15 && v < -11.5) return false;
+  const [wu, wv] = SPOT.keycaps; // the W key
+  if (!TOUCH && u > wu - 2.4 && u < wu + 2.4 && v > wv - 2.4 && v < wv + 0.9) return false;
   if (u < -12.5 && v > 4.5 && v < 9) return false;
   for (const [ku, kv, kr] of KEEP_OUT) if (Math.hypot(u - ku, v - kv) < kr) return false;
   return true;

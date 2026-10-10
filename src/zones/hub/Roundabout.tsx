@@ -11,6 +11,7 @@ import { COLORS } from '../../config/palette.ts';
 import { DEG } from '../../config/world.ts';
 import { hubAt } from './layout.ts';
 import { mergeParts } from './merge.ts';
+import { glowAtNight } from './nightGlow.ts';
 import { wood } from './PhotoBoard.tsx';
 import { textWidth } from './textWidth.ts';
 
@@ -20,9 +21,9 @@ import { textWidth } from './textWidth.ts';
 const R = ROUNDABOUT.r - ROUNDABOUT.width / 2 - 0.3; // planter radius, clear of the ring road
 const H = 0.7; // planter height; tall enough to stop the chassis (its underside is 0.4 m up)
 const POST_H = 5.6;
-const SIGN_H = 0.72;
+const SIGN_H = 0.8;
 const SIGN_D = 0.1;
-const TEXT = 0.42;
+const TEXT = 0.48;
 const TIP = 0.42;
 
 const stone = new MeshStandardMaterial({ color: COLORS.rock, roughness: 0.95 });
@@ -45,10 +46,10 @@ type Sign = { zone: ZoneId; dir: Dir; y: number; tilt?: number; cap?: boolean };
 // Straight up the career road to Amazon, Projects right, the ridge left, and back down past the
 // spawn to the campus and sports dirt roads.
 const SIGNS: Sign[] = [
-  { zone: 'amazon', dir: 'up', y: 4.42, cap: true },
-  { zone: 'career', dir: 'up', y: 3.7 },
-  { zone: 'ridge', dir: 'left', y: 2.86 },
-  { zone: 'projects', dir: 'right', y: 2.86 },
+  { zone: 'amazon', dir: 'up', y: 4.6, cap: true },
+  { zone: 'career', dir: 'up', y: 3.8 },
+  { zone: 'ridge', dir: 'left', y: 2.9 },
+  { zone: 'projects', dir: 'right', y: 2.9 },
   { zone: 'campus', dir: 'left', y: 1.98, tilt: 20 * DEG },
   { zone: 'sports', dir: 'right', y: 1.98, tilt: -20 * DEG },
 ];
@@ -106,7 +107,7 @@ const BOARDS = mergeParts(
     color: `#${new Color(ZONE_BY_ID[p.zone].color).multiplyScalar(1.12).getHexString()}`,
   })),
 );
-const boardMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7 });
+const boardMaterial = glowAtNight(new MeshStandardMaterial({ vertexColors: true, roughness: 0.7 }), 0.2);
 
 function SignLabel({ sign }: { sign: Placed }) {
   const pos = new Vector3(sign.textX, 0.01, SIGN_D + 0.045).applyMatrix4(sign.matrix);
