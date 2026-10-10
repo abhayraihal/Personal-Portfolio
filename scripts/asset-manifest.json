@@ -1,0 +1,3706 @@
+{
+ "name": "Himalayan valley portfolio world: curated Kenney CC0 models",
+ "generated": "2026-10-10",
+ "stagingDir": "/tmp/portfolio-assets/selected",
+ "sourceRoot": "/tmp/portfolio-assets/kenney",
+ "license": "All models are CC0 1.0 by Kenney (www.kenney.nl). Each kit License.txt is in licenses/. Attribution is not required; crediting Kenney is welcome.",
+ "units": "Kenney native units, treated as meters. +Y up. Files are not rescaled: apply suggestedScale at load time.",
+ "styleChoice": "One look: Kenney's newer kit family (UnityGLTF exports). These kits share rounded bevels, chunky toy proportions, and flat colour from a 512x512 palette texture on a matte material (metallic 0, roughness 1). Holiday-kit (snow pines, snow-capped rocks, log cabin) sets the Himalayan mood. Survival-kit and platformer-kit supply the conifers, rocks, logs and ground cover. The greens, terracotta wood and grey-violet stone match across kits. Five of the newer kits (toy-car, minigolf, prototype, mini-characters, mini-arcade) even ship a byte-identical palette.",
+ "kitsUsed": [
+  "car-kit",
+  "toy-car-kit",
+  "survival-kit",
+  "holiday-kit",
+  "platformer-kit",
+  "city-kit-roads",
+  "minigolf-kit",
+  "mini-skate",
+  "mini-arena",
+  "mini-forest",
+  "city-kit-suburban",
+  "city-kit-commercial",
+  "mini-characters"
+ ],
+ "excludedKits": {
+  "nature-kit, racing-kit, furniture-kit, space-kit": "Older Kenney style: sharp unbevelled facets and per-material flat colours with no palette texture. Their trees and rocks look thin and angular next to the bevelled kits. nature-kit has the most variety (329 models, including river tiles) but was left out for this reason.",
+  "blocky-characters": "Minecraft-like box people with per-character face textures, 17 of 18 unlit; clashes with the rounded mini-characters.",
+  "cube-pets, mini-arcade, prototype-kit, brick-kit": "Same family but not needed: oversized cartoon animals, indoor arcade machines, grey-box placeholders, and studded toy bricks."
+ },
+ "textureHandling": {
+  "summary": "No chosen GLB embeds an image. Every one references 'Textures/colormap.png' by relative URI, and each kit ships a different 512x512 palette under that same name. GLBs are copied byte-for-byte into models/<kit>/ next to that kit's Textures/colormap.png, so the URI resolves without edits.",
+  "mustCopyTogether": "Ship each models/<kit>/ folder as a unit: its .glb files plus Textures/colormap.png. Do not flatten kits into one folder; the palettes share a file name but differ.",
+  "identicalPalettes": "toy-car-kit, minigolf-kit and mini-characters palettes are byte-identical (md5 6113ca7438d6f42a273498b357eb5c01). All other kits differ.",
+  "material": "One material per file, named 'colormap': baseColorTexture only, metallicFactor 0, roughness 1, doubleSided true. No vertex colours, normal maps or emissive. KHR_texture_transform is declared but holds only texCoord 0 (identity).",
+  "samplers": "NEAREST mag / NEAREST_MIPMAP_NEAREST min: survival, holiday, toy-car, minigolf, mini-skate, mini-arena, city-kit-suburban, mini-characters. LINEAR_MIPMAP_LINEAR min (default mag): car-kit, platformer, mini-forest, city-kit-roads, city-kit-commercial. Swatches are flat colour, so the difference only shows at swatch edges.",
+  "verified": "All 67 files loaded with three.js r186 GLTFLoader from this folder over http://127.0.0.1: 0 console errors, 0 HTTP 404s, and every file resolved a 512x512 colormap."
+ },
+ "loadingTips": [
+  "Serve models/ as static files (for Vite, under public/). GLTFLoader resolves Textures/colormap.png relative to the .glb URL, so do not import .glb files through the bundler with hashed names unless the Textures folder moves with them.",
+  "GLTFLoader creates a new texture and material per file. To upload each palette once, swap every mesh material for one shared material per kit folder after loading. Key it by folder, not by material name: every kit names its material 'colormap'.",
+  "Set material.side = THREE.FrontSide on closed meshes (vehicles, buildings, rocks, trees) to skip back faces; keep DoubleSide on flags, banners and fences.",
+  "Use InstancedMesh for repeated nature (trees, grass, flowers, rocks, stones).",
+  "Clone the skinned avatar with SkeletonUtils.clone, not Object3D.clone."
+ ],
+ "scaleGuide": "suggestedScale makes the kits coherent with the jeep at scale 1 (2.7 m long, 1.3 m tall). Results: avatar 1.14 m, conifers 5.6 to 6.8 m, crates 1.0 m, ball 1.05 m, lamp posts 3.5 to 4.1 m, prayer-flag poles about 4.1 m, hut 5.4 x 4.7 x 5.1 m, buildings 9 to 12 m tall. Kenney kits are not to scale with each other (city-kit-roads props are 0.1 to 0.7 m, cabin walls 1 m, suburban houses 0.7 to 1.2 m), so factors range from 1 to 15. scaledBoundingBox on each model shows the result. Buildings also work at x6 for a more compressed toy world.",
+ "zones": {
+  "experience": [
+   "models/city-kit-commercial/building-office.glb",
+   "models/city-kit-suburban/building-campus-main.glb",
+   "models/city-kit-suburban/building-campus-hostel.glb",
+   "models/city-kit-roads/lamp-post-street.glb",
+   "models/holiday-kit/bench-wood.glb",
+   "models/platformer-kit/sign-board.glb"
+  ],
+  "projects": [
+   "models/platformer-kit/crate-wood.glb",
+   "models/platformer-kit/crate-wood-banded.glb",
+   "models/platformer-kit/sign-board.glb",
+   "models/survival-kit/signpost-arrows.glb",
+   "models/platformer-kit/flag-pennant-red.glb"
+  ],
+  "achievements": [
+   "models/mini-arena/trophy-gold-cup.glb",
+   "models/mini-arena/pedestal-column.glb",
+   "models/platformer-kit/award-star.glb",
+   "models/platformer-kit/coin-gold.glb",
+   "models/minigolf-kit/banner-darchog-blue.glb",
+   "models/minigolf-kit/banner-darchog-red.glb",
+   "models/minigolf-kit/banner-darchog-green.glb"
+  ],
+  "skills": [
+   "models/platformer-kit/sign-board.glb",
+   "models/mini-forest/target-archery.glb",
+   "models/minigolf-kit/banner-darchog-blue.glb",
+   "models/minigolf-kit/banner-darchog-red.glb",
+   "models/minigolf-kit/banner-darchog-green.glb",
+   "models/platformer-kit/flag-pennant-red.glb"
+  ],
+  "contact": [
+   "hutRecipe",
+   "models/survival-kit/campfire.glb",
+   "models/holiday-kit/bench-wood.glb",
+   "models/survival-kit/log.glb",
+   "models/holiday-kit/lamp-post-lantern.glb",
+   "models/survival-kit/signpost-arrows.glb"
+  ],
+  "playground": [
+   "models/mini-skate/ramp-kicker.glb",
+   "models/mini-skate/ramp-funbox.glb",
+   "models/platformer-kit/ramp-wood.glb",
+   "models/platformer-kit/crate-wood.glb",
+   "models/platformer-kit/crate-wood-banded.glb",
+   "models/platformer-kit/barrel-wood.glb",
+   "models/survival-kit/barrel-drum.glb",
+   "models/car-kit/traffic-cone.glb",
+   "models/city-kit-roads/barrier-concrete.glb",
+   "models/platformer-kit/brick-block.glb",
+   "models/mini-arena/bricks-rubble.glb",
+   "models/minigolf-kit/ball-red.glb",
+   "models/toy-car-kit/goal-arch.glb",
+   "models/mini-forest/target-archery.glb"
+  ],
+  "valleyDressing": [
+   "models/survival-kit/tree-deodar-tall.glb",
+   "models/survival-kit/tree-deodar.glb",
+   "models/holiday-kit/tree-pine-full.glb",
+   "models/holiday-kit/tree-pine-snow.glb",
+   "models/platformer-kit/tree-pine-cone.glb",
+   "models/survival-kit/rock-grey-a.glb",
+   "models/survival-kit/rock-grey-b.glb",
+   "models/survival-kit/rock-grey-c.glb",
+   "models/holiday-kit/rocks-snowcap-large.glb",
+   "models/holiday-kit/rocks-snowcap-small.glb",
+   "models/platformer-kit/stones-river-flat.glb",
+   "models/platformer-kit/grass-tuft.glb",
+   "models/survival-kit/grass-clump.glb",
+   "models/platformer-kit/flowers-blue-poppy.glb",
+   "models/platformer-kit/flowers-tall.glb",
+   "models/platformer-kit/mushrooms.glb",
+   "models/platformer-kit/plant-leafy.glb",
+   "models/survival-kit/log.glb",
+   "models/survival-kit/log-small.glb",
+   "models/survival-kit/stump.glb",
+   "models/holiday-kit/snow-patch.glb",
+   "models/mini-forest/bridge-wood-rope.glb",
+   "models/platformer-kit/fence-wood.glb",
+   "models/platformer-kit/fence-rope.glb",
+   "models/holiday-kit/pole-prayer-flag-mast.glb",
+   "models/holiday-kit/lamp-post-lantern.glb"
+  ]
+ },
+ "vehicle": {
+  "file": "models/car-kit/vehicle-jeep-suv.glb",
+  "sourceKit": "car-kit",
+  "sourceModel": "suv.glb",
+  "why": "Chunky boxy jeep/SUV (hardtop, round headlights, rear spare tire) that reads as a Himalayan hill jeep; four separate wheel nodes at the root.",
+  "forwardAxis": "+Z",
+  "leftSide": "+X (wheel-*-left nodes sit at x=+0.3)",
+  "upAxis": "+Y",
+  "hierarchy": "body (root, 814 tris) > wheel-back (spare tire, 332 tris); wheel-back-left, wheel-back-right, wheel-front-left, wheel-front-right (root level, 332 tris each)",
+  "nodes": [
+   {
+    "name": "body",
+    "parent": null,
+    "mesh": "body",
+    "triangles": 814,
+    "translation": [
+     0,
+     0.2,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "name": "wheel-back",
+    "parent": "body",
+    "mesh": "wheel-back",
+    "triangles": 332,
+    "translation": [
+     0,
+     0.5,
+     -1.05
+    ],
+    "rotation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "name": "wheel-back-left",
+    "parent": null,
+    "mesh": "wheel-back-left",
+    "triangles": 332,
+    "translation": [
+     0.3,
+     0.3,
+     -0.56
+    ],
+    "rotation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "name": "wheel-back-right",
+    "parent": null,
+    "mesh": "wheel-back-right",
+    "triangles": 332,
+    "translation": [
+     -0.3,
+     0.3,
+     -0.56
+    ],
+    "rotation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "name": "wheel-front-left",
+    "parent": null,
+    "mesh": "wheel-front-left",
+    "triangles": 332,
+    "translation": [
+     0.3,
+     0.3,
+     0.76
+    ],
+    "rotation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   {
+    "name": "wheel-front-right",
+    "parent": null,
+    "mesh": "wheel-front-right",
+    "triangles": 332,
+    "translation": [
+     -0.3,
+     0.3,
+     0.76
+    ],
+    "rotation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   }
+  ],
+  "wheelNodes": [
+   "wheel-back-left",
+   "wheel-back-right",
+   "wheel-front-left",
+   "wheel-front-right"
+  ],
+  "spareWheelNode": "wheel-back (child of body; decorative, keep it parented to the body)",
+  "wheels": [
+   {
+    "name": "wheel-back",
+    "parent": "body",
+    "drivable": false,
+    "localPosition": [
+     0,
+     0.5,
+     -1.05
+    ],
+    "meshCenter": [
+     0,
+     0.7,
+     -1.175
+    ],
+    "diameter": 0.6,
+    "width": 0.35,
+    "pivotToMeshCenter": [
+     0,
+     0,
+     -0.125
+    ]
+   },
+   {
+    "name": "wheel-back-left",
+    "parent": null,
+    "drivable": true,
+    "localPosition": [
+     0.3,
+     0.3,
+     -0.56
+    ],
+    "meshCenter": [
+     0.425,
+     0.3,
+     -0.56
+    ],
+    "diameter": 0.6,
+    "width": 0.35,
+    "pivotToMeshCenter": [
+     0.125,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "wheel-back-right",
+    "parent": null,
+    "drivable": true,
+    "localPosition": [
+     -0.3,
+     0.3,
+     -0.56
+    ],
+    "meshCenter": [
+     -0.425,
+     0.3,
+     -0.56
+    ],
+    "diameter": 0.6,
+    "width": 0.35,
+    "pivotToMeshCenter": [
+     -0.125,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "wheel-front-left",
+    "parent": null,
+    "drivable": true,
+    "localPosition": [
+     0.3,
+     0.3,
+     0.76
+    ],
+    "meshCenter": [
+     0.425,
+     0.3,
+     0.76
+    ],
+    "diameter": 0.6,
+    "width": 0.35,
+    "pivotToMeshCenter": [
+     0.125,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "wheel-front-right",
+    "parent": null,
+    "drivable": true,
+    "localPosition": [
+     -0.3,
+     0.3,
+     0.76
+    ],
+    "meshCenter": [
+     -0.425,
+     0.3,
+     0.76
+    ],
+    "diameter": 0.6,
+    "width": 0.35,
+    "pivotToMeshCenter": [
+     -0.125,
+     0,
+     0
+    ]
+   }
+  ],
+  "wheelbase": 1.32,
+  "trackWidth": 0.85,
+  "bodyNode": "body",
+  "bodyBoundingBox": [
+   1.5,
+   1.1,
+   2.55
+  ],
+  "bodyBoundsMin": [
+   -0.75,
+   0.2,
+   -1.2
+  ],
+  "bodyBoundsMax": [
+   0.75,
+   1.3,
+   1.35
+  ],
+  "bodyWithChildrenBoundingBox": [
+   1.5,
+   1.1,
+   2.7
+  ],
+  "overallBoundingBox": [
+   1.5,
+   1.3,
+   2.7
+  ],
+  "triangles": 2474,
+  "rigNotes": [
+   "Wheel node origins are at x=+/-0.3 while the tire meshes are centred at x=+/-0.425 (0.125 m outward along the axle). Spinning about local X is correct as-is; steering about local Y swings the tire around a point 0.125 m inboard, which looks like a kingpin offset. Re-centre the pivot if that matters.",
+   "Wheel centres are at y=0.3 with radius 0.3, so the tires touch y=0. The body mesh starts at y=0.2.",
+   "For a physics vehicle, detach the four wheel nodes from the scene root and drive their position and rotation from the raycast wheels each frame."
+  ],
+  "alternatives": [
+   {
+    "file": "models/car-kit/vehicle-alt-pickup-truck.glb",
+    "sourceKit": "car-kit",
+    "forwardAxis": "+Z",
+    "wheelNodes": [
+     "wheel-front-right",
+     "wheel-front-left",
+     "wheel-back-right",
+     "wheel-back-left"
+    ],
+    "wheelbase": 1.62,
+    "trackWidth": 0.85,
+    "bodyBoundingBox": [
+     1.5,
+     1.15,
+     2.95
+    ],
+    "overallBoundingBox": [
+     1.5,
+     1.3,
+     2.95
+    ],
+    "triangles": 2082,
+    "nodes": [
+     {
+      "name": "body",
+      "parent": null,
+      "mesh": "body",
+      "triangles": 754,
+      "translation": [
+       0,
+       0.15,
+       -0.025
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-front-right",
+      "parent": null,
+      "mesh": "wheel-front-right",
+      "triangles": 332,
+      "translation": [
+       -0.3,
+       0.3,
+       0.86
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-front-left",
+      "parent": null,
+      "mesh": "wheel-front-left",
+      "triangles": 332,
+      "translation": [
+       0.3,
+       0.3,
+       0.86
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-back-right",
+      "parent": null,
+      "mesh": "wheel-back-right",
+      "triangles": 332,
+      "translation": [
+       -0.3,
+       0.3,
+       -0.76
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-back-left",
+      "parent": null,
+      "mesh": "wheel-back-left",
+      "triangles": 332,
+      "translation": [
+       0.3,
+       0.3,
+       -0.76
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     }
+    ],
+    "wheels": [
+     {
+      "name": "wheel-front-right",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       -0.3,
+       0.3,
+       0.86
+      ],
+      "meshCenter": [
+       -0.425,
+       0.3,
+       0.86
+      ],
+      "diameter": 0.6,
+      "width": 0.35,
+      "pivotToMeshCenter": [
+       -0.125,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "wheel-front-left",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       0.3,
+       0.3,
+       0.86
+      ],
+      "meshCenter": [
+       0.425,
+       0.3,
+       0.86
+      ],
+      "diameter": 0.6,
+      "width": 0.35,
+      "pivotToMeshCenter": [
+       0.125,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "wheel-back-right",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       -0.3,
+       0.3,
+       -0.76
+      ],
+      "meshCenter": [
+       -0.425,
+       0.3,
+       -0.76
+      ],
+      "diameter": 0.6,
+      "width": 0.35,
+      "pivotToMeshCenter": [
+       -0.125,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "wheel-back-left",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       0.3,
+       0.3,
+       -0.76
+      ],
+      "meshCenter": [
+       0.425,
+       0.3,
+       -0.76
+      ],
+      "diameter": 0.6,
+      "width": 0.35,
+      "pivotToMeshCenter": [
+       0.125,
+       0,
+       0
+      ]
+     }
+    ]
+   },
+   {
+    "file": "models/toy-car-kit/vehicle-alt-monster-truck.glb",
+    "sourceKit": "toy-car-kit",
+    "forwardAxis": "-Z",
+    "wheelNodes": [
+     "wheel-bl",
+     "wheel-fr",
+     "wheel-fl",
+     "wheel-br"
+    ],
+    "wheelbase": 0.5,
+    "trackWidth": 0.438,
+    "bodyBoundingBox": [
+     0.438,
+     0.594,
+     0.625
+    ],
+    "overallBoundingBox": [
+     0.625,
+     0.75,
+     0.875
+    ],
+    "triangles": 1272,
+    "nodes": [
+     {
+      "name": "wheel-bl",
+      "parent": null,
+      "mesh": "wheel-bl",
+      "triangles": 220,
+      "translation": [
+       -0.219,
+       0.188,
+       0.25
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-fr",
+      "parent": null,
+      "mesh": "wheel-fr",
+      "triangles": 220,
+      "translation": [
+       0.219,
+       0.188,
+       -0.25
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-fl",
+      "parent": null,
+      "mesh": "wheel-fl",
+      "triangles": 220,
+      "translation": [
+       -0.219,
+       0.188,
+       -0.25
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "wheel-br",
+      "parent": null,
+      "mesh": "wheel-br",
+      "triangles": 220,
+      "translation": [
+       0.219,
+       0.188,
+       0.25
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "body",
+      "parent": null,
+      "mesh": "body",
+      "triangles": 392,
+      "translation": [
+       0,
+       0.156,
+       0
+      ],
+      "rotation": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "scale": [
+       1,
+       1,
+       1
+      ]
+     }
+    ],
+    "wheels": [
+     {
+      "name": "wheel-bl",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       -0.219,
+       0.188,
+       0.25
+      ],
+      "meshCenter": [
+       -0.219,
+       0.188,
+       0.25
+      ],
+      "diameter": 0.375,
+      "width": 0.188,
+      "pivotToMeshCenter": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "wheel-fr",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       0.219,
+       0.188,
+       -0.25
+      ],
+      "meshCenter": [
+       0.219,
+       0.188,
+       -0.25
+      ],
+      "diameter": 0.375,
+      "width": 0.188,
+      "pivotToMeshCenter": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "wheel-fl",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       -0.219,
+       0.188,
+       -0.25
+      ],
+      "meshCenter": [
+       -0.219,
+       0.188,
+       -0.25
+      ],
+      "diameter": 0.375,
+      "width": 0.188,
+      "pivotToMeshCenter": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "wheel-br",
+      "parent": null,
+      "drivable": true,
+      "localPosition": [
+       0.219,
+       0.188,
+       0.25
+      ],
+      "meshCenter": [
+       0.219,
+       0.188,
+       0.25
+      ],
+      "diameter": 0.375,
+      "width": 0.188,
+      "pivotToMeshCenter": [
+       0,
+       0,
+       0
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "avatar": {
+  "file": "models/mini-characters/avatar-male.glb",
+  "sourceModel": "character-male-a.glb",
+  "triangles": 723,
+  "boundingBox": [
+   0.767,
+   0.671,
+   0.34
+  ],
+  "facing": "+Z",
+  "skinJoints": 7,
+  "bones": [
+   "root",
+   "leg-left",
+   "leg-right",
+   "torso",
+   "arm-left",
+   "arm-right",
+   "head"
+  ],
+  "clips": [
+   "static",
+   "idle",
+   "walk",
+   "sprint",
+   "jump",
+   "fall",
+   "crouch",
+   "sit",
+   "drive",
+   "die",
+   "pick-up",
+   "emote-yes",
+   "emote-no",
+   "holding-right",
+   "holding-left",
+   "holding-both",
+   "holding-right-shoot",
+   "holding-left-shoot",
+   "holding-both-shoot",
+   "attack-melee-right",
+   "attack-melee-left",
+   "attack-kick-right",
+   "attack-kick-left",
+   "interact-right",
+   "interact-left",
+   "wheelchair-sit",
+   "wheelchair-look-left",
+   "wheelchair-look-right",
+   "wheelchair-move-forward",
+   "wheelchair-move-back",
+   "wheelchair-move-left",
+   "wheelchair-move-right"
+  ],
+  "wave": "No wave clip exists. Play 'idle' on an AnimationMixer and, after mixer.update(), add a rotation to bone 'arm-right' (raise it about 150 degrees around Z to lift the arm, then oscillate +/-25 degrees). Looping 'interact-right' also moves arm-right the most of all clips (quaternion delta 0.53) if a clip-only approach is preferred.",
+  "otherUsefulClips": "'drive' is a seated pose for putting the avatar in the jeep; 'emote-yes' nods; 'walk'/'sprint' for on-foot mode.",
+  "alternatives": [
+   "kenney/mini-characters/Models/GLB format/character-female-e.glb",
+   "kenney/mini-characters/Models/GLB format/character-male-d.glb"
+  ]
+ },
+ "hutRecipe": {
+  "description": "2 x 2 cell log hut with a snowy gable roof, door on +Z, windows on three sides. Positions are native units on a 1 m grid centred so the front cells span z -0.5..0.5; place each part in one Group, then scale the Group.",
+  "suggestedScale": 2,
+  "nativeSize": [
+   2.69,
+   2.337,
+   2.545
+  ],
+  "scaledSize": [
+   5.38,
+   4.67,
+   5.09
+  ],
+  "triangles": 3252,
+  "partFormat": "p = position [x,y,z], r = rotation around Y in degrees, s = scale (s.x = -1 mirrors a half gable)",
+  "doorAnimation": "hut-wall-door.glb has node 'door' with clips open, close, open-and-close (1 s / 1 s / 2 s).",
+  "verified": "Assembled and rendered in three.js from these files; walls, corners, gables and roof close with no gaps.",
+  "parts": [
+   {
+    "file": "models/holiday-kit/hut-floor.glb",
+    "p": [
+     -0.5,
+     0,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-floor.glb",
+    "p": [
+     0.5,
+     0,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-floor.glb",
+    "p": [
+     -0.5,
+     0,
+     -1
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-floor.glb",
+    "p": [
+     0.5,
+     0,
+     -1
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-wall-door.glb",
+    "p": [
+     -0.5,
+     0,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-wall-window.glb",
+    "p": [
+     0.5,
+     0,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-wall.glb",
+    "p": [
+     -0.5,
+     0,
+     -1
+    ],
+    "r": 180
+   },
+   {
+    "file": "models/holiday-kit/hut-wall.glb",
+    "p": [
+     0.5,
+     0,
+     -1
+    ],
+    "r": 180
+   },
+   {
+    "file": "models/holiday-kit/hut-wall-window.glb",
+    "p": [
+     -0.5,
+     0,
+     0
+    ],
+    "r": -90
+   },
+   {
+    "file": "models/holiday-kit/hut-wall.glb",
+    "p": [
+     -0.5,
+     0,
+     -1
+    ],
+    "r": -90
+   },
+   {
+    "file": "models/holiday-kit/hut-wall.glb",
+    "p": [
+     0.5,
+     0,
+     0
+    ],
+    "r": 90
+   },
+   {
+    "file": "models/holiday-kit/hut-wall-window.glb",
+    "p": [
+     0.5,
+     0,
+     -1
+    ],
+    "r": 90
+   },
+   {
+    "file": "models/holiday-kit/hut-corner-logs.glb",
+    "p": [
+     -0.5,
+     0,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-corner-logs.glb",
+    "p": [
+     0.5,
+     0,
+     0
+    ],
+    "r": 90
+   },
+   {
+    "file": "models/holiday-kit/hut-corner-logs.glb",
+    "p": [
+     -0.5,
+     0,
+     -1
+    ],
+    "r": -90
+   },
+   {
+    "file": "models/holiday-kit/hut-corner-logs.glb",
+    "p": [
+     0.5,
+     0,
+     -1
+    ],
+    "r": 180
+   },
+   {
+    "file": "models/holiday-kit/hut-gable-half.glb",
+    "p": [
+     -0.5,
+     1,
+     0
+    ],
+    "r": 0,
+    "s": [
+     -1,
+     1,
+     1
+    ]
+   },
+   {
+    "file": "models/holiday-kit/hut-gable-half.glb",
+    "p": [
+     0.5,
+     1,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-gable-half.glb",
+    "p": [
+     -0.5,
+     1,
+     -1
+    ],
+    "r": 180
+   },
+   {
+    "file": "models/holiday-kit/hut-gable-half.glb",
+    "p": [
+     0.5,
+     1,
+     -1
+    ],
+    "r": 180,
+    "s": [
+     -1,
+     1,
+     1
+    ]
+   },
+   {
+    "file": "models/holiday-kit/hut-roof-snow.glb",
+    "p": [
+     0.5,
+     1,
+     0
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-roof-snow.glb",
+    "p": [
+     0.5,
+     1,
+     -1
+    ],
+    "r": 0
+   },
+   {
+    "file": "models/holiday-kit/hut-roof-snow.glb",
+    "p": [
+     -0.5,
+     1,
+     0
+    ],
+    "r": 180
+   },
+   {
+    "file": "models/holiday-kit/hut-roof-snow.glb",
+    "p": [
+     -0.5,
+     1,
+     -1
+    ],
+    "r": 180
+   }
+  ]
+ },
+ "notIncluded": {
+  "bicycle": "No Kenney kit here has a bicycle: a name search over all 22 kits for bike, bicycle and cycle found 0 models. Quaternius 'Public Transport Pack' (CC0, 12 models) shows a red bicycle in its preview (/tmp/portfolio-assets/quaternius-previews/publictransport.jpg). It is not downloaded. Its page lists FBX, OBJ and Blend only, so it needs a GLB conversion, and its untextured flat shading needs a material pass to sit next to Kenney models. The Poly Pizza bicycle results in /tmp/assetscripts/pages/polypizza/search_results.json are CC-BY 3.0, which requires attribution.",
+  "goalPostsOrNets": "None in the chosen kits. goal-arch (toy-car-kit gate) is the stand-in. A football goal is two cylinders, a crossbar and a net plane in code.",
+  "prayerFlagStrings": "None. Use pole-prayer-flag-mast or the banner-darchog poles as anchors and generate the strings in code: a sagging curve between two poles carrying small quads in blue, white, red, green and yellow.",
+  "mountainsAndRiver": "No mountain or water models in the chosen kits (nature-kit river tiles are the older style). Build the snow peaks and the river surface procedurally, and line the banks with rocks-snowcap-*, stones-river-flat and bridge-wood-rope.",
+  "animals": "Not copied. Optional ambient life from the same family: prototype-kit animal-bison (yak stand-in) and cube-pets animal-deer, animal-cow and animal-dog."
+ },
+ "kits": [
+  {
+   "kit": "car-kit",
+   "models": 3,
+   "license": "licenses/car-kit-License.txt",
+   "textures": [
+    {
+     "file": "models/car-kit/Textures/colormap.png",
+     "md5": "451b163d51d08b73f7d98244fef3f979",
+     "sizeKB": 12.1
+    }
+   ],
+   "sampler": {
+    "minFilter": 9987
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "toy-car-kit",
+   "models": 2,
+   "license": "licenses/toy-car-kit-License.txt",
+   "textures": [
+    {
+     "file": "models/toy-car-kit/Textures/colormap.png",
+     "md5": "6113ca7438d6f42a273498b357eb5c01",
+     "sizeKB": 8.5
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "survival-kit",
+   "models": 12,
+   "license": "licenses/survival-kit-License.txt",
+   "textures": [
+    {
+     "file": "models/survival-kit/Textures/colormap.png",
+     "md5": "8aa3d8b5a7ce10fad67e7ba1011689eb",
+     "sizeKB": 7.3
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "holiday-kit",
+   "models": 15,
+   "license": "licenses/holiday-kit-License.txt",
+   "textures": [
+    {
+     "file": "models/holiday-kit/Textures/colormap.png",
+     "md5": "424e7b3559ee5ce3d7073e5859a46551",
+     "sizeKB": 12.5
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "platformer-kit",
+   "models": 18,
+   "license": "licenses/platformer-kit-License.txt",
+   "textures": [
+    {
+     "file": "models/platformer-kit/Textures/colormap.png",
+     "md5": "ed851207d3afc02f88f6a2a7769deb87",
+     "sizeKB": 10.9
+    }
+   ],
+   "sampler": {
+    "minFilter": 9987
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "city-kit-roads",
+   "models": 2,
+   "license": "licenses/city-kit-roads-License.txt",
+   "textures": [
+    {
+     "file": "models/city-kit-roads/Textures/colormap.png",
+     "md5": "ed0b867825794a6d5e1b7e81044db437",
+     "sizeKB": 11.2
+    }
+   ],
+   "sampler": {
+    "minFilter": 9987
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "minigolf-kit",
+   "models": 4,
+   "license": "licenses/minigolf-kit-License.txt",
+   "textures": [
+    {
+     "file": "models/minigolf-kit/Textures/colormap.png",
+     "md5": "6113ca7438d6f42a273498b357eb5c01",
+     "sizeKB": 8.5
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "mini-skate",
+   "models": 2,
+   "license": "licenses/mini-skate-License.txt",
+   "textures": [
+    {
+     "file": "models/mini-skate/Textures/colormap.png",
+     "md5": "140a0ba89281f651281b9355be93a1b1",
+     "sizeKB": 7.4
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "mini-arena",
+   "models": 3,
+   "license": "licenses/mini-arena-License.txt",
+   "textures": [
+    {
+     "file": "models/mini-arena/Textures/colormap.png",
+     "md5": "ef3e885cb4a8c661aceb02ea79e95b09",
+     "sizeKB": 8.9
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "mini-forest",
+   "models": 2,
+   "license": "licenses/mini-forest-License.txt",
+   "textures": [
+    {
+     "file": "models/mini-forest/Textures/colormap.png",
+     "md5": "9595c1edb468298ac609707fb41b44ad",
+     "sizeKB": 10.4
+    }
+   ],
+   "sampler": {
+    "minFilter": 9987
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "city-kit-suburban",
+   "models": 2,
+   "license": "licenses/city-kit-suburban-License.txt",
+   "textures": [
+    {
+     "file": "models/city-kit-suburban/Textures/colormap.png",
+     "md5": "e03354f471948a2a16e3d921a2fef0f9",
+     "sizeKB": 11.5
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "city-kit-commercial",
+   "models": 1,
+   "license": "licenses/city-kit-commercial-License.txt",
+   "textures": [
+    {
+     "file": "models/city-kit-commercial/Textures/colormap.png",
+     "md5": "0d6f4b089c350f6a73d58534f7ccd979",
+     "sizeKB": 10.7
+    }
+   ],
+   "sampler": {
+    "minFilter": 9987
+   },
+   "generator": "UnityGLTF"
+  },
+  {
+   "kit": "mini-characters",
+   "models": 1,
+   "license": "licenses/mini-characters-License.txt",
+   "textures": [
+    {
+     "file": "models/mini-characters/Textures/colormap.png",
+     "md5": "6113ca7438d6f42a273498b357eb5c01",
+     "sizeKB": 8.5
+    }
+   ],
+   "sampler": {
+    "magFilter": 9728,
+    "minFilter": 9984
+   },
+   "generator": "UnityGLTF"
+  }
+ ],
+ "models": [
+  {
+   "role": "player-vehicle",
+   "category": "vehicle",
+   "file": "models/car-kit/vehicle-jeep-suv.glb",
+   "sourceKit": "car-kit",
+   "sourceModel": "suv.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/car-kit/Models/GLB format/suv.glb",
+   "sizeKB": 202.7,
+   "triangles": 2474,
+   "boundingBox": [
+    1.5,
+    1.3,
+    2.7
+   ],
+   "boundsMin": [
+    -0.75,
+    0,
+    -1.35
+   ],
+   "boundsMax": [
+    0.75,
+    1.3,
+    1.35
+   ],
+   "suggestedScale": 1,
+   "scaledBoundingBox": [
+    1.5,
+    1.3,
+    2.7
+   ],
+   "texture": "models/car-kit/Textures/colormap.png",
+   "notes": "Player vehicle. Boxy jeep/SUV with hardtop and rear spare tire. Forward is +Z. Four drivable wheels are root-level nodes; the spare 'wheel-back' is a child of 'body' and should stay attached to the body.",
+   "wheelNodes": [
+    "wheel-back-left",
+    "wheel-back-right",
+    "wheel-front-left",
+    "wheel-front-right"
+   ],
+   "forwardAxis": "+Z"
+  },
+  {
+   "role": "player-vehicle-alternative",
+   "category": "vehicle",
+   "file": "models/car-kit/vehicle-alt-pickup-truck.glb",
+   "sourceKit": "car-kit",
+   "sourceModel": "truck.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/car-kit/Models/GLB format/truck.glb",
+   "sizeKB": 172.2,
+   "triangles": 2082,
+   "boundingBox": [
+    1.5,
+    1.3,
+    2.95
+   ],
+   "boundsMin": [
+    -0.75,
+    0,
+    -1.5
+   ],
+   "boundsMax": [
+    0.75,
+    1.3,
+    1.45
+   ],
+   "suggestedScale": 1,
+   "scaledBoundingBox": [
+    1.5,
+    1.3,
+    2.95
+   ],
+   "texture": "models/car-kit/Textures/colormap.png",
+   "notes": "Alternative 1: pickup with open bed (closest to the Bruno Simon pickup). Same rig as the jeep: 'body' + 4 root-level wheel nodes, forward +Z.",
+   "wheelNodes": [
+    "wheel-front-right",
+    "wheel-front-left",
+    "wheel-back-right",
+    "wheel-back-left"
+   ],
+   "forwardAxis": "+Z"
+  },
+  {
+   "role": "player-vehicle-alternative",
+   "category": "vehicle",
+   "file": "models/toy-car-kit/vehicle-alt-monster-truck.glb",
+   "sourceKit": "toy-car-kit",
+   "sourceModel": "vehicle-monster-truck.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/toy-car-kit/Models/GLB format/vehicle-monster-truck.glb",
+   "sizeKB": 118.8,
+   "triangles": 1272,
+   "boundingBox": [
+    0.625,
+    0.75,
+    0.875
+   ],
+   "boundsMin": [
+    -0.313,
+    0,
+    -0.438
+   ],
+   "boundsMax": [
+    0.313,
+    0.75,
+    0.438
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    1.875,
+    2.25,
+    2.625
+   ],
+   "texture": "models/toy-car-kit/Textures/colormap.png",
+   "notes": "Alternative 2: toy monster truck with oversized wheels. 'body' + 4 root-level wheel nodes (wheel-fl/fr/bl/br). Forward is -Z (front wheels at z=-0.25). 0.88 m long native, scale x3 to match the jeep.",
+   "wheelNodes": [
+    "wheel-bl",
+    "wheel-fr",
+    "wheel-fl",
+    "wheel-br"
+   ],
+   "forwardAxis": "-Z"
+  },
+  {
+   "role": "conifer",
+   "category": "nature",
+   "file": "models/survival-kit/tree-deodar-tall.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "tree-tall.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/tree-tall.glb",
+   "sizeKB": 24.1,
+   "triangles": 254,
+   "boundingBox": [
+    0.553,
+    1.711,
+    0.526
+   ],
+   "boundsMin": [
+    -0.281,
+    0,
+    -0.263
+   ],
+   "boundsMax": [
+    0.272,
+    1.711,
+    0.263
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    2.212,
+    6.844,
+    2.104
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Tall slender tiered conifer; best deodar silhouette."
+  },
+  {
+   "role": "conifer",
+   "category": "nature",
+   "file": "models/survival-kit/tree-deodar.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "tree.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/tree.glb",
+   "sizeKB": 21.7,
+   "triangles": 226,
+   "boundingBox": [
+    0.553,
+    1.411,
+    0.526
+   ],
+   "boundsMin": [
+    -0.281,
+    0,
+    -0.263
+   ],
+   "boundsMax": [
+    0.272,
+    1.411,
+    0.263
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    2.212,
+    5.644,
+    2.104
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Shorter version of the deodar."
+  },
+  {
+   "role": "conifer",
+   "category": "nature",
+   "file": "models/holiday-kit/tree-pine-full.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "tree.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/tree.glb",
+   "sizeKB": 23.8,
+   "triangles": 234,
+   "boundingBox": [
+    1.19,
+    1.92,
+    1.19
+   ],
+   "boundsMin": [
+    -0.595,
+    0,
+    -0.595
+   ],
+   "boundsMax": [
+    0.595,
+    1.92,
+    0.595
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    3.57,
+    5.76,
+    3.57
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Full, wide tiered pine."
+  },
+  {
+   "role": "conifer",
+   "category": "nature",
+   "file": "models/holiday-kit/tree-pine-snow.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "tree-snow-a.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/tree-snow-a.glb",
+   "sizeKB": 33.7,
+   "triangles": 378,
+   "boundingBox": [
+    1.19,
+    1.92,
+    1.19
+   ],
+   "boundsMin": [
+    -0.595,
+    0,
+    -0.595
+   ],
+   "boundsMax": [
+    0.595,
+    1.92,
+    0.595
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    3.57,
+    5.76,
+    3.57
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Same pine with snow on each tier; use on upper slopes."
+  },
+  {
+   "role": "conifer",
+   "category": "nature",
+   "file": "models/platformer-kit/tree-pine-cone.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "tree-pine.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/tree-pine.glb",
+   "sizeKB": 21.9,
+   "triangles": 204,
+   "boundingBox": [
+    0.948,
+    1.997,
+    0.948
+   ],
+   "boundsMin": [
+    -0.474,
+    0,
+    -0.474
+   ],
+   "boundsMax": [
+    0.474,
+    1.997,
+    0.474
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    2.844,
+    5.991,
+    2.844
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Smooth rounded cone pine; adds a softer toy silhouette."
+  },
+  {
+   "role": "rock",
+   "category": "nature",
+   "file": "models/survival-kit/rock-grey-a.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "rock-a.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/rock-a.glb",
+   "sizeKB": 10.6,
+   "triangles": 104,
+   "boundingBox": [
+    0.555,
+    0.393,
+    0.622
+   ],
+   "boundsMin": [
+    -0.3,
+    0,
+    -0.297
+   ],
+   "boundsMax": [
+    0.255,
+    0.393,
+    0.324
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.388,
+    0.983,
+    1.555
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Grey-violet boulder."
+  },
+  {
+   "role": "rock",
+   "category": "nature",
+   "file": "models/survival-kit/rock-grey-b.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "rock-b.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/rock-b.glb",
+   "sizeKB": 14.8,
+   "triangles": 156,
+   "boundingBox": [
+    0.835,
+    0.419,
+    0.725
+   ],
+   "boundsMin": [
+    -0.378,
+    0,
+    -0.355
+   ],
+   "boundsMax": [
+    0.456,
+    0.419,
+    0.37
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    2.087,
+    1.047,
+    1.813
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Wide grey-violet boulder."
+  },
+  {
+   "role": "rock",
+   "category": "nature",
+   "file": "models/survival-kit/rock-grey-c.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "rock-c.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/rock-c.glb",
+   "sizeKB": 11.4,
+   "triangles": 120,
+   "boundingBox": [
+    0.784,
+    0.51,
+    0.566
+   ],
+   "boundsMin": [
+    -0.381,
+    0,
+    -0.289
+   ],
+   "boundsMax": [
+    0.402,
+    0.51,
+    0.277
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.96,
+    1.275,
+    1.415
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Taller grey-violet boulder."
+  },
+  {
+   "role": "rock",
+   "category": "nature",
+   "file": "models/holiday-kit/rocks-snowcap-large.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "rocks-large.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/rocks-large.glb",
+   "sizeKB": 68.4,
+   "triangles": 696,
+   "boundingBox": [
+    3.141,
+    1.713,
+    2.687
+   ],
+   "boundsMin": [
+    -1.487,
+    0,
+    -1.342
+   ],
+   "boundsMax": [
+    1.654,
+    1.713,
+    1.345
+   ],
+   "suggestedScale": 1.5,
+   "scaledBoundingBox": [
+    4.712,
+    2.57,
+    4.03
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Snow-capped boulder cluster for valley walls and mountain feel."
+  },
+  {
+   "role": "rock",
+   "category": "nature",
+   "file": "models/holiday-kit/rocks-snowcap-small.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "rocks-small.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/rocks-small.glb",
+   "sizeKB": 33.8,
+   "triangles": 330,
+   "boundingBox": [
+    1.539,
+    0.646,
+    1.415
+   ],
+   "boundsMin": [
+    -0.77,
+    0,
+    -0.683
+   ],
+   "boundsMax": [
+    0.77,
+    0.646,
+    0.731
+   ],
+   "suggestedScale": 1.5,
+   "scaledBoundingBox": [
+    2.308,
+    0.969,
+    2.123
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Smaller snow-capped cluster."
+  },
+  {
+   "role": "river-stones",
+   "category": "nature",
+   "file": "models/platformer-kit/stones-river-flat.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "stones.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/stones.glb",
+   "sizeKB": 13.4,
+   "triangles": 120,
+   "boundingBox": [
+    0.71,
+    0.05,
+    0.79
+   ],
+   "boundsMin": [
+    -0.358,
+    0,
+    -0.39
+   ],
+   "boundsMax": [
+    0.353,
+    0.05,
+    0.399
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.775,
+    0.125,
+    1.975
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Flat stepping stones for river banks and paths."
+  },
+  {
+   "role": "grass",
+   "category": "nature",
+   "file": "models/platformer-kit/grass-tuft.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "grass.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/grass.glb",
+   "sizeKB": 8.8,
+   "triangles": 72,
+   "boundingBox": [
+    0.519,
+    0.314,
+    0.544
+   ],
+   "boundsMin": [
+    -0.259,
+    0,
+    -0.272
+   ],
+   "boundsMax": [
+    0.259,
+    0.314,
+    0.272
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    1.038,
+    0.628,
+    1.088
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Chunky two-blade grass tuft; good for instancing."
+  },
+  {
+   "role": "grass",
+   "category": "nature",
+   "file": "models/survival-kit/grass-clump.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "grass-large.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/grass-large.glb",
+   "sizeKB": 18.4,
+   "triangles": 144,
+   "boundingBox": [
+    0.476,
+    0.142,
+    0.487
+   ],
+   "boundsMin": [
+    -0.238,
+    0,
+    -0.244
+   ],
+   "boundsMax": [
+    0.238,
+    0.142,
+    0.244
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    1.428,
+    0.426,
+    1.461
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Spiky low grass clump."
+  },
+  {
+   "role": "flowers",
+   "category": "nature",
+   "file": "models/platformer-kit/flowers-blue-poppy.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "flowers.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/flowers.glb",
+   "sizeKB": 25.3,
+   "triangles": 264,
+   "boundingBox": [
+    0.777,
+    0.137,
+    0.786
+   ],
+   "boundsMin": [
+    -0.379,
+    0,
+    -0.402
+   ],
+   "boundsMax": [
+    0.398,
+    0.137,
+    0.384
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.943,
+    0.343,
+    1.965
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Low blue flowers with yellow centres; reads as Himalayan blue poppy."
+  },
+  {
+   "role": "flowers",
+   "category": "nature",
+   "file": "models/platformer-kit/flowers-tall.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "flowers-tall.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/flowers-tall.glb",
+   "sizeKB": 38.3,
+   "triangles": 398,
+   "boundingBox": [
+    0.546,
+    0.462,
+    0.618
+   ],
+   "boundsMin": [
+    -0.274,
+    0,
+    -0.308
+   ],
+   "boundsMax": [
+    0.272,
+    0.462,
+    0.31
+   ],
+   "suggestedScale": 1.5,
+   "scaledBoundingBox": [
+    0.819,
+    0.693,
+    0.927
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Taller flower cluster."
+  },
+  {
+   "role": "mushrooms",
+   "category": "nature",
+   "file": "models/platformer-kit/mushrooms.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "mushrooms.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/mushrooms.glb",
+   "sizeKB": 13.4,
+   "triangles": 126,
+   "boundingBox": [
+    0.522,
+    0.289,
+    0.512
+   ],
+   "boundsMin": [
+    -0.262,
+    0,
+    -0.256
+   ],
+   "boundsMax": [
+    0.26,
+    0.289,
+    0.256
+   ],
+   "suggestedScale": 1.5,
+   "scaledBoundingBox": [
+    0.783,
+    0.433,
+    0.768
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Mushroom cluster."
+  },
+  {
+   "role": "bush",
+   "category": "nature",
+   "file": "models/platformer-kit/plant-leafy.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "plant.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/plant.glb",
+   "sizeKB": 12.8,
+   "triangles": 108,
+   "boundingBox": [
+    0.511,
+    0.172,
+    0.443
+   ],
+   "boundsMin": [
+    -0.256,
+    0,
+    -0.287
+   ],
+   "boundsMax": [
+    0.256,
+    0.172,
+    0.155
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.278,
+    0.43,
+    1.107
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Low leafy plant / shrub filler."
+  },
+  {
+   "role": "log",
+   "category": "nature",
+   "file": "models/survival-kit/log.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "tree-log.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/tree-log.glb",
+   "sizeKB": 9,
+   "triangles": 88,
+   "boundingBox": [
+    0.249,
+    0.277,
+    1
+   ],
+   "boundsMin": [
+    -0.122,
+    -0.106,
+    -0.5
+   ],
+   "boundsMax": [
+    0.127,
+    0.171,
+    0.5
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    0.623,
+    0.693,
+    2.5
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Fallen log (long axis Z)."
+  },
+  {
+   "role": "log",
+   "category": "nature",
+   "file": "models/survival-kit/log-small.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "tree-log-small.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/tree-log-small.glb",
+   "sizeKB": 9,
+   "triangles": 88,
+   "boundingBox": [
+    0.249,
+    0.277,
+    0.65
+   ],
+   "boundsMin": [
+    -0.125,
+    0,
+    -0.325
+   ],
+   "boundsMax": [
+    0.125,
+    0.277,
+    0.325
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    0.623,
+    0.693,
+    1.625
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Short log (long axis Z)."
+  },
+  {
+   "role": "stump",
+   "category": "nature",
+   "file": "models/survival-kit/stump.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "tree-trunk.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/tree-trunk.glb",
+   "sizeKB": 6.8,
+   "triangles": 52,
+   "boundingBox": [
+    0.2,
+    0.261,
+    0.2
+   ],
+   "boundsMin": [
+    -0.1,
+    0,
+    -0.1
+   ],
+   "boundsMax": [
+    0.1,
+    0.261,
+    0.1
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    0.6,
+    0.783,
+    0.6
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Tree stump."
+  },
+  {
+   "role": "snow",
+   "category": "nature",
+   "file": "models/holiday-kit/snow-patch.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "snow-flat.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/snow-flat.glb",
+   "sizeKB": 15.2,
+   "triangles": 168,
+   "boundingBox": [
+    1.857,
+    0.1,
+    1.448
+   ],
+   "boundsMin": [
+    -0.928,
+    0,
+    -0.724
+   ],
+   "boundsMax": [
+    0.928,
+    0.1,
+    0.724
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    3.714,
+    0.2,
+    2.896
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Flat snow patch to lay on terrain at higher altitude."
+  },
+  {
+   "role": "crate",
+   "category": "props",
+   "file": "models/platformer-kit/crate-wood.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "crate.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/crate.glb",
+   "sizeKB": 14,
+   "triangles": 156,
+   "boundingBox": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "boundsMin": [
+    -0.25,
+    0,
+    -0.25
+   ],
+   "boundsMax": [
+    0.25,
+    0.5,
+    0.25
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    1,
+    1,
+    1
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Wooden crate; pushable physics box."
+  },
+  {
+   "role": "crate",
+   "category": "props",
+   "file": "models/platformer-kit/crate-wood-banded.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "crate-strong.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/crate-strong.glb",
+   "sizeKB": 40.9,
+   "triangles": 428,
+   "boundingBox": [
+    0.6,
+    0.6,
+    0.6
+   ],
+   "boundsMin": [
+    -0.3,
+    0,
+    -0.3
+   ],
+   "boundsMax": [
+    0.3,
+    0.6,
+    0.3
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    1.2,
+    1.2,
+    1.2
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Heavier metal-banded crate."
+  },
+  {
+   "role": "barrel",
+   "category": "props",
+   "file": "models/platformer-kit/barrel-wood.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "barrel.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/barrel.glb",
+   "sizeKB": 13.8,
+   "triangles": 148,
+   "boundingBox": [
+    0.518,
+    0.476,
+    0.518
+   ],
+   "boundsMin": [
+    -0.259,
+    0,
+    -0.259
+   ],
+   "boundsMax": [
+    0.259,
+    0.476,
+    0.259
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    1.036,
+    0.952,
+    1.036
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Wooden barrel."
+  },
+  {
+   "role": "barrel",
+   "category": "props",
+   "file": "models/survival-kit/barrel-drum.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "barrel.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/barrel.glb",
+   "sizeKB": 33.5,
+   "triangles": 412,
+   "boundingBox": [
+    0.236,
+    0.344,
+    0.236
+   ],
+   "boundsMin": [
+    -0.118,
+    0,
+    -0.118
+   ],
+   "boundsMax": [
+    0.118,
+    0.344,
+    0.118
+   ],
+   "suggestedScale": 2.6,
+   "scaledBoundingBox": [
+    0.614,
+    0.894,
+    0.614
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Red/blue metal drum."
+  },
+  {
+   "role": "cone",
+   "category": "props",
+   "file": "models/car-kit/traffic-cone.glb",
+   "sourceKit": "car-kit",
+   "sourceModel": "cone.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/car-kit/Models/GLB format/cone.glb",
+   "sizeKB": 16.3,
+   "triangles": 172,
+   "boundingBox": [
+    0.476,
+    0.595,
+    0.476
+   ],
+   "boundsMin": [
+    -0.238,
+    0,
+    -0.238
+   ],
+   "boundsMax": [
+    0.238,
+    0.595,
+    0.238
+   ],
+   "suggestedScale": 1,
+   "scaledBoundingBox": [
+    0.476,
+    0.595,
+    0.476
+   ],
+   "texture": "models/car-kit/Textures/colormap.png",
+   "notes": "Traffic cone at the jeep's scale."
+  },
+  {
+   "role": "barrier",
+   "category": "props",
+   "file": "models/city-kit-roads/barrier-concrete.glb",
+   "sourceKit": "city-kit-roads",
+   "sourceModel": "construction-barrier.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/city-kit-roads/Models/GLB format/construction-barrier.glb",
+   "sizeKB": 6.9,
+   "triangles": 60,
+   "boundingBox": [
+    0.135,
+    0.13,
+    0.225
+   ],
+   "boundsMin": [
+    -0.068,
+    0,
+    -0.112
+   ],
+   "boundsMax": [
+    0.068,
+    0.13,
+    0.112
+   ],
+   "suggestedScale": 6,
+   "scaledBoundingBox": [
+    0.81,
+    0.78,
+    1.35
+   ],
+   "texture": "models/city-kit-roads/Textures/colormap.png",
+   "notes": "Concrete road barrier. City-kit-roads props are tiny native (0.13 m tall); scale x6."
+  },
+  {
+   "role": "fence",
+   "category": "props",
+   "file": "models/platformer-kit/fence-wood.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "fence-straight.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/fence-straight.glb",
+   "sizeKB": 6.3,
+   "triangles": 48,
+   "boundingBox": [
+    1,
+    0.4,
+    0.14
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    0.35
+   ],
+   "boundsMax": [
+    0.5,
+    0.4,
+    0.49
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    2.5,
+    1,
+    0.35
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Wooden fence section, 1 m native."
+  },
+  {
+   "role": "fence",
+   "category": "props",
+   "file": "models/platformer-kit/fence-rope.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "fence-rope.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/fence-rope.glb",
+   "sizeKB": 18.1,
+   "triangles": 180,
+   "boundingBox": [
+    0.95,
+    0.3,
+    0.21
+   ],
+   "boundsMin": [
+    -0.475,
+    0,
+    -0.105
+   ],
+   "boundsMax": [
+    0.475,
+    0.3,
+    0.105
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    2.375,
+    0.75,
+    0.525
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Rope fence with posts."
+  },
+  {
+   "role": "flag",
+   "category": "props",
+   "file": "models/platformer-kit/flag-pennant-red.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "flag.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/flag.glb",
+   "sizeKB": 11.1,
+   "triangles": 110,
+   "boundingBox": [
+    0.423,
+    0.9,
+    0.112
+   ],
+   "boundsMin": [
+    -0.056,
+    0,
+    -0.056
+   ],
+   "boundsMax": [
+    0.367,
+    0.9,
+    0.056
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.057,
+    2.25,
+    0.28
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Red flag on a post; zone marker."
+  },
+  {
+   "role": "flag",
+   "category": "props",
+   "file": "models/minigolf-kit/banner-darchog-blue.glb",
+   "sourceKit": "minigolf-kit",
+   "sourceModel": "flag-large-blue.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/minigolf-kit/Models/GLB format/flag-large-blue.glb",
+   "sizeKB": 9.2,
+   "triangles": 86,
+   "boundingBox": [
+    0.296,
+    1.025,
+    0.078
+   ],
+   "boundsMin": [
+    -0.257,
+    0,
+    -0.039
+   ],
+   "boundsMax": [
+    0.039,
+    1.025,
+    0.039
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    1.184,
+    4.1,
+    0.312
+   ],
+   "texture": "models/minigolf-kit/Textures/colormap.png",
+   "notes": "Vertical banner on a white pole; group several as darchog (vertical prayer flag) poles."
+  },
+  {
+   "role": "flag",
+   "category": "props",
+   "file": "models/minigolf-kit/banner-darchog-red.glb",
+   "sourceKit": "minigolf-kit",
+   "sourceModel": "flag-large-red.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/minigolf-kit/Models/GLB format/flag-large-red.glb",
+   "sizeKB": 9.2,
+   "triangles": 86,
+   "boundingBox": [
+    0.296,
+    1.025,
+    0.078
+   ],
+   "boundsMin": [
+    -0.257,
+    0,
+    -0.039
+   ],
+   "boundsMax": [
+    0.039,
+    1.025,
+    0.039
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    1.184,
+    4.1,
+    0.312
+   ],
+   "texture": "models/minigolf-kit/Textures/colormap.png",
+   "notes": "Red version of the vertical banner."
+  },
+  {
+   "role": "flag",
+   "category": "props",
+   "file": "models/minigolf-kit/banner-darchog-green.glb",
+   "sourceKit": "minigolf-kit",
+   "sourceModel": "flag-large-green.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/minigolf-kit/Models/GLB format/flag-large-green.glb",
+   "sizeKB": 9.2,
+   "triangles": 86,
+   "boundingBox": [
+    0.296,
+    1.025,
+    0.078
+   ],
+   "boundsMin": [
+    -0.257,
+    0,
+    -0.039
+   ],
+   "boundsMax": [
+    0.039,
+    1.025,
+    0.039
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    1.184,
+    4.1,
+    0.312
+   ],
+   "texture": "models/minigolf-kit/Textures/colormap.png",
+   "notes": "Green version of the vertical banner."
+  },
+  {
+   "role": "flag",
+   "category": "props",
+   "file": "models/holiday-kit/pole-prayer-flag-mast.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "festivus-pole.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/festivus-pole.glb",
+   "sizeKB": 7.1,
+   "triangles": 62,
+   "boundingBox": [
+    0.5,
+    1.4,
+    0.5
+   ],
+   "boundsMin": [
+    -0.25,
+    0,
+    -0.25
+   ],
+   "boundsMax": [
+    0.25,
+    1.4,
+    0.25
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    1.5,
+    4.2,
+    1.5
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Plain pole on a base; anchor for procedurally generated prayer-flag strings (no Kenney prayer-flag string exists)."
+  },
+  {
+   "role": "signpost",
+   "category": "props",
+   "file": "models/survival-kit/signpost-arrows.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "signpost.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/signpost.glb",
+   "sizeKB": 5.8,
+   "triangles": 44,
+   "boundingBox": [
+    0.214,
+    0.46,
+    0.043
+   ],
+   "boundsMin": [
+    -0.112,
+    0,
+    -0.018
+   ],
+   "boundsMax": [
+    0.102,
+    0.46,
+    0.025
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    0.856,
+    1.84,
+    0.172
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Post with two arrow boards; zone direction sign."
+  },
+  {
+   "role": "signpost",
+   "category": "props",
+   "file": "models/platformer-kit/sign-board.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "sign.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/sign.glb",
+   "sizeKB": 8.6,
+   "triangles": 76,
+   "boundingBox": [
+    0.483,
+    0.6,
+    0.131
+   ],
+   "boundsMin": [
+    -0.245,
+    0,
+    -0.056
+   ],
+   "boundsMax": [
+    0.239,
+    0.6,
+    0.075
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1.208,
+    1.5,
+    0.328
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Wooden board sign; put zone titles on it as a decal or text mesh."
+  },
+  {
+   "role": "ramp",
+   "category": "props",
+   "file": "models/platformer-kit/ramp-wood.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "platform-ramp.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/platform-ramp.glb",
+   "sizeKB": 9.9,
+   "triangles": 84,
+   "boundingBox": [
+    1,
+    0.57,
+    1.027
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "boundsMax": [
+    0.5,
+    0.57,
+    0.527
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    2.5,
+    1.425,
+    2.567
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Wooden slat ramp."
+  },
+  {
+   "role": "ramp",
+   "category": "props",
+   "file": "models/mini-skate/ramp-kicker.glb",
+   "sourceKit": "mini-skate",
+   "sourceModel": "obstacle-end.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-skate/Models/GLB format/obstacle-end.glb",
+   "sizeKB": 10.1,
+   "triangles": 94,
+   "boundingBox": [
+    1,
+    0.3,
+    0.5
+   ],
+   "boundsMin": [
+    -1,
+    0,
+    0
+   ],
+   "boundsMax": [
+    0,
+    0.3,
+    0.5
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    4,
+    1.2,
+    2
+   ],
+   "texture": "models/mini-skate/Textures/colormap.png",
+   "notes": "Curved kicker; best car jump."
+  },
+  {
+   "role": "ramp",
+   "category": "props",
+   "file": "models/mini-skate/ramp-funbox.glb",
+   "sourceKit": "mini-skate",
+   "sourceModel": "obstacle-box.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-skate/Models/GLB format/obstacle-box.glb",
+   "sizeKB": 4.4,
+   "triangles": 28,
+   "boundingBox": [
+    1,
+    0.2,
+    1
+   ],
+   "boundsMin": [
+    -0.5,
+    -0.05,
+    -0.5
+   ],
+   "boundsMax": [
+    0.5,
+    0.15,
+    0.5
+   ],
+   "suggestedScale": 5,
+   "scaledBoundingBox": [
+    5,
+    1,
+    5
+   ],
+   "texture": "models/mini-skate/Textures/colormap.png",
+   "notes": "Low pyramid funbox."
+  },
+  {
+   "role": "lamp-post",
+   "category": "props",
+   "file": "models/holiday-kit/lamp-post-lantern.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "lantern.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/lantern.glb",
+   "sizeKB": 17.2,
+   "triangles": 172,
+   "boundingBox": [
+    0.525,
+    1.737,
+    0.455
+   ],
+   "boundsMin": [
+    -0.263,
+    0,
+    -0.227
+   ],
+   "boundsMax": [
+    0.263,
+    1.737,
+    0.227
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    1.05,
+    3.474,
+    0.91
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Vintage lantern lamp post; add a PointLight at the lamp head."
+  },
+  {
+   "role": "lamp-post",
+   "category": "props",
+   "file": "models/city-kit-roads/lamp-post-street.glb",
+   "sourceKit": "city-kit-roads",
+   "sourceModel": "light-curved.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/city-kit-roads/Models/GLB format/light-curved.glb",
+   "sizeKB": 9.3,
+   "triangles": 92,
+   "boundingBox": [
+    0.05,
+    0.675,
+    0.225
+   ],
+   "boundsMin": [
+    -0.025,
+    0,
+    -0.2
+   ],
+   "boundsMax": [
+    0.025,
+    0.675,
+    0.025
+   ],
+   "suggestedScale": 6,
+   "scaledBoundingBox": [
+    0.3,
+    4.05,
+    1.35
+   ],
+   "texture": "models/city-kit-roads/Textures/colormap.png",
+   "notes": "Modern curved street light for the campus/office road."
+  },
+  {
+   "role": "bench",
+   "category": "props",
+   "file": "models/holiday-kit/bench-wood.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "bench.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/bench.glb",
+   "sizeKB": 15.6,
+   "triangles": 160,
+   "boundingBox": [
+    1.121,
+    0.731,
+    0.632
+   ],
+   "boundsMin": [
+    -0.561,
+    0,
+    -0.316
+   ],
+   "boundsMax": [
+    0.561,
+    0.731,
+    0.316
+   ],
+   "suggestedScale": 1.4,
+   "scaledBoundingBox": [
+    1.569,
+    1.023,
+    0.885
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Wooden bench."
+  },
+  {
+   "role": "goal",
+   "category": "props",
+   "file": "models/toy-car-kit/goal-arch.glb",
+   "sourceKit": "toy-car-kit",
+   "sourceModel": "gate.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/toy-car-kit/Models/GLB format/gate.glb",
+   "sizeKB": 9.7,
+   "triangles": 104,
+   "boundingBox": [
+    1.55,
+    1.162,
+    0.3
+   ],
+   "boundsMin": [
+    -0.775,
+    0,
+    -0.15
+   ],
+   "boundsMax": [
+    0.775,
+    1.162,
+    0.15
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    4.65,
+    3.486,
+    0.9
+   ],
+   "texture": "models/toy-car-kit/Textures/colormap.png",
+   "notes": "Arch the car can drive through; stand-in for a goal. No Kenney goal post or net exists in these kits."
+  },
+  {
+   "role": "trophy",
+   "category": "props",
+   "file": "models/mini-arena/trophy-gold-cup.glb",
+   "sourceKit": "mini-arena",
+   "sourceModel": "trophy.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-arena/Models/GLB format/trophy.glb",
+   "sizeKB": 23.2,
+   "triangles": 244,
+   "boundingBox": [
+    0.569,
+    0.477,
+    0.452
+   ],
+   "boundsMin": [
+    -0.285,
+    0,
+    -0.226
+   ],
+   "boundsMax": [
+    0.285,
+    0.477,
+    0.226
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    1.707,
+    1.431,
+    1.356
+   ],
+   "texture": "models/mini-arena/Textures/colormap.png",
+   "notes": "Gold cup for the achievements zone."
+  },
+  {
+   "role": "trophy",
+   "category": "props",
+   "file": "models/mini-arena/pedestal-column.glb",
+   "sourceKit": "mini-arena",
+   "sourceModel": "column.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-arena/Models/GLB format/column.glb",
+   "sizeKB": 16.8,
+   "triangles": 168,
+   "boundingBox": [
+    0.603,
+    1,
+    0.6
+   ],
+   "boundsMin": [
+    -0.302,
+    0,
+    -0.3
+   ],
+   "boundsMax": [
+    0.302,
+    1,
+    0.3
+   ],
+   "suggestedScale": 1.5,
+   "scaledBoundingBox": [
+    0.904,
+    1.5,
+    0.9
+   ],
+   "texture": "models/mini-arena/Textures/colormap.png",
+   "notes": "Stone column; trophy pedestal."
+  },
+  {
+   "role": "trophy",
+   "category": "props",
+   "file": "models/platformer-kit/award-star.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "star.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/star.glb",
+   "sizeKB": 6.1,
+   "triangles": 30,
+   "boundingBox": [
+    0.365,
+    0.363,
+    0.239
+   ],
+   "boundsMin": [
+    -0.182,
+    0,
+    -0.119
+   ],
+   "boundsMax": [
+    0.182,
+    0.363,
+    0.119
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    1.095,
+    1.089,
+    0.717
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Gold star; floating achievement badge."
+  },
+  {
+   "role": "collectible",
+   "category": "props",
+   "file": "models/platformer-kit/coin-gold.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "coin-gold.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/coin-gold.glb",
+   "sizeKB": 10.4,
+   "triangles": 124,
+   "boundingBox": [
+    0.4,
+    0.4,
+    0.175
+   ],
+   "boundsMin": [
+    -0.2,
+    0,
+    -0.087
+   ],
+   "boundsMax": [
+    0.2,
+    0.4,
+    0.087
+   ],
+   "suggestedScale": 2.5,
+   "scaledBoundingBox": [
+    1,
+    1,
+    0.438
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Gold coin collectible."
+  },
+  {
+   "role": "ball",
+   "category": "props",
+   "file": "models/minigolf-kit/ball-red.glb",
+   "sourceKit": "minigolf-kit",
+   "sourceModel": "ball-red.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/minigolf-kit/Models/GLB format/ball-red.glb",
+   "sizeKB": 57,
+   "triangles": 572,
+   "boundingBox": [
+    0.07,
+    0.07,
+    0.07
+   ],
+   "boundsMin": [
+    -0.035,
+    -0.035,
+    -0.035
+   ],
+   "boundsMax": [
+    0.035,
+    0.035,
+    0.035
+   ],
+   "suggestedScale": 15,
+   "scaledBoundingBox": [
+    1.05,
+    1.05,
+    1.05
+   ],
+   "texture": "models/minigolf-kit/Textures/colormap.png",
+   "notes": "Golf ball (0.07 m native); scale x15 for a pushable 1 m ball."
+  },
+  {
+   "role": "brick",
+   "category": "props",
+   "file": "models/platformer-kit/brick-block.glb",
+   "sourceKit": "platformer-kit",
+   "sourceModel": "brick.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/platformer-kit/Models/GLB format/brick.glb",
+   "sizeKB": 21.9,
+   "triangles": 188,
+   "boundingBox": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "boundsMin": [
+    -0.25,
+    0,
+    -0.25
+   ],
+   "boundsMax": [
+    0.25,
+    0.5,
+    0.25
+   ],
+   "suggestedScale": 1.2,
+   "scaledBoundingBox": [
+    0.6,
+    0.6,
+    0.6
+   ],
+   "texture": "models/platformer-kit/Textures/colormap.png",
+   "notes": "Brick-pattern block; stack into a knock-down wall."
+  },
+  {
+   "role": "brick",
+   "category": "props",
+   "file": "models/mini-arena/bricks-rubble.glb",
+   "sourceKit": "mini-arena",
+   "sourceModel": "bricks.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-arena/Models/GLB format/bricks.glb",
+   "sizeKB": 12.9,
+   "triangles": 120,
+   "boundingBox": [
+    0.772,
+    0.412,
+    0.847
+   ],
+   "boundsMin": [
+    -0.386,
+    0,
+    -0.423
+   ],
+   "boundsMax": [
+    0.386,
+    0.412,
+    0.423
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    1.544,
+    0.824,
+    1.694
+   ],
+   "texture": "models/mini-arena/Textures/colormap.png",
+   "notes": "Loose brick pile; rubble next to the wall."
+  },
+  {
+   "role": "campfire",
+   "category": "props",
+   "file": "models/survival-kit/campfire.glb",
+   "sourceKit": "survival-kit",
+   "sourceModel": "campfire-pit.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/survival-kit/Models/GLB format/campfire-pit.glb",
+   "sizeKB": 25.8,
+   "triangles": 305,
+   "boundingBox": [
+    0.278,
+    0.109,
+    0.269
+   ],
+   "boundsMin": [
+    -0.139,
+    0,
+    -0.135
+   ],
+   "boundsMax": [
+    0.139,
+    0.109,
+    0.135
+   ],
+   "suggestedScale": 4,
+   "scaledBoundingBox": [
+    1.112,
+    0.436,
+    1.076
+   ],
+   "texture": "models/survival-kit/Textures/colormap.png",
+   "notes": "Campfire ring; centre of the contact zone."
+  },
+  {
+   "role": "bridge",
+   "category": "props",
+   "file": "models/mini-forest/bridge-wood-rope.glb",
+   "sourceKit": "mini-forest",
+   "sourceModel": "bridge.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-forest/Models/GLB format/bridge.glb",
+   "sizeKB": 31.7,
+   "triangles": 372,
+   "boundingBox": [
+    1.041,
+    0.473,
+    0.801
+   ],
+   "boundsMin": [
+    -0.521,
+    0,
+    -0.401
+   ],
+   "boundsMax": [
+    0.521,
+    0.473,
+    0.4
+   ],
+   "suggestedScale": 5,
+   "scaledBoundingBox": [
+    5.205,
+    2.365,
+    4.005
+   ],
+   "texture": "models/mini-forest/Textures/colormap.png",
+   "notes": "Wood-and-rope bridge for the river crossing (span along X)."
+  },
+  {
+   "role": "target",
+   "category": "props",
+   "file": "models/mini-forest/target-archery.glb",
+   "sourceKit": "mini-forest",
+   "sourceModel": "target.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-forest/Models/GLB format/target.glb",
+   "sizeKB": 17.3,
+   "triangles": 188,
+   "boundingBox": [
+    0.55,
+    0.581,
+    0.471
+   ],
+   "boundsMin": [
+    -0.275,
+    0,
+    -0.284
+   ],
+   "boundsMax": [
+    0.275,
+    0.581,
+    0.187
+   ],
+   "suggestedScale": 3,
+   "scaledBoundingBox": [
+    1.65,
+    1.743,
+    1.413
+   ],
+   "texture": "models/mini-forest/Textures/colormap.png",
+   "notes": "Archery target for the playground."
+  },
+  {
+   "role": "campus-building",
+   "category": "buildings",
+   "file": "models/city-kit-suburban/building-campus-main.glb",
+   "sourceKit": "city-kit-suburban",
+   "sourceModel": "building-type-n.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/city-kit-suburban/Models/GLB format/building-type-n.glb",
+   "sizeKB": 136.2,
+   "triangles": 1612,
+   "boundingBox": [
+    1.784,
+    1.138,
+    1.378
+   ],
+   "boundsMin": [
+    -0.892,
+    0,
+    -0.689
+   ],
+   "boundsMax": [
+    0.892,
+    1.138,
+    0.689
+   ],
+   "suggestedScale": 8,
+   "scaledBoundingBox": [
+    14.272,
+    9.104,
+    11.024
+   ],
+   "texture": "models/city-kit-suburban/Textures/colormap.png",
+   "notes": "Multi-wing building with green sloped roofs; main campus block."
+  },
+  {
+   "role": "campus-building",
+   "category": "buildings",
+   "file": "models/city-kit-suburban/building-campus-hostel.glb",
+   "sourceKit": "city-kit-suburban",
+   "sourceModel": "building-type-t.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/city-kit-suburban/Models/GLB format/building-type-t.glb",
+   "sizeKB": 163.6,
+   "triangles": 2062,
+   "boundingBox": [
+    1.314,
+    1.156,
+    1.406
+   ],
+   "boundsMin": [
+    -0.664,
+    0,
+    -0.703
+   ],
+   "boundsMax": [
+    0.65,
+    1.156,
+    0.703
+   ],
+   "suggestedScale": 8,
+   "scaledBoundingBox": [
+    10.512,
+    9.248,
+    11.248
+   ],
+   "texture": "models/city-kit-suburban/Textures/colormap.png",
+   "notes": "Two-storey building with dormer; hostel or second campus block."
+  },
+  {
+   "role": "office",
+   "category": "buildings",
+   "file": "models/city-kit-commercial/building-office.glb",
+   "sourceKit": "city-kit-commercial",
+   "sourceModel": "building-k.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/city-kit-commercial/Models/GLB format/building-k.glb",
+   "sizeKB": 241.2,
+   "triangles": 2960,
+   "boundingBox": [
+    2.084,
+    1.47,
+    0.942
+   ],
+   "boundsMin": [
+    -1.042,
+    0,
+    -0.471
+   ],
+   "boundsMax": [
+    1.042,
+    1.47,
+    0.471
+   ],
+   "suggestedScale": 8,
+   "scaledBoundingBox": [
+    16.672,
+    11.76,
+    7.536
+   ],
+   "texture": "models/city-kit-commercial/Textures/colormap.png",
+   "notes": "Long four-storey office block (experience zone)."
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-floor.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "floor-wood.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/floor-wood.glb",
+   "sizeKB": 10.4,
+   "triangles": 112,
+   "boundingBox": [
+    1,
+    0.075,
+    1
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "boundsMax": [
+    0.5,
+    0.075,
+    0.5
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    2,
+    0.15,
+    2
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Log-hut kit, 1 m grid. Assemble with manifest.hutRecipe."
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-wall.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "cabin-wall.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/cabin-wall.glb",
+   "sizeKB": 8.1,
+   "triangles": 84,
+   "boundingBox": [
+    1,
+    1,
+    0.3
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    0.35
+   ],
+   "boundsMax": [
+    0.5,
+    1,
+    0.65
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    2,
+    2,
+    0.6
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Log wall on the +Z edge of a 1 m cell; rotate around Y for other edges."
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-wall-window.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "cabin-window-a.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/cabin-window-a.glb",
+   "sizeKB": 21.4,
+   "triangles": 248,
+   "boundingBox": [
+    1,
+    1,
+    0.545
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    0.3
+   ],
+   "boundsMax": [
+    0.5,
+    1,
+    0.845
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    2,
+    2,
+    1.09
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Log wall with green window."
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-wall-door.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "cabin-door-rotate.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/cabin-door-rotate.glb",
+   "sizeKB": 26.6,
+   "triangles": 252,
+   "boundingBox": [
+    1,
+    1,
+    0.4
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    0.3
+   ],
+   "boundsMax": [
+    0.5,
+    1,
+    0.7
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    2,
+    2,
+    0.8
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Log wall with a door node 'door' and clips open / close / open-and-close.",
+   "animations": [
+    "open",
+    "close",
+    "open-and-close"
+   ]
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-corner-logs.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "cabin-corner-logs.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/cabin-corner-logs.glb",
+   "sizeKB": 15.2,
+   "triangles": 168,
+   "boundingBox": [
+    0.35,
+    1,
+    0.35
+   ],
+   "boundsMin": [
+    -0.7,
+    0,
+    0.35
+   ],
+   "boundsMax": [
+    -0.35,
+    1,
+    0.7
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    0.7,
+    2,
+    0.7
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Corner log post at the (-X,+Z) corner of a cell."
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-gable-half.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "cabin-wall-roof.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/cabin-wall-roof.glb",
+   "sizeKB": 8.1,
+   "triangles": 84,
+   "boundingBox": [
+    1,
+    1,
+    0.3
+   ],
+   "boundsMin": [
+    -0.5,
+    0,
+    0.35
+   ],
+   "boundsMax": [
+    0.5,
+    1,
+    0.65
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    2,
+    2,
+    0.6
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Right-triangle half gable (45 deg); mirror with scale.x=-1 for the other half."
+  },
+  {
+   "role": "hut-piece",
+   "category": "buildings",
+   "file": "models/holiday-kit/hut-roof-snow.glb",
+   "sourceKit": "holiday-kit",
+   "sourceModel": "cabin-roof-snow.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/holiday-kit/Models/GLB format/cabin-roof-snow.glb",
+   "sizeKB": 12.1,
+   "triangles": 116,
+   "boundingBox": [
+    1.311,
+    1.478,
+    1.4
+   ],
+   "boundsMin": [
+    -0.5,
+    -0.141,
+    -0.7
+   ],
+   "boundsMax": [
+    0.811,
+    1.337,
+    0.7
+   ],
+   "suggestedScale": 2,
+   "scaledBoundingBox": [
+    2.622,
+    2.956,
+    2.8
+   ],
+   "texture": "models/holiday-kit/Textures/colormap.png",
+   "notes": "Single-slope snowy roof for one 1 m cell; ridge at local x=-0.5."
+  },
+  {
+   "role": "avatar",
+   "category": "character",
+   "file": "models/mini-characters/avatar-male.glb",
+   "sourceKit": "mini-characters",
+   "sourceModel": "character-male-a.glb",
+   "sourcePath": "/tmp/portfolio-assets/kenney/mini-characters/Models/GLB format/character-male-a.glb",
+   "sizeKB": 241.1,
+   "triangles": 723,
+   "boundingBox": [
+    0.767,
+    0.671,
+    0.34
+   ],
+   "boundsMin": [
+    -0.384,
+    0,
+    -0.172
+   ],
+   "boundsMax": [
+    0.384,
+    0.671,
+    0.168
+   ],
+   "suggestedScale": 1.7,
+   "scaledBoundingBox": [
+    1.304,
+    1.141,
+    0.578
+   ],
+   "texture": "models/mini-characters/Textures/colormap.png",
+   "notes": "Avatar: smiling, black hair, round glasses, green tee; faces +Z. Skinned (7 joints) with 32 clips. No 'wave' clip: play 'idle' and add a sine rotation on bone 'arm-right' each frame, or loop 'interact-right' (the clip that moves arm-right the most). Every mini-characters model shares this rig and clip set, so swapping the look is a file change (friendly alternatives: character-female-e, character-male-d; character-male-f has a frowning face).",
+   "animations": [
+    "static",
+    "idle",
+    "walk",
+    "sprint",
+    "jump",
+    "fall",
+    "crouch",
+    "sit",
+    "drive",
+    "die",
+    "pick-up",
+    "emote-yes",
+    "emote-no",
+    "holding-right",
+    "holding-left",
+    "holding-both",
+    "holding-right-shoot",
+    "holding-left-shoot",
+    "holding-both-shoot",
+    "attack-melee-right",
+    "attack-melee-left",
+    "attack-kick-right",
+    "attack-kick-left",
+    "interact-right",
+    "interact-left",
+    "wheelchair-sit",
+    "wheelchair-look-left",
+    "wheelchair-look-right",
+    "wheelchair-move-forward",
+    "wheelchair-move-back",
+    "wheelchair-move-left",
+    "wheelchair-move-right"
+   ],
+   "skinJoints": 7,
+   "bones": [
+    "root",
+    "leg-left",
+    "leg-right",
+    "torso",
+    "arm-left",
+    "arm-right",
+    "head"
+   ]
+  }
+ ],
+ "totals": {
+  "models": 67,
+  "kits": 13,
+  "filesExcludingManifest": 93,
+  "glbKB": 2321.4,
+  "texturesKB": 128.3,
+  "licensesKB": 9,
+  "totalKBExcludingManifest": 2458.7
+ }
+}

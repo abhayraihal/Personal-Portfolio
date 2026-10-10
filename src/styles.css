@@ -1,0 +1,15 @@
+/* PLACEHOLDER styles (spine). The UI module replaces this file. */
+@font-face { font-family: 'Lilita One'; src: url('/fonts/lilita-one-latin-400-normal.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'Rubik'; src: url('/fonts/rubik-latin-400-normal.woff') format('woff'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Rubik'; src: url('/fonts/rubik-latin-700-normal.woff') format('woff'); font-weight: 700; font-display: swap; }
+html, body, #root { margin: 0; height: 100%; overflow: hidden; background: #cfe2dc; font-family: Rubik, system-ui, sans-serif; color: #23262d; }
+.scene { position: fixed !important; inset: 0; }
+.ui { position: fixed; inset: 0; pointer-events: none; }
+.card { pointer-events: auto; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #fff6e8; padding: 24px 28px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.2); max-width: 460px; }
+.card h1 { font-family: 'Lilita One', sans-serif; margin: 0 0 4px; }
+.start { margin-top: 12px; font: inherit; padding: 10px 18px; border-radius: 10px; border: 0; background: #e2557f; color: white; cursor: pointer; }
+.start:disabled { opacity: .6; cursor: wait; }
+.prompt { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); background: #23262d; color: white; padding: 8px 14px; border-radius: 10px; }
+.panel { pointer-events: auto; position: absolute; right: 16px; top: 16px; bottom: 16px; width: 380px; overflow: auto; background: #fff6e8; padding: 16px 20px; border-radius: 16px; }
+.toasts { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); }
+.toasts div { background: #23262d; color: #fff; padding: 6px 12px; border-radius: 8px; margin-bottom: 6px; }
