@@ -18,7 +18,7 @@ export const env = {
 export const LOOK = {
   day: {
     fog: new Color('#cfe3dd'),
-    skyLow: new Color('#bfe0ee'), // sky gradient above the fog-coloured horizon
+    skyLow: new Color(COLORS.sky), // sky gradient above the fog-coloured horizon
     skyTop: new Color('#93c6e6'),
     hemiSky: new Color('#d6eaff'),
     hemiGround: new Color('#8e9866'),

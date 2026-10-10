@@ -16,6 +16,7 @@ const CENTER: [number, number] = [SPAWN.u, SPAWN.v + 26]; // the idle camera's f
 const R0 = 330; // m from CENTER to the front edge of the band
 const R1 = 470; // back edge, inside the camera's 600 m far plane from the idle camera
 const SPAN = 82; // degrees either side of screen-up
+const DEG = Math.PI / 180;
 const COLS = 170;
 const ROWS = 14;
 
@@ -25,7 +26,7 @@ const PEAKS = (() => {
   const out: { u: number; v: number; h: number; w: number }[] = [];
   for (let a = -SPAN + 3; a < SPAN; a += range(r, 8, 15)) {
     const rho = range(r, R0 + 45, R1 - 40);
-    const t = (a * Math.PI) / 180;
+    const t = a * DEG;
     out.push({ u: CENTER[0] + Math.sin(t) * rho, v: CENTER[1] + Math.cos(t) * rho, h: range(r, 58, 112), w: range(r, 48, 80) });
   }
   return out;
@@ -50,7 +51,7 @@ function buildGeometry(): BufferGeometry {
       // Jitter breaks the polar grid into irregular facets.
       const jt = (vnoise(i * 1.7, j * 2.3) - 0.5) * 0.7;
       const jr = (vnoise(i * 2.9 + 40, j * 1.3) - 0.5) * 7;
-      const a = ((-SPAN + ((i + jt) / COLS) * 2 * SPAN) * Math.PI) / 180;
+      const a = (-SPAN + ((i + jt) / COLS) * 2 * SPAN) * DEG;
       const rho = clamp(R0 + (j / ROWS) * (R1 - R0) + jr, R0, R1);
       const u = CENTER[0] + Math.sin(a) * rho;
       const v = CENTER[1] + Math.cos(a) * rho;
@@ -149,7 +150,7 @@ export function FarRange() {
   const night = useMemo(() => ({ rock: new Color('#2a3150'), pine: new Color('#16243a'), snow: new Color('#8fa3d6') }), []);
   const ref = useRef<Mesh>(null);
   useFrame(() => {
-    if (ref.current) ref.current.visible = env.topEdge.value > -0.05;
+    if (ref.current) ref.current.visible = env.topEdge.value > -3 * DEG;
   });
   return (
     <mesh
