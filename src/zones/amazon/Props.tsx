@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { AdditiveBlending, CanvasTexture, Euler, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
 import type { InstancedMesh } from 'three';
+import { CAMERA } from '../../config/world.ts';
 import { useStore } from '../../state/store.ts';
 import { ModelInstances } from './Instances.tsx';
 import type { Placement } from './Instances.tsx';
@@ -34,52 +35,63 @@ const _e = new Euler();
 const _p = new Vector3();
 const _s = new Vector3();
 
-function poolTexture() {
+function glowTexture(inner: string, outer: string) {
   const c = document.createElement('canvas');
   c.width = c.height = 64;
   const g = c.getContext('2d')!;
   const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  grad.addColorStop(0, 'rgba(255, 206, 128, 0.5)');
-  grad.addColorStop(1, 'rgba(255, 214, 140, 0)');
+  grad.addColorStop(0, inner);
+  grad.addColorStop(1, outer);
   g.fillStyle = grad;
   g.fillRect(0, 0, 64, 64);
   return new CanvasTexture(c);
 }
 
-// Night: warm bulbs under the lamp heads and soft pools of light on the paving (no real lights).
+const additive = (map: CanvasTexture) => new MeshBasicMaterial({ map, transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false });
+
+// Night: warm bulbs under the lamp heads, a halo round each bulb and soft pools of light on the
+// paving (no real lights). The camera never turns, so the halos are fixed quads facing it.
 function LampGlow() {
   const night = useStore((s) => s.night);
   const bulbs = useRef<InstancedMesh>(null);
+  const halos = useRef<InstancedMesh>(null);
   const pools = useRef<InstancedMesh>(null);
   const mats = useMemo(() => ({
     bulb: new MeshBasicMaterial({ color: '#fff1c4', toneMapped: false }),
-    pool: new MeshBasicMaterial({ map: poolTexture(), transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false }),
+    halo: additive(glowTexture('rgba(255, 226, 170, 0.75)', 'rgba(255, 200, 120, 0)')),
+    pool: additive(glowTexture('rgba(255, 206, 128, 0.5)', 'rgba(255, 214, 140, 0)')),
   }), []);
   useEffect(() => () => {
-    mats.pool.map?.dispose();
-    mats.bulb.dispose();
-    mats.pool.dispose();
+    for (const m of Object.values(mats)) {
+      m.map?.dispose();
+      m.dispose();
+    }
   }, [mats]);
   useLayoutEffect(() => {
     const b = bulbs.current;
+    const h = halos.current;
     const pl = pools.current;
-    if (!b || !pl) return;
+    if (!b || !h || !pl) return;
     LAMPS.forEach((l, i) => {
       _q.setFromEuler(_e.set(0, l.ry ?? 0, 0));
       _p.copy(HEAD).applyQuaternion(_q).add(_s.set(l.p[0], l.p[1], l.p[2]));
       b.setMatrixAt(i, _m.compose(_p, _q, _s.set(1, 1, 1)));
+      h.setMatrixAt(i, _m.compose(_p, _q.setFromEuler(_e.set(-CAMERA.elevation, 0, 0)), _s.set(1, 1, 1)));
       _p.y = 0.05;
       pl.setMatrixAt(i, _m.compose(_p, _q.setFromEuler(_e.set(-Math.PI / 2, 0, 0)), _s.set(1, 1, 1)));
     });
-    b.instanceMatrix.needsUpdate = true;
-    pl.instanceMatrix.needsUpdate = true;
-    b.computeBoundingSphere();
-    pl.computeBoundingSphere();
+    for (const m of [b, h, pl]) {
+      m.instanceMatrix.needsUpdate = true;
+      m.computeBoundingSphere();
+    }
   }, []);
   return (
     <>
       <instancedMesh ref={bulbs} args={[undefined, mats.bulb, LAMPS.length]} visible={night}>
         <sphereGeometry args={[0.22, 10, 8]} />
+      </instancedMesh>
+      <instancedMesh ref={halos} args={[undefined, mats.halo, LAMPS.length]} visible={night}>
+        <planeGeometry args={[1.9, 1.9]} />
       </instancedMesh>
       <instancedMesh ref={pools} args={[undefined, mats.pool, LAMPS.length]} visible={night}>
         <planeGeometry args={[7, 7]} />
