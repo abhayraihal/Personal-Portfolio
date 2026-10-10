@@ -146,7 +146,7 @@ export function Minimap() {
       </button>
       {open && (
         <div className="minimap__body" id="minimap-body">
-          <svg className="minimap__svg" viewBox={VIEW} role="group" aria-label="Zones. Choose one to drive there.">
+          <svg className="minimap__svg" viewBox={VIEW} role="group" aria-label="Zones. Choose one to jump there.">
             <rect className="mm-ground" x={BOUNDS.u0} y={-BOUNDS.v1} width={BOUNDS.u1 - BOUNDS.u0} height={BOUNDS.v1 - BOUNDS.v0} rx="14" />
             <polyline className="mm-stream" points={points(STREAM.points)} strokeWidth={STREAM.width} stroke={COLORS.water} />
             {ROADS.map((r) => (
