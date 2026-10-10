@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import { CanvasTexture, DoubleSide, Euler, Matrix4, MeshStandardMaterial, PlaneGeometry, Quaternion, SRGBColorSpace, Vector3 } from 'three';
 import type { BufferAttribute, Group, InstancedMesh, Mesh } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../../components/Label.tsx';
 import { modelScale, useMerged } from '../../../components/Model.tsx';
 import { COLORS } from '../../../config/palette.ts';
@@ -61,7 +62,7 @@ const _s = new Vector3();
 
 type FlagKind = 'japan' | 'us' | 'brazil';
 
-function drawFlag(kind: FlagKind) {
+function drawFlag(kind: FlagKind): HTMLCanvasElement {
   const W = 192;
   const H = 128;
   const c = document.createElement('canvas');
@@ -117,21 +118,50 @@ function drawFlag(kind: FlagKind) {
     g.arc(W / 2 - 4, H * 0.95, H * 0.5, Math.PI * 1.32, Math.PI * 1.72);
     g.stroke();
   }
+  return c;
+}
+
+const KINDS: FlagKind[] = ['japan', 'us', 'brazil'];
+
+// The three flags side by side in one texture.
+function flagAtlas() {
+  const cells = KINDS.map(drawFlag);
+  const c = document.createElement('canvas');
+  c.width = cells[0].width * cells.length;
+  c.height = cells[0].height;
+  const g = c.getContext('2d')!;
+  cells.forEach((cell, i) => g.drawImage(cell, i * cell.width, 0));
   const t = new CanvasTexture(c);
   t.colorSpace = SRGBColorSpace;
   return t;
 }
 
-// Flag cloth on the right of its mast; it ripples (vertex update on a 10 x 2 plane) unless motion
-// is reduced.
-function Flag({ kind, phase }: { kind: FlagKind; phase: number }) {
+// The three cloths, each on the right of its mast, as one mesh on one texture. They ripple (vertex
+// update on 10 x 2 planes) unless motion is reduced.
+function FlagCloths() {
   const cloth = useRef<Mesh>(null);
-  const { geometry, material, base } = useMemo(() => {
-    const geo = new PlaneGeometry(CLOTH.w, CLOTH.h, 10, 1);
-    geo.translate(CLOTH.w / 2, 0, 0);
-    const mat = new MeshStandardMaterial({ map: drawFlag(kind), roughness: 0.9, side: DoubleSide });
-    return { geometry: geo, material: mat, base: Float32Array.from(geo.attributes.position.array as Float32Array) };
-  }, [kind]);
+  const { geometry, material, localX, phase } = useMemo(() => {
+    const parts = MAST_X.map((x, i) => {
+      const geo = new PlaneGeometry(CLOTH.w, CLOTH.h, 10, 1);
+      const uv = geo.attributes.uv;
+      // Inset a little, so a cloth's edge never samples the next flag in the texture.
+      for (let k = 0; k < uv.count; k++) uv.setX(k, (i + 0.01 + uv.getX(k) * 0.98) / KINDS.length);
+      return geo.translate(x + 0.04 + CLOTH.w / 2, STAND.h + CLOTH.y, 0);
+    });
+    const geo = mergeGeometries(parts, false) ?? parts[0];
+    for (const p of parts) if (p !== geo) p.dispose();
+    const pos = geo.attributes.position;
+    const per = pos.count / MAST_X.length;
+    const lx = new Float32Array(pos.count);
+    const ph = new Float32Array(pos.count);
+    for (let k = 0; k < pos.count; k++) {
+      const f = Math.floor(k / per);
+      lx[k] = pos.getX(k) - (MAST_X[f] + 0.04);
+      ph[k] = f * 1.3;
+    }
+    const mat = new MeshStandardMaterial({ map: flagAtlas(), roughness: 0.9, side: DoubleSide });
+    return { geometry: geo, material: mat, localX: lx, phase: ph };
+  }, []);
   useEffect(() => () => {
     geometry.dispose();
     material.map?.dispose();
@@ -141,19 +171,18 @@ function Flag({ kind, phase }: { kind: FlagKind; phase: number }) {
     if (useStore.getState().reducedMotion || !cloth.current) return;
     const pos = geometry.attributes.position as BufferAttribute;
     const arr = pos.array as Float32Array;
-    const t = clock.elapsedTime * 3.2 + phase;
+    const t = clock.elapsedTime * 3.2;
     for (let i = 0; i < pos.count; i++) {
-      const x = base[i * 3];
-      arr[i * 3 + 2] = Math.sin(x * 5.5 - t) * 0.07 * (x / CLOTH.w);
+      const x = localX[i];
+      arr[i * 3 + 2] = Math.sin(x * 5.5 - t - phase[i]) * 0.07 * (x / CLOTH.w);
     }
     pos.needsUpdate = true;
   });
-  return <mesh ref={cloth} geometry={geometry} material={material} position={[0.04, CLOTH.y, 0]} />;
+  return <mesh ref={cloth} geometry={geometry} material={material} />;
 }
 
 // The three launch countries: masts on a slate bar, names on the bar, flags flying to the right.
 function FlagStand() {
-  const kinds = ['japan', 'us', 'brazil'] as const;
   return (
     <group position={[0, 0, STAND.z]}>
       <Static>
@@ -169,13 +198,11 @@ function FlagStand() {
           </group>
         ))}
       </Static>
+      <FlagCloths />
       {MAST_X.map((x, i) => (
-        <group key={x} position={[x, STAND.h, 0]}>
-          <Flag kind={kinds[i]} phase={i * 1.3} />
-          <Label font="bodyBold" size={0.24} color="#ffffff" position={[0.06 + CLOTH.w / 2, -STAND.h / 2, STAND.d / 2 + 0.01]}>
-            {TOY_TEXT.flags[i]}
-          </Label>
-        </group>
+        <Label key={x} font="bodyBold" size={0.24} color="#ffffff" position={[x + 0.06 + CLOTH.w / 2, STAND.h / 2, STAND.d / 2 + 0.01]}>
+          {TOY_TEXT.flags[i]}
+        </Label>
       ))}
     </group>
   );

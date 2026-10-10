@@ -1,12 +1,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Color, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
+import { BoxGeometry, Color, InstancedBufferAttribute, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import type { Group, InstancedMesh } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
 import { TOY_TEXT } from '../copy.ts';
+import { tinted } from '../geo.ts';
 import { M } from '../materials.ts';
 import { Static } from '../merge.tsx';
 import { StationBoard } from '../parts.tsx';
@@ -39,20 +41,30 @@ const BANNERS = [
 ];
 const BANNER_X = 2.95;
 const BANNER_Z = -1.85;
+const SWAY_Y = 2.3; // the three banners sway together about this height
+
+// The three banners as one mesh: one box each, coloured per vertex.
+function bannerGeometry() {
+  const parts = BANNERS.map((b) => tinted(new BoxGeometry(2.6, b.h, 0.06).translate(0, b.y - SWAY_Y, 0), b.color));
+  const merged = mergeGeometries(parts, false) ?? parts[0];
+  for (const p of parts) if (p !== merged) p.dispose();
+  return merged;
+}
 
 function Banners() {
-  const group = useRef<Group>(null);
-  const mats = useMemo(() => BANNERS.map((b) => new MeshStandardMaterial({ color: b.color, roughness: 0.85 })), []);
-  useEffect(() => () => mats.forEach((m) => m.dispose()), [mats]);
+  const sway = useRef<Group>(null);
+  const { geometry, material } = useMemo(() => ({ geometry: bannerGeometry(), material: new MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }) }), []);
+  useEffect(() => () => {
+    geometry.dispose();
+    material.dispose();
+  }, [geometry, material]);
   useFrame(({ clock }) => {
-    const g = group.current;
+    const g = sway.current;
     if (!g || useStore.getState().reducedMotion) return;
-    g.children.forEach((c, i) => {
-      if (c.userData.banner) c.rotation.z = Math.sin(clock.elapsedTime * 1.3 + i * 1.9) * 0.025;
-    });
+    g.rotation.z = Math.sin(clock.elapsedTime * 1.3) * 0.025;
   });
   return (
-    <group ref={group} position={[BANNER_X, 0, BANNER_Z]}>
+    <group position={[BANNER_X, 0, BANNER_Z]}>
       <Static>
         <mesh position={[0, 1.95, -0.1]} material={M.slate}>
           <boxGeometry args={[0.13, 3.9, 0.13]} />
@@ -61,16 +73,14 @@ function Banners() {
           <sphereGeometry args={[0.11, 12, 8]} />
         </mesh>
       </Static>
-      {BANNERS.map((b, i) => (
-        <group key={i} position={[0, b.y, 0]} userData={{ banner: true }}>
-          <mesh position={[0, 0, 0]} material={mats[i]} castShadow>
-            <boxGeometry args={[2.6, b.h, 0.06]} />
-          </mesh>
-          <Label font="bodyBold" size={0.3} color={b.text} lineHeight={0.38 / 0.3} textAlign="center" position={[0, 0, 0.035]}>
+      <group ref={sway} position={[0, SWAY_Y, 0]}>
+        <mesh geometry={geometry} material={material} castShadow />
+        {BANNERS.map((b, i) => (
+          <Label key={i} font="bodyBold" size={0.3} color={b.text} lineHeight={0.38 / 0.3} textAlign="center" position={[0, b.y - SWAY_Y, 0.035]}>
             {TOY_TEXT.peaks[i].join('\n')}
           </Label>
-        </group>
-      ))}
+        ))}
+      </group>
     </group>
   );
 }

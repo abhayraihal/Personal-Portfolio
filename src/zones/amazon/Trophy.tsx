@@ -16,7 +16,6 @@ import { FLOOR_Y } from './Floor.tsx';
 import { PAD_COLOR, TROPHY } from './layout.ts';
 import { M } from './materials.ts';
 import { Static } from './merge.tsx';
-import { ModelInstances } from './Instances.tsx';
 import type { Placement } from './Instances.tsx';
 import { at, easeOutCubic, frameDt, seg } from './shared.ts';
 
@@ -40,13 +39,14 @@ const _w = new Vector3();
 // then carries it clear of the island and on up the plaza.
 const ASIDE = { after: 0.3, hop: 2.6, slide: 1.5, turnRate: 6, maxSpin: 6, turnFor: 0.7, cooldown: 1.2 };
 
+// Plants in the flower bed, in plaza coordinates; Props draws them with the plaza's other plants.
 const BED: Placement[] = [];
+const [BX, , BZ] = at(TROPHY.u, TROPHY.v);
 for (let i = 0; i < 16; i++) {
   const a = (0.33 + (i / 15) * (2 - 0.66)) * Math.PI; // skips about 60 degrees at the front (+z)
-  BED.push({ p: [Math.sin(a) * BED_R, 0.02, Math.cos(a) * BED_R], ry: i * 1.3, s: 0.85 + (i % 3) * 0.1 });
+  BED.push({ p: [BX + Math.sin(a) * BED_R, 0.02, BZ + Math.cos(a) * BED_R], ry: i * 1.3, s: 0.85 + (i % 3) * 0.1 });
 }
-const BED_FLOWERS = BED.filter((_, i) => i % 2 === 0);
-const BED_LEAVES = BED.filter((_, i) => i % 2 === 1);
+export const TROPHY_BED = { flowers: BED.filter((_, i) => i % 2 === 0), leaves: BED.filter((_, i) => i % 2 === 1) };
 
 // Hackathon award: gold cup on a stone column, on a round dais in the middle of the plaza. It turns
 // slowly; parking on its pad makes it hop and spin, with confetti.
@@ -167,8 +167,6 @@ export function Trophy() {
           </mesh>
         </Static>
         <Model name="pedestal-column" scale={COLUMN_S} position={[0, DAIS_H, 0]} />
-        <ModelInstances name="flowers-tall" items={BED_FLOWERS} />
-        <ModelInstances name="plant-leafy" items={BED_LEAVES} />
         <group ref={cup} position={[0, CUP_Y, 0]}>
           <Model name="trophy-gold-cup" scale={CUP_SCALE} />
         </group>

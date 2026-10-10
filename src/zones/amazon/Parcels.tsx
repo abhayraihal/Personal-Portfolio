@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider } from '@react-three/rapier';
 import type { CollisionEnterHandler } from '@react-three/rapier';
-import { BoxGeometry, Color, Float32BufferAttribute, Matrix4, MeshStandardMaterial } from 'three';
-import type { BufferGeometry, InstancedMesh, Object3D } from 'three';
+import { BoxGeometry, Matrix4, MeshStandardMaterial } from 'three';
+import type { InstancedMesh, Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Resettable } from '../../components/Resettable.tsx';
 import { car } from '../../state/car.ts';
 import { events } from '../../state/events.ts';
+import { tinted } from './geo.ts';
 import { at } from './shared.ts';
 
 // A stack of six parcels by the entrance for the car to knock over. Plain boxes with tape and a
@@ -16,15 +17,6 @@ import { at } from './shared.ts';
 
 const SIZE = 0.8;
 const STACK = { u: 5.3, v: -15.8 };
-
-function tinted(g: BufferGeometry, hex: string) {
-  const c = new Color(hex);
-  const n = g.attributes.position.count;
-  const col = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) c.toArray(col, i * 3);
-  g.setAttribute('color', new Float32BufferAttribute(col, 3));
-  return g;
-}
 
 function parcelGeometry() {
   const h = SIZE / 2;

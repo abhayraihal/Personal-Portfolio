@@ -10,6 +10,7 @@ import type { Placement } from './Instances.tsx';
 import { M } from './materials.ts';
 import { Static } from './merge.tsx';
 import { at } from './shared.ts';
+import { TROPHY_BED } from './Trophy.tsx';
 
 const DEG = Math.PI / 180;
 const RIM = 23.6;
@@ -116,6 +117,8 @@ export function Props() {
       }
     });
     for (const t of TREES) leafy.push({ p: at(t.u + 0.7, t.v - 0.5, PLANTER_H), ry: 1, s: 0.7 });
+    leafy.push(...TROPHY_BED.leaves);
+    flowers.push(...TROPHY_BED.flowers);
     return { leafy, flowers };
   }, []);
   const trees: Placement[] = useMemo(() => TREES.map((t, i) => ({ p: at(t.u, t.v, PLANTER_H), ry: i * 2.1 })), []);
