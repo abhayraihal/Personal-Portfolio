@@ -1,12 +1,15 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { ConeCollider, CuboidCollider, CylinderCollider, InstancedRigidBodies, RigidBody } from '@react-three/rapier';
 import type { InstancedRigidBodyProps, RapierRigidBody } from '@react-three/rapier';
-import { BoxGeometry, ConeGeometry, CylinderGeometry, DoubleSide, Matrix4 } from 'three';
-import type { BufferGeometry } from 'three';
+import { AdditiveBlending, BoxGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Matrix4, MeshBasicMaterial, PlaneGeometry, SpriteMaterial } from 'three';
+import type { BufferGeometry, CanvasTexture } from 'three';
 import { COLORS } from '../../config/palette.ts';
+import { canvasTexture, makeCanvas } from './canvas.ts';
 import { ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
+import { Y } from './Plaza.tsx';
 import type { InstancedMesh } from 'three';
 import { modelScale, modelSize, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
@@ -78,22 +81,63 @@ function lampGeometry(): BufferGeometry {
   ]);
 }
 
+// Soft round spot, opaque in the middle and fading out: the lamp halos and the pools under them.
+let glowMap: CanvasTexture | null = null;
+function glowTexture(): CanvasTexture {
+  if (glowMap) return glowMap;
+  const [c, g] = makeCanvas(64, 64);
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.4, 'rgba(255,255,255,0.45)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  return (glowMap = canvasTexture(c, 1));
+}
+
+const WARM = '#ffc977';
+const BULB_DAY = new Color('#fff4d6');
+const BULB_NIGHT = new Color('#ffe2a8');
+const POOL_R = 3.8;
+// Bulb centre (zone-local) of each lamp, under its shade.
+const HEADS = LAMPS.map(([x, z, yaw = 0]) => [x + Math.cos(yaw) * ARM, LAMP_H - 0.36, z - Math.sin(yaw) * ARM] as const);
+
 function Lamps() {
   const geometry = useMemo(lampGeometry, []);
   const mesh = useRef<InstancedMesh>(null);
   const bulbs = useRef<InstancedMesh>(null);
-  const night = useStore((s) => s.night);
+  const pools = useRef<InstancedMesh>(null);
+  const glow = useRef(0);
+  const mats = useMemo(() => {
+    const map = glowTexture();
+    const glowing = { map, color: WARM, blending: AdditiveBlending, transparent: true, depthWrite: false, opacity: 0, toneMapped: false, visible: false };
+    return { bulb: new MeshBasicMaterial({ color: BULB_DAY.clone(), toneMapped: false }), halo: new SpriteMaterial(glowing), pool: new MeshBasicMaterial(glowing) };
+  }, []);
+  const poolGeometry = useMemo(() => new PlaneGeometry(POOL_R * 2, POOL_R * 2).rotateX(-Math.PI / 2), []);
   useLayoutEffect(() => {
     const m = new Matrix4();
     LAMPS.forEach(([x, z, yaw = 0], i) => {
       m.makeRotationY(yaw).setPosition(x, 0, z);
       mesh.current?.setMatrixAt(i, m);
-      m.makeTranslation(x + Math.cos(yaw) * ARM, LAMP_H - 0.36, z - Math.sin(yaw) * ARM);
+      const [hx, hy, hz] = HEADS[i];
+      m.makeTranslation(hx, hy, hz);
       bulbs.current?.setMatrixAt(i, m);
+      m.makeTranslation(hx, Y.paint + 0.005, hz);
+      pools.current?.setMatrixAt(i, m);
     });
-    if (mesh.current) mesh.current.instanceMatrix.needsUpdate = true;
-    if (bulbs.current) bulbs.current.instanceMatrix.needsUpdate = true;
+    for (const r of [mesh, bulbs, pools]) if (r.current) r.current.instanceMatrix.needsUpdate = true;
   }, []);
+  // Night fades the halos and pools in over about a second.
+  useFrame((_, delta) => {
+    const goal = useStore.getState().night ? 1 : 0;
+    if (glow.current === goal) return;
+    const k = Math.abs(goal - glow.current) < 0.005 ? goal : glow.current + (goal - glow.current) * Math.min(1, delta * 3);
+    glow.current = k;
+    mats.halo.opacity = k * 0.85;
+    mats.pool.opacity = k * 0.42;
+    mats.bulb.color.copy(BULB_DAY).lerp(BULB_NIGHT, k);
+    mats.halo.visible = mats.pool.visible = k > 0;
+  });
   return (
     <group>
       <RigidBody type="fixed" colliders={false}>
@@ -104,10 +148,14 @@ function Lamps() {
       <instancedMesh ref={mesh} args={[geometry, undefined, LAMPS.length]} castShadow frustumCulled={false}>
         <meshStandardMaterial vertexColors roughness={0.6} side={DoubleSide} />
       </instancedMesh>
-      <instancedMesh ref={bulbs} args={[undefined, undefined, LAMPS.length]} frustumCulled={false}>
+      <instancedMesh ref={bulbs} args={[undefined, mats.bulb, LAMPS.length]} frustumCulled={false}>
         <sphereGeometry args={[0.17, 12, 8]} />
-        <meshBasicMaterial color={night ? '#ffd98a' : '#fff4d6'} toneMapped={false} />
       </instancedMesh>
+      <instancedMesh ref={pools} args={[poolGeometry, mats.pool, LAMPS.length]} frustumCulled={false} />
+      {/* halos sit 0.4 m towards the camera so the shade does not cut them */}
+      {HEADS.map(([x, y, z], i) => (
+        <sprite key={i} material={mats.halo} position={[x, y + 0.28, z + 0.28]} scale={2.6} />
+      ))}
     </group>
   );
 }
