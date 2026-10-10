@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 import { RoundedBox } from '@react-three/drei';
-import { CuboidCollider, RigidBody } from '@react-three/rapier';
+import { RigidBody, RoundCuboidCollider } from '@react-three/rapier';
 import { Pad } from '../../components/Pad.tsx';
 import { ZONE_BY_ID } from '../../config/layout.ts';
 import { CAMERA, DEG, INSPECT, screenToWorld } from '../../config/world.ts';
@@ -45,12 +45,15 @@ export function frameCamera(id: string, f: Framing | null) {
 }
 
 // Raised platform with a tall invisible collider: the car bumps into the kerb instead of driving
-// over the toys. Top surface at y = PLINTH_H.
+// over the toys. The collider's corners are rounded, so a car brushing past a corner slides off it
+// instead of catching. Top surface at y = PLINTH_H.
+const KERB_ROUND = 0.5;
+
 export function Plinth({ w, d, color = M.plinthSide }: { w: number; d: number; color?: typeof M.plinthSide }) {
   return (
     <>
       <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[w / 2, 0.75, d / 2]} position={[0, 0.75, 0]} />
+        <RoundCuboidCollider args={[w / 2 - KERB_ROUND, 0.75 - KERB_ROUND, d / 2 - KERB_ROUND, KERB_ROUND]} position={[0, 0.75, 0]} />
       </RigidBody>
       <Static>
         <RoundedBox args={[w, PLINTH_H - 0.05, d]} radius={0.14} smoothness={2} position={[0, (PLINTH_H - 0.05) / 2, 0]} material={color} receiveShadow castShadow />

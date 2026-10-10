@@ -27,14 +27,15 @@ export type StationDef = {
   frame: [number, number]; // camera target while parked, plaza coordinates
 };
 
-// Clockwise from the front left, in the order the panels link to each other.
+// Clockwise from the front left, in the order the panels link to each other. Pads sit on the
+// middle of the promenade ring (radius 9.9), so a pad never reaches past the ring's outer edge.
 export const STATIONS: StationDef[] = [
-  { id: 'amazon-rewards', icon: 'Rewards', center: [-16.3, -7.6], size: [9, 6.5], pad: [-9.0, -4.6], frame: [-14.2, -4.6] },
-  { id: 'amazon-oncall-agent', icon: 'Agent', center: [-17.6, 3.8], size: [8.6, 6.5], pad: [-10.6, 3.2], frame: [-15.2, 5.6] },
-  { id: 'amazon-migration', icon: 'Regions', center: [-12.0, 13.8], size: [9.5, 6.5], pad: [-6.0, 8.4], frame: [-10.2, 13.4] },
-  { id: 'amazon-retention', icon: 'Retention', center: [12.0, 13.8], size: [8, 6.5], pad: [6.0, 8.4], frame: [10.2, 13.4] },
-  { id: 'amazon-connectors', icon: 'Connectors', center: [17.6, 3.8], size: [8.6, 6.5], pad: [10.6, 3.2], frame: [15.2, 5.6] },
-  { id: 'amazon-oncall', icon: 'Oncall', center: [16.3, -7.6], size: [9, 6.5], pad: [9.0, -4.6], frame: [14.2, -4.6] },
+  { id: 'amazon-rewards', icon: 'Rewards', center: [-16.3, -7.6], size: [9, 6.5], pad: [-8.8, -4.5], frame: [-14.2, -4.6] },
+  { id: 'amazon-oncall-agent', icon: 'Agent', center: [-17.6, 3.8], size: [8.6, 6.5], pad: [-9.5, 2.9], frame: [-15.2, 5.6] },
+  { id: 'amazon-migration', icon: 'Regions', center: [-12.0, 13.8], size: [9.5, 6.5], pad: [-5.75, 8.05], frame: [-10.2, 13.4] },
+  { id: 'amazon-retention', icon: 'Retention', center: [12.0, 13.8], size: [8, 6.5], pad: [5.75, 8.05], frame: [10.2, 13.4] },
+  { id: 'amazon-connectors', icon: 'Connectors', center: [17.6, 3.8], size: [8.6, 6.5], pad: [9.5, 2.9], frame: [15.2, 5.6] },
+  { id: 'amazon-oncall', icon: 'Oncall', center: [16.3, -7.6], size: [9, 6.5], pad: [8.8, -4.5], frame: [14.2, -4.6] },
 ];
 
 // Portrait: aimed in front of the exhibit and a little right of it, so the exhibit sits above the
