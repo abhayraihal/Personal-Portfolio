@@ -15,7 +15,7 @@ import { useStore } from '../../state/store.ts';
 import { glowTexture, normals } from './geometry.ts';
 import { InstancedModel } from './Instanced.tsx';
 import { JUNCTION, LAMP_RING, LOOP } from './layout.ts';
-import { NIGHT_TEXT } from './Night.tsx';
+import { NIGHT_TEXT, nightLabel } from './Night.tsx';
 
 const LAMP = 'lamp-post-lantern';
 const LAMP_S = 0.8;
@@ -205,7 +205,7 @@ export function Lamps() {
         <planeGeometry args={[6, 6]} />
         <meshBasicMaterial map={tex} transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
       </instancedMesh>
-      <Label flat font="display" size={0.8} color={night ? LABEL_NIGHT : COLORS.iit} outlineWidth={night ? 0.06 : 0} outlineColor={NIGHT_TEXT.outline} position={[0, 0.06, -2.5]}>
+      <Label flat font="display" size={0.8} {...nightLabel(night, COLORS.iit, 0.06)} position={[0, 0.06, -2.5]}>
         Coursework
       </Label>
       {spots.map((sp, i) => (
@@ -222,9 +222,7 @@ export function Lamps() {
           anchorY={sp.anchor.y}
           textAlign={sp.anchor.x}
           lineHeight={1.05}
-          color={night ? LABEL_NIGHT : LABEL_OFF}
-          outlineWidth={night ? 0.045 : 0}
-          outlineColor={NIGHT_TEXT.outline}
+          {...nightLabel(night, LABEL_OFF, 0.045)}
           position={[sp.lx, 0.06, sp.lz]}
         >
           {sp.course}

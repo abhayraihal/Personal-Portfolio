@@ -20,9 +20,9 @@ import type { Placement } from './Instanced.tsx';
 import { KICKER, TRAIL, TRAIL_WIDTH, TRAILHEAD } from './layout.ts';
 import { BoardNightWash, boardFace } from './Night.tsx';
 
-// Sign wording from panels.activities: 'Led rides for the Mountain Biking Club (MTB) at IIT Mandi.'
 type V3 = [number, number, number];
 
+// Sign wording from panels.activities: 'Led rides for the Mountain Biking Club (MTB) at IIT Mandi.'
 const SIGN = { title: 'Mountain Biking Club', line: 'Led club rides', width: 6.5, lift: 1.2 };
 const SIGN_FACE = boardFace({ width: SIGN.width, lines: 1, titleSize: 0.6, lineSize: 0.42, lift: SIGN.lift });
 const SIGN_TOP = SIGN_FACE.centreY + SIGN_FACE.height / 2;

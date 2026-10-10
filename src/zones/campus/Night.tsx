@@ -10,6 +10,13 @@ import { useStore } from '../../state/store.ts';
 // Text that lies on unlit ground switches to this at night (with a dark outline).
 export const NIGHT_TEXT = { color: '#ffe2a0', outline: '#2a2312' };
 
+// Label colour props: `day` by day, NIGHT_TEXT with an outline `outline` m wide at night.
+export const nightLabel = (night: boolean, day: string, outline: number) => ({
+  color: night ? NIGHT_TEXT.color : day,
+  outlineWidth: night ? outline : 0,
+  outlineColor: NIGHT_TEXT.outline,
+});
+
 const WASH_BOTTOM = [0.9, 0.74, 0.5]; // linear RGB: warm near the ground lights
 const WASH_TOP = [0.62, 0.5, 0.34];
 
