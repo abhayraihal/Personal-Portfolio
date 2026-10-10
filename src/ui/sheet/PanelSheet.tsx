@@ -34,11 +34,16 @@ export function PanelSheet() {
     return () => window.clearTimeout(t);
   }, [id]);
 
-  // "Next" swaps the content in place: back to the top, focus on the new title.
+  // "Next" swaps the content in place: back to the top, focus on the new title. The button that
+  // was pressed is gone by now, so focus has usually dropped to <body>.
+  const prevId = useRef<PanelId | null>(id);
   useLayoutEffect(() => {
-    if (!id) return;
+    const prev = prevId.current;
+    prevId.current = id;
+    if (!id || !prev || prev === id) return;
     bodyRef.current?.scrollTo({ top: 0 });
-    if (sheetRef.current?.contains(document.activeElement)) titleRef.current?.focus({ preventScroll: true });
+    const active = document.activeElement;
+    if (!active || active === document.body || sheetRef.current?.contains(active)) titleRef.current?.focus({ preventScroll: true });
   }, [id]);
 
   const shown = id ?? last.current;

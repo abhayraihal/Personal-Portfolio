@@ -123,7 +123,8 @@ export function CardView({ phase, progress, slow, onStart, onClassic, cardRef, p
         <nav className="card__links" aria-label="Contact">
           <a className="btn btn--small" href={`mailto:${contact.email}`}>
             <MailIcon />
-            <span>{contact.email}</span>
+            <span className="card__email-full">{contact.email}</span>
+            <span className="card__email-short">Email</span>
           </a>
           <a className="btn btn--small" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
             <ProfileIcon />
