@@ -15,7 +15,7 @@ export const BOARDS: Record<StationId, { title: string; lines: string[]; result?
   },
   'amazon-migration': {
     title: panels['amazon-migration'].title,
-    lines: ['Moved to two new EU regions', 'Shadow testing, then DNS shifts', 'Ramped to 100% in 4 countries'],
+    lines: ['Moved to two other EU regions', 'Shadow testing, then DNS shifts', 'Ramped to 100% in 4 countries'],
   },
   'amazon-retention': {
     title: panels['amazon-retention'].title,
@@ -33,20 +33,20 @@ export const BOARDS: Record<StationId, { title: string; lines: string[]; result?
 
 export const TOY_TEXT = {
   flags: ['Japan', 'US', 'Brazil'],
-  buyBox: 'buy box',
-  ticket: 'ticket',
+  buyBox: 'Buy box',
+  ticket: 'Ticket',
   sources: ['Logs', 'Metrics', 'Code', 'Runbooks'],
   report: ['Root cause', 'Confidence', 'Evidence'],
   countries: ['Spain', 'France', 'UK', 'Italy'],
-  oldRegion: 'old region',
-  newRegions: 'new regions',
+  oldRegion: 'Old region',
+  newRegions: 'New regions',
   dublin: 'Dublin: 0 hosts',
-  noImpact: 'no customer impact',
-  storedData: 'stored data',
-  retention: ['29-day TTL', '21M rows purged', 'stored data down 96%'], // the sign '29-day TTL · 21M rows purged · stored data down 96%', one part per line
+  noImpact: 'No customer impact',
+  storedData: 'Stored data',
+  retention: ['29-day TTL', '21M rows purged', 'Stored data down 96%'], // the sign '29-day TTL · 21M rows purged · Stored data down 96%', one part per line
   connectors: ['Connector 1', 'Connector 2', 'Connector 3', 'Connector 4'],
   full: '100%',
   sop: 'SOP',
   peaks: [['Black Friday /', 'Cyber Monday'], ['New Year'], ['Prime Day']], // banners: 'Black Friday / Cyber Monday', 'New Year', 'Prime Day'
-  tickets: ['30+', 'high-severity tickets'],
+  tickets: ['30+', 'High-severity tickets'],
 };
