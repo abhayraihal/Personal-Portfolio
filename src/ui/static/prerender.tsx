@@ -17,7 +17,8 @@ import { ClassicView } from '../classic/ClassicView.tsx';
 const ORIGIN = 'https://abhayraihal.github.io';
 const BASE = import.meta.env.BASE_URL;
 export const SITE_URL = `${ORIGIN}${BASE}`;
-const OG_IMAGE = `${SITE_URL}og-image.png`; // 1200 x 630, made by the integrator
+const OG_IMAGE = `${SITE_URL}og-image.png`; // 1200 x 630: the hub after Start, without the HUD
+const OG_IMAGE_ALT = `${profile.name}'s name in big 3D letters over a road in a small low-poly valley, with a pink jeep, a photo board, a wall of skill bricks and a contact sign`;
 
 const attr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const text = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -74,10 +75,12 @@ function headTags(): string {
     prop('og:image', OG_IMAGE),
     prop('og:image:width', '1200'),
     prop('og:image:height', '630'),
+    prop('og:image:alt', OG_IMAGE_ALT),
     meta('twitter:card', 'summary_large_image'),
     meta('twitter:title', title),
     meta('twitter:description', social),
     meta('twitter:image', OG_IMAGE),
+    meta('twitter:image:alt', OG_IMAGE_ALT),
     font(FONTS.body),
     font(FONTS.bodyBold),
     font(FONTS.display),
