@@ -1,13 +1,44 @@
-import { defineConfig } from 'vite';
+import path from 'node:path';
+import { defineConfig, runnerImport } from 'vite';
+import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // GitHub Pages project site: https://<user>.github.io/portfolio/. The deploy workflow passes
 // BASE_PATH from actions/configure-pages, so a renamed repo or a <user>.github.io repo still works.
 const base = process.env.BASE_PATH ?? '/portfolio/';
 
+// Writes the recruiter card, the classic view and the head tags (title, description, Open Graph,
+// JSON-LD, icons, font preloads) into index.html, so the page reads without JavaScript. The markup
+// comes from the same React components the app renders (src/ui/static/prerender.tsx), loaded
+// through Vite's module runner so TSX and import.meta.env work here.
+const HEAD_MARK = '<!--static-head-->';
+const BODY_MARK = '<!--static-body-->';
+type Prerender = { renderStatic: () => { head: string; body: string } };
+
+function staticCard(): Plugin {
+  let root = process.cwd();
+  let appBase = '/';
+  return {
+    name: 'portfolio:static-card',
+    configResolved(config) {
+      root = config.root;
+      appBase = config.base;
+    },
+    transformIndexHtml: {
+      order: 'post',
+      async handler(html) {
+        if (!html.includes(HEAD_MARK) || !html.includes(BODY_MARK)) throw new Error(`index.html needs ${HEAD_MARK} and ${BODY_MARK}`);
+        const { module } = await runnerImport<Prerender>(path.join(root, 'src/ui/static/prerender.tsx'), { root, base: appBase, configFile: false, logLevel: 'error' });
+        const { head, body } = module.renderStatic();
+        return html.replace(HEAD_MARK, head).replace(BODY_MARK, body);
+      },
+    },
+  };
+}
+
 export default defineConfig({
   base: base.endsWith('/') ? base : `${base}/`,
-  plugins: [react()],
+  plugins: [react(), staticCard()],
   build: {
     target: 'es2022',
     // @dimforge/rapier3d-compat inlines its wasm as base64 (~2.2 MB of JS). It gets its own chunk so
