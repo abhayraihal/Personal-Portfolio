@@ -12,9 +12,12 @@ import { ClassicView } from '../classic/ClassicView.tsx';
 // Never put the phone number in index.html: ClassicView leaves it out in 'static' mode, and the
 // tags below don't use it.
 
-export const SITE_URL = 'https://abhayraihal.github.io/portfolio/';
-const OG_IMAGE = `${SITE_URL}og-image.png`; // 1200 x 630, made by the integrator
+// GitHub Pages: the deploy workflow sets the base path ('/portfolio/' for this repo), so the
+// absolute URLs follow it if the repo is renamed or becomes the user site.
+const ORIGIN = 'https://abhayraihal.github.io';
 const BASE = import.meta.env.BASE_URL;
+export const SITE_URL = `${ORIGIN}${BASE}`;
+const OG_IMAGE = `${SITE_URL}og-image.png`; // 1200 x 630, made by the integrator
 
 const attr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const text = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

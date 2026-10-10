@@ -13,8 +13,9 @@ type UiState = {
   settings: boolean;
   setSettings: (open: boolean) => void;
   // Minimap expanded? null until the visitor chooses, then the default depends on the device.
+  // remember = false for automatic collapses (after a pick on a phone, Esc), which last the visit.
   map: boolean | null;
-  setMap: (open: boolean) => void;
+  setMap: (open: boolean, remember?: boolean) => void;
   fade: boolean; // teleport fade overlay
   setFade: (on: boolean) => void;
   // First-time controls hint: counts driving inputs until it fades.
@@ -32,8 +33,8 @@ export const useUi = create<UiState>()((set, get) => ({
   settings: false,
   setSettings: (settings) => set({ settings }),
   map: savedMap === 'open' ? true : savedMap === 'closed' ? false : null,
-  setMap: (map) => {
-    storage.set(MAP_KEY, map ? 'open' : 'closed');
+  setMap: (map, remember = true) => {
+    if (remember) storage.set(MAP_KEY, map ? 'open' : 'closed');
     set({ map });
   },
   fade: false,

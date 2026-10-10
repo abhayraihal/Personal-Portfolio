@@ -23,9 +23,10 @@ export function PanelSheet() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  // Help can open on top of a panel; it takes the focus trap until it closes.
+  // Help and the classic view can open on top of a panel; they take the focus until they close.
   const help = useUi((s) => s.help);
-  useFocusTrap(sheetRef, id !== null && !help, titleRef);
+  const classic = useStore((s) => s.classicOpen);
+  useFocusTrap(sheetRef, id !== null && !help && !classic, titleRef);
 
   // Keep the last panel on screen while it animates out.
   useEffect(() => {

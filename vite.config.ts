@@ -30,7 +30,8 @@ function staticCard(): Plugin {
         if (!html.includes(HEAD_MARK) || !html.includes(BODY_MARK)) throw new Error(`index.html needs ${HEAD_MARK} and ${BODY_MARK}`);
         const { module } = await runnerImport<Prerender>(path.join(root, 'src/ui/static/prerender.tsx'), { root, base: appBase, configFile: false, logLevel: 'error' });
         const { head, body } = module.renderStatic();
-        return html.replace(HEAD_MARK, head).replace(BODY_MARK, body);
+        // Replacer functions, so a '$' in the markup is never read as a replacement pattern.
+        return html.replace(HEAD_MARK, () => head).replace(BODY_MARK, () => body);
       },
     },
   };

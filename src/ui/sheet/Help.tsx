@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
+import { useStore } from '../../state/store.ts';
 import { CloseIcon, KeyboardIcon, TouchIcon } from '../icons.tsx';
 import { useFocusTrap } from '../lib.ts';
 import { useUi } from '../uiStore.ts';
@@ -48,14 +49,15 @@ function Rows({ rows }: { rows: [string, ReactNode][] }) {
 
 export function Help() {
   const open = useUi((s) => s.help);
+  const classic = useStore((s) => s.classicOpen);
   const ref = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  useFocusTrap(ref, open, titleRef);
+  useFocusTrap(ref, open && !classic, titleRef);
   if (!open) return null;
   return (
     <div
       className="help-layer"
-      onPointerDown={(e) => {
+      onClick={(e) => {
         if (e.target === e.currentTarget) close();
       }}
     >

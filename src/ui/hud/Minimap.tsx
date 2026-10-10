@@ -115,7 +115,7 @@ export function Minimap() {
 
   const pick = (z: ZoneDef) => {
     teleportTo(z.id);
-    if (coarse || !wide) useUi.getState().setMap(false);
+    if (coarse || !wide) useUi.getState().setMap(false, false);
   };
 
   return (

@@ -8,12 +8,17 @@ import { teleportTo } from './teleport.ts';
 import { useUi } from './uiStore.ts';
 
 // Site-wide shortcuts. Driving keys (W A S D, arrows, Space, Shift) and R / H belong to the
-// vehicle: they are only counted for the first-time hint, never handled or prevented here.
+// vehicle: they are never used for shortcuts or prevented here. W and the up arrow also start the
+// drive from the card, and while Help is open their keydowns are stopped (the dialog is modal and
+// the vehicle only checks for panels and the classic view).
 
 const DRIVE_CODES = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight']);
+const VEHICLE_CODES = new Set([...DRIVE_CODES, 'KeyR', 'KeyH']);
+const START_CODES = new Set(['KeyW', 'ArrowUp']);
 
 // The letter as typed (so AZERTY users press the key with C on it), falling back to the physical
-// key for non-Latin layouts.
+// key for non-Latin layouts. Driving keys are matched by physical position first, so on layouts
+// where a shortcut letter sits on W A S D (E on Dvorak's D) that key drives.
 function letter(e: KeyboardEvent): string {
   if (e.key.length === 1 && /[a-z]/i.test(e.key)) return e.key.toLowerCase();
   return e.code.startsWith('Key') ? e.code.slice(3).toLowerCase() : '';
@@ -47,13 +52,23 @@ export function closeTopLayer(): boolean {
     return true;
   }
   if (ui.map && window.matchMedia?.(COARSE).matches) {
-    ui.setMap(false);
+    ui.setMap(false, false);
     return true;
   }
   return false;
 }
 
 export function useGlobalKeys(): void {
+  // Capture phase on window runs before drei's KeyboardControls listener. Keyups still pass, so a
+  // key held while Help opens is released normally.
+  useEffect(() => {
+    const block = (e: KeyboardEvent) => {
+      if (useUi.getState().help && VEHICLE_CODES.has(e.code)) e.stopImmediatePropagation();
+    };
+    window.addEventListener('keydown', block, true);
+    return () => window.removeEventListener('keydown', block, true);
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -66,7 +81,9 @@ export function useGlobalKeys(): void {
         return;
       }
       if (DRIVE_CODES.has(e.code)) {
-        if (!e.repeat && s.phase === 'play' && !s.panel && !s.classicOpen) ui.countDriveInput();
+        if (e.repeat) return;
+        if (s.phase === 'ready' && START_CODES.has(e.code) && !s.classicOpen) s.start();
+        else if (s.phase === 'play' && !s.panel && !s.classicOpen) ui.countDriveInput();
         return;
       }
       if (e.repeat) return;
