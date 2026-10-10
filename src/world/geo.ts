@@ -224,9 +224,10 @@ export function hillHeight(u: number, v: number, streamEdge: number): number {
   const ridge = 1 - Math.abs(2 * n2 - 1);
   const foot = 2.4 * smoothstep(0, 4, s);
   const near = (11 + 14 * n1) * smoothstep(1, 24, s);
-  const far = (22 + 34 * ridge * ridge) * smoothstep(30, 92, s);
+  const far = (9 + 18 * ridge * ridge) * smoothstep(30, 92, s);
   const bumps = (4.5 * (vnoise(u / 12, v / 12) - 0.5) + 2 * (vnoise(u / 5, v / 5) - 0.5)) * smoothstep(3, 12, s);
   let h = foot + near + far + bumps;
+  h = 46 * Math.tanh(h / 46); // soft ceiling: near hills 15-25 m, far peaks up to about 45 m
   // Towards the camera (below v0) the hills stay under a 30 deg line so they never hide the car.
   const below = BOUNDS.v0 - v;
   h = Math.min(h, below > 0 ? 0.55 * below : 3 * -below + 0.5);

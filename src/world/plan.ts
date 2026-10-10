@@ -40,6 +40,8 @@ export type Plan = {
 };
 
 const HUB = ZONE_BY_ID.hub.center;
+let full: Plan | null = null;
+const cache = new Map<Quality, Plan>();
 export const ISLAND_Y = 0.1; // top of the roundabout island
 const TREE_TYPES: ModelName[] = ['tree-deodar-tall', 'tree-deodar', 'tree-pine-full', 'tree-pine-cone'];
 // Trunk collider radius per unit scale; covers the lowest branches the car could touch.
@@ -94,8 +96,31 @@ class Spacing {
   }
 }
 
+// Lamps a zone module asks for (see addLamps); merged into the plan when it is first built.
+const extraLamps: Lamp[] = [];
+
+function makeLamp(kind: Lamp['kind'], u: number, v: number, nu: number, nv: number): Lamp {
+  // The street lamp's arm points along its local -Z; (nu, nv) points from the road to the lamp.
+  const ry = Math.atan2(nu, -nv);
+  const head: [number, number, number] = kind === 'street' ? [u - nu * 1.35, v - nv * 1.35, 5.85] : [u, v, 4.15];
+  return { kind, u, v, ry, head };
+}
+
+// For zone modules: add street lamps or lanterns that glow at night with the valley's lamps
+// (instanced posts, bulbs, halos, light pools on the ground, colliders). Call it at module scope,
+// before the world first renders. `toward` is the screen direction the street lamp's arm reaches.
+export function addLamps(list: { kind: Lamp['kind']; u: number; v: number; toward?: [number, number] }[]) {
+  for (const l of list) {
+    const [tu, tv] = l.toward ?? [0, 1];
+    const len = Math.hypot(tu, tv) || 1;
+    extraLamps.push(makeLamp(l.kind, l.u, l.v, -tu / len, -tv / len));
+  }
+  full = null;
+  cache.clear();
+}
+
 function buildLamps(): Lamp[] {
-  const lamps: Lamp[] = [];
+  const lamps: Lamp[] = [...extraLamps];
   const add = (kind: Lamp['kind'], segs: typeof ASPHALT, spacing: number, offset: number) => {
     for (const s of segs) {
       const du = s.b[0] - s.a[0];
@@ -121,10 +146,7 @@ function buildLamps(): Lamp[] {
           if (roadDist(u, v) < offset - 0.3) continue; // too close to another road
           if (lamps.some((l) => Math.hypot(l.u - u, l.v - v) < spacing * 0.6)) continue;
           last = d;
-          // The street lamp's arm points along its local -Z; turn it over the road.
-          const ry = Math.atan2(nu, -nv);
-          const head: [number, number, number] = kind === 'street' ? [u - nu * 1.35, v - nv * 1.35, 5.85] : [u, v, 4.15];
-          lamps.push({ kind, u, v, ry, head });
+          lamps.push(makeLamp(kind, u, v, nu, nv));
         }
       }
     }
@@ -534,8 +556,7 @@ function build(): Plan {
   return { trees, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam };
 }
 
-let full: Plan | null = null;
-const cache = new Map<Quality, Plan>();
+
 
 // Share of decor kept in the low tier.
 const LOW_KEEP = { trees: 0.62, hillTrees: 0.55, rocks: 0.6, props: 0.7 };
@@ -582,8 +603,11 @@ export function collidersFor(p: Plan): Collider[] {
       const av = Math.cos(k.ry);
       for (const f of [-0.6, 0, 0.6]) out.push({ kind: 'ball', u: k.u + au * half * f, v: k.v + av * half * f, r: 0.32 * k.s, y: 0.12 });
     } else if (k.name.startsWith('rock-')) {
-      const inWater = streamEdgeAt(k.u, k.v) < 0;
-      out.push({ kind: 'ball', u: k.u, v: k.v, r: (inWater ? 0.62 : 0.6) * k.s, y: inWater ? -0.35 : -0.3 });
+      // Stream and bank boulders: block like other rocks when they stand tall, else a low bump.
+      const [rr, hh] = ROCK_R[k.name] ?? [0.8, 1];
+      const top = k.y + hh * k.s;
+      if (top > 0.45) out.push({ kind: 'cyl', u: k.u, v: k.v, r: rr * k.s * 0.78, h: top });
+      else out.push({ kind: 'ball', u: k.u, v: k.v, r: 0.6 * k.s, y: top - 0.6 * k.s });
     }
   }
   return out;

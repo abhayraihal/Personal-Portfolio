@@ -97,9 +97,9 @@ const COLOR = /* glsl */ `
   float terr = sector * (1.0 - smoothstep(0.16, 0.36, slope)) * smoothstep(0.7, 1.5, h) * (1.0 - smoothstep(9.0, 13.0, h));
   vec3 crop = mix(vec3(0.46, 0.5, 0.15), vec3(0.3, 0.45, 0.13), step(0.5, fract(h / 2.6 + n * 0.3)));
   col = mix(col, mix(crop, crop * 0.62, smoothstep(0.86, 0.94, fract(h / 1.3))), terr);
-  float rockT = smoothstep(0.42, 0.62, slope + (n2 - 0.5) * 0.22) * 0.85 + smoothstep(21.0, 31.0, h + (n - 0.5) * 9.0);
+  float rockT = smoothstep(0.42, 0.62, slope + (n2 - 0.5) * 0.22) * 0.85 + smoothstep(22.0, 30.0, h + (n - 0.5) * 9.0);
   col = mix(col, uRock * (0.82 + 0.28 * n2), clamp(rockT, 0.0, 1.0));
-  float snowT = smoothstep(32.0, 35.0, h + (n - 0.5) * 12.0) * (1.0 - smoothstep(0.55, 0.78, slope));
+  float snowT = smoothstep(30.0, 33.0, h + (n - 0.5) * 10.0) * (1.0 - smoothstep(0.6, 0.85, slope));
   col = mix(col, uSnow * (0.94 + 0.06 * n2), snowT);
   diffuseColor.rgb = col;
 }
