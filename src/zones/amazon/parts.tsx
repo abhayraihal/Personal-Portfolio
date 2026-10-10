@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Ref } from 'react';
-import { Color, MeshStandardMaterial } from 'three';
-import type { Group, Material, Mesh, Object3D } from 'three';
-import { Board } from '../../components/Board.tsx';
+import { RoundedBox } from '@react-three/drei';
+import { CuboidCollider, RigidBody } from '@react-three/rapier';
+import type { Group, Material, MeshStandardMaterial } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import type { FontName } from '../../config/palette.ts';
@@ -12,51 +12,75 @@ import { useBoxes } from './geo.ts';
 import type { BoxSpec } from './geo.ts';
 import type { StationId } from './layout.ts';
 import { M } from './materials.ts';
+import { Static, staticChanged } from './merge.tsx';
 
 type V3 = [number, number, number];
 
 // Night: paper faces glow a little, like lit signs, so the dark text on them stays readable.
 const NIGHT_GLOW = 0.42;
-const PAPER = new Color(COLORS.paper).getHex();
 
-function glow(m: MeshStandardMaterial, on: boolean) {
+export function glow(m: MeshStandardMaterial, on: boolean) {
   m.emissive.set(on ? COLORS.paper : '#000000');
   m.emissiveIntensity = NIGHT_GLOW;
 }
 
-// The plaza's shared paper material (plaques, the office band, the trophy plaque).
+// The plaza's shared paper material (boards, plaques, the office band, the trophy plaque).
 export function NightPaper() {
   const night = useStore((s) => s.night);
   useEffect(() => glow(M.paper, night), [night]);
   return null;
 }
 
-// A Board makes its own face material, so find it by colour.
-function glowBoard(root: Object3D | null, on: boolean) {
-  root?.traverse((o) => {
-    const m = (o as Mesh).material;
-    if (m instanceof MeshStandardMaterial && m.color.getHex() === PAPER) glow(m, on);
-  });
-}
+const PAD = 0.4;
+const DEPTH = 0.22;
+const LINE_GAP = 1.45; // line pitch as a multiple of the line size
 
-// Station board: the panel title and up to four short lines, standing at the back of the platform.
+// Station board: the panel title, up to four short lines and an optional bold result line, on two
+// posts at the back of the platform. Same layout as the shared Board, but the panel, posts and
+// accent strip are static trim (merged with the rest of the plaza) and the lines are one label.
 export function StationBoard({ id, position, width = 7.2, titleSize = 0.62, lift = 0.8 }: { id: StationId; position: V3; width?: number; titleSize?: number; lift?: number }) {
   const b = BOARDS[id];
-  const group = useRef<Group>(null);
-  const night = useStore((s) => s.night);
-  useEffect(() => glowBoard(group.current, night), [night]);
+  const lineSize = 0.4;
+  const gap = lineSize * LINE_GAP;
+  const titleH = titleSize * 1.3;
+  const rows = b.lines.length + (b.result ? 1 : 0);
+  const height = PAD * 2 + titleH + rows * gap;
+  const cy = lift + height / 2;
+  const top = cy + height / 2 - PAD;
+  const x0 = -width / 2 + PAD;
+  const postX = width / 2 - 0.45;
+  // Lines are spaced by lineHeight; the first one sits a little lower than a single label would.
+  const lead = ((LINE_GAP - 1.2) / 2) * lineSize;
   return (
-    <group ref={group}>
-      <Board
-        title={b.title}
-        lines={b.lines}
-        width={width}
-        titleSize={titleSize}
-        lineSize={0.4}
-        lift={lift}
-        accent={COLORS.amazon}
-        position={position}
-      />
+    <group position={position}>
+      <RigidBody type="fixed" colliders={false}>
+        <CuboidCollider args={[width / 2, height / 2, DEPTH / 2 + 0.05]} position={[0, cy, 0]} />
+        {[-1, 1].map((s) => (
+          <CuboidCollider key={s} args={[0.12, lift / 2, 0.12]} position={[s * postX, lift / 2, 0]} />
+        ))}
+      </RigidBody>
+      <Static>
+        {[-1, 1].map((s) => (
+          <mesh key={s} position={[s * postX, lift / 2, -0.02]} material={M.slate} castShadow>
+            <cylinderGeometry args={[0.09, 0.11, lift, 10]} />
+          </mesh>
+        ))}
+        <RoundedBox args={[width, height, DEPTH]} radius={0.08} smoothness={3} position={[0, cy, 0]} material={M.paper} castShadow receiveShadow />
+        <mesh position={[0, cy + height / 2 - 0.06, DEPTH / 2 + 0.006]} material={M.accent}>
+          <planeGeometry args={[width - 0.16, 0.12]} />
+        </mesh>
+      </Static>
+      <Label font="display" size={titleSize} color={COLORS.ink} anchorX="left" anchorY="top" maxWidth={width - PAD * 2} position={[x0, top, DEPTH / 2 + 0.01]}>
+        {b.title}
+      </Label>
+      <Label size={lineSize} color={COLORS.ink} anchorX="left" anchorY="top" lineHeight={LINE_GAP} maxWidth={width - PAD * 2} position={[x0, top - titleH + lead, DEPTH / 2 + 0.01]}>
+        {b.lines.join('\n')}
+      </Label>
+      {b.result && (
+        <Label font="bodyBold" size={lineSize} color={COLORS.ink} anchorX="left" anchorY="top" maxWidth={width - PAD * 2} position={[x0, top - titleH - b.lines.length * gap, DEPTH / 2 + 0.01]}>
+          {b.result}
+        </Label>
+      )}
     </group>
   );
 }
@@ -99,7 +123,11 @@ export function Plaque({ text, size = 0.3, font = 'bodyBold', color = COLORS.ink
         position={[0, 0, 0.006]}
         onSync={(m: { textRenderInfo?: { blockBounds: number[] } | null }) => {
           const bb = m.textRenderInfo?.blockBounds;
-          if (bb) setW(Math.round((bb[2] - bb[0]) * 100) / 100);
+          const next = bb ? Math.round((bb[2] - bb[0]) * 100) / 100 : w;
+          if (next === w) return;
+          setW(next);
+          // A plaque under <Static> is baked into the plaza mesh, so a new width needs a fresh merge.
+          staticChanged();
         }}
       >
         {text}

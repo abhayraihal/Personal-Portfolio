@@ -10,18 +10,27 @@ import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
 import { BOARDS, TOY_TEXT } from '../copy.ts';
 import { M } from '../materials.ts';
+import { Static } from '../merge.tsx';
 import { fixBounds, frameDt, seg } from '../shared.ts';
 import type { ToyProps, ToySpec } from '../Station.tsx';
 
-// Drive-in screen with the three launch countries' flags on top. Parking on the pad drops gold
-// coins onto a chute that rolls them into the buy box.
+// Drive-in screen, with the three launch countries' flags on a low stand at the front. Parking on
+// the pad drops gold coins onto a chute that rolls them into the buy box. The screen is kept low
+// and the flags in front, so the AI oncall agent station behind still reads over it.
 
 const FRAME_W = 8.4;
-const FRAME_H = 4.5;
-const LEGS = 0.55;
+const FRAME_H = 4.1;
+const LEGS = 0.3;
 const SCREEN_Z = -2.05;
 const FACE_W = 8.0;
-const FACE_H = 3.74;
+const FACE_H = 3.6;
+const LINE = 0.4;
+const LINE_GAP = 0.58;
+// Flag stand: a slate bar along the front left of the platform, the names on its face.
+const STAND = { x0: -4.05, x1: 0.25, z: 2.6, h: 0.34, d: 0.32 };
+const MAST_X = [-3.75, -2.35, -0.95];
+const MAST_H = 1.2;
+const CLOTH = { w: 1.05, h: 0.7, y: 0.82 };
 
 const COINS = 10;
 const COIN_S = 0.47; // 0.7 m coins
@@ -113,12 +122,13 @@ function drawFlag(kind: FlagKind) {
   return t;
 }
 
-// Flag on a mast; the cloth ripples (vertex update on a 10 x 2 plane) unless motion is reduced.
+// Flag cloth on the right of its mast; it ripples (vertex update on a 10 x 2 plane) unless motion
+// is reduced.
 function Flag({ kind, phase }: { kind: FlagKind; phase: number }) {
   const cloth = useRef<Mesh>(null);
   const { geometry, material, base } = useMemo(() => {
-    const geo = new PlaneGeometry(1.05, 0.7, 10, 1);
-    geo.translate(0.525, 0, 0);
+    const geo = new PlaneGeometry(CLOTH.w, CLOTH.h, 10, 1);
+    geo.translate(CLOTH.w / 2, 0, 0);
     const mat = new MeshStandardMaterial({ map: drawFlag(kind), roughness: 0.9, side: DoubleSide });
     return { geometry: geo, material: mat, base: Float32Array.from(geo.attributes.position.array as Float32Array) };
   }, [kind]);
@@ -134,19 +144,39 @@ function Flag({ kind, phase }: { kind: FlagKind; phase: number }) {
     const t = clock.elapsedTime * 3.2 + phase;
     for (let i = 0; i < pos.count; i++) {
       const x = base[i * 3];
-      arr[i * 3 + 2] = Math.sin(x * 5.5 - t) * 0.07 * (x / 1.05);
+      arr[i * 3 + 2] = Math.sin(x * 5.5 - t) * 0.07 * (x / CLOTH.w);
     }
     pos.needsUpdate = true;
   });
+  return <mesh ref={cloth} geometry={geometry} material={material} position={[0.04, CLOTH.y, 0]} />;
+}
+
+// The three launch countries: masts on a slate bar, names on the bar, flags flying to the right.
+function FlagStand() {
+  const kinds = ['japan', 'us', 'brazil'] as const;
   return (
-    <group>
-      <mesh position={[0, 0.6, 0]} material={M.metal}>
-        <cylinderGeometry args={[0.045, 0.055, 1.2, 8]} />
-      </mesh>
-      <mesh position={[0, 1.24, 0]} material={M.orange}>
-        <sphereGeometry args={[0.08, 10, 8]} />
-      </mesh>
-      <mesh ref={cloth} geometry={geometry} material={material} position={[0.04, 0.82, 0]} />
+    <group position={[0, 0, STAND.z]}>
+      <Static>
+        <RoundedBox args={[STAND.x1 - STAND.x0, STAND.h, STAND.d]} radius={0.05} smoothness={2} bevelSegments={1} position={[(STAND.x0 + STAND.x1) / 2, STAND.h / 2, 0]} material={M.slate} castShadow receiveShadow />
+        {MAST_X.map((x) => (
+          <group key={x} position={[x, STAND.h, 0]}>
+            <mesh position={[0, MAST_H / 2, 0]} material={M.metal} castShadow>
+              <cylinderGeometry args={[0.045, 0.055, MAST_H, 8]} />
+            </mesh>
+            <mesh position={[0, MAST_H + 0.04, 0]} material={M.orange}>
+              <sphereGeometry args={[0.08, 10, 8]} />
+            </mesh>
+          </group>
+        ))}
+      </Static>
+      {MAST_X.map((x, i) => (
+        <group key={x} position={[x, STAND.h, 0]}>
+          <Flag kind={kinds[i]} phase={i * 1.3} />
+          <Label font="bodyBold" size={0.24} color="#ffffff" position={[0.06 + CLOTH.w / 2, -STAND.h / 2, STAND.d / 2 + 0.01]}>
+            {TOY_TEXT.flags[i]}
+          </Label>
+        </group>
+      ))}
     </group>
   );
 }
@@ -154,39 +184,29 @@ function Flag({ kind, phase }: { kind: FlagKind; phase: number }) {
 function Screen({ face }: { face: MeshStandardMaterial }) {
   const b = BOARDS['amazon-rewards'];
   const faceY = LEGS + 0.2 + FACE_H / 2;
-  const top = LEGS + FRAME_H;
+  const faceTop = faceY + FACE_H / 2;
   return (
     <group position={[0, 0, SCREEN_Z]}>
-      {[-3.1, 3.1].map((x) => (
-        <mesh key={x} position={[x, LEGS / 2, -0.05]} material={M.slate}>
-          <boxGeometry args={[0.36, LEGS, 0.36]} />
+      <Static>
+        {[-3.1, 3.1].map((x) => (
+          <mesh key={x} position={[x, LEGS / 2, -0.05]} material={M.slate}>
+            <boxGeometry args={[0.36, LEGS, 0.36]} />
+          </mesh>
+        ))}
+        <RoundedBox args={[FRAME_W, FRAME_H, 0.3]} radius={0.1} smoothness={2} bevelSegments={1} position={[0, LEGS + FRAME_H / 2, -0.12]} material={M.slate} castShadow receiveShadow />
+        <mesh position={[0, faceY, 0.04]} material={face} receiveShadow>
+          <boxGeometry args={[FACE_W, FACE_H, 0.04]} />
         </mesh>
-      ))}
-      <RoundedBox args={[FRAME_W, FRAME_H, 0.3]} radius={0.1} smoothness={2} bevelSegments={1} position={[0, LEGS + FRAME_H / 2, -0.12]} material={M.slate} castShadow receiveShadow />
-      <mesh position={[0, faceY, 0.04]} material={face} receiveShadow>
-        <boxGeometry args={[FACE_W, FACE_H, 0.04]} />
-      </mesh>
-      <mesh position={[0, faceY + FACE_H / 2 - 0.08, 0.065]} material={M.orange}>
-        <boxGeometry args={[FACE_W - 0.2, 0.1, 0.01]} />
-      </mesh>
-      <Label font="display" size={0.56} color={COLORS.ink} position={[0, faceY + FACE_H / 2 - 0.3, 0.07]} anchorY="top">
+        <mesh position={[0, faceTop - 0.08, 0.065]} material={M.orange}>
+          <boxGeometry args={[FACE_W - 0.2, 0.1, 0.01]} />
+        </mesh>
+      </Static>
+      <Label font="display" size={0.56} color={COLORS.ink} position={[0, faceTop - 0.28, 0.07]} anchorY="top">
         {b.title}
       </Label>
-      {b.lines.map((line, i) => (
-        <Label key={i} size={0.4} color={COLORS.inkSoft} position={[0, faceY + FACE_H / 2 - 1.18 - i * 0.58, 0.07]} anchorY="top">
-          {line}
-        </Label>
-      ))}
-      {TOY_TEXT.flags.map((name, i) => (
-        <group key={name} position={[(i - 1) * 2.8, 0, 0]}>
-          <Label font="bodyBold" size={0.3} color="#ffffff" position={[0, top - 0.27, 0.04]}>
-            {name}
-          </Label>
-          <group position={[0, top, -0.12]}>
-            <Flag kind={(['japan', 'us', 'brazil'] as const)[i]} phase={i * 1.3} />
-          </group>
-        </group>
-      ))}
+      <Label size={LINE} color={COLORS.inkSoft} position={[0, faceTop - 1.12, 0.07]} anchorY="top" lineHeight={LINE_GAP / LINE} textAlign="center">
+        {b.lines.join('\n')}
+      </Label>
     </group>
   );
 }
@@ -197,7 +217,7 @@ function Chute() {
   const mx = (CHUTE.x0 + CHUTE.x1) / 2;
   const my = (CHUTE.y0 + CHUTE.y1) / 2;
   return (
-    <group>
+    <Static>
       <group position={[mx, my, CHUTE.z]} rotation={[0, 0, ang]}>
         <mesh position={[0, -0.06, 0]} material={M.metal} castShadow receiveShadow>
           <boxGeometry args={[len, 0.12, 0.8]} />
@@ -213,7 +233,7 @@ function Chute() {
           <boxGeometry args={[0.16, surface(x) - 0.12, 0.16]} />
         </mesh>
       ))}
-    </group>
+    </Static>
   );
 }
 
@@ -318,6 +338,7 @@ function RewardsToy({ clock }: ToyProps) {
     <>
       <Screen face={face} />
       <Chute />
+      <FlagStand />
       <group ref={box} position={[BOX.x, 0, BOX.z]}>
         <RoundedBox args={[BOX.w, BOX.h, BOX.d]} radius={0.08} smoothness={2} bevelSegments={1} position={[0, BOX.h / 2, 0]} material={M.orange} castShadow receiveShadow />
         <mesh position={[SLOT_X - BOX.x, BOX.h + 0.005, 0]} material={M.ink}>

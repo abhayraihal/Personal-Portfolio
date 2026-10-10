@@ -3,7 +3,7 @@ import type { StationId } from './layout.ts';
 
 // In-world text for the plaza. Every line is cut from the matching panel in src/data/profile.ts;
 // board titles are the panel titles.
-export const BOARDS: Record<StationId, { title: string; lines: string[] }> = {
+export const BOARDS: Record<StationId, { title: string; lines: string[]; result?: string }> = {
   'amazon-rewards': {
     title: panels['amazon-rewards'].title,
     lines: ['Points from non-bank partners', 'pay for rentals and purchases', '2 low-level designs', 'Verified end to end in Japan'],
@@ -11,6 +11,7 @@ export const BOARDS: Record<StationId, { title: string; lines: string[] }> = {
   'amazon-oncall-agent': {
     title: panels['amazon-oncall-agent'].title,
     lines: ['Picks up every new oncall ticket', 'Claude on Bedrock AgentCore', 'MCP tools find the root cause', 'Posts confidence and evidence'],
+    result: 'About 30 min saved per ticket',
   },
   'amazon-migration': {
     title: panels['amazon-migration'].title,
@@ -36,7 +37,6 @@ export const TOY_TEXT = {
   ticket: 'ticket',
   sources: ['Logs', 'Metrics', 'Code', 'Runbooks'],
   report: ['Root cause', 'Confidence', 'Evidence'],
-  saved: 'about 30 min saved per ticket',
   countries: ['Spain', 'France', 'UK', 'Italy'],
   oldRegion: 'old region',
   newRegions: 'new regions',

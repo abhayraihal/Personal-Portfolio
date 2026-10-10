@@ -23,4 +23,5 @@ export const M = {
   glass: new MeshStandardMaterial({ color: '#cfe9ff', roughness: 0.15, metalness: 0, transparent: true, opacity: 0.32, depthWrite: false }),
   flagCloth: new MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, side: DoubleSide }),
   shadowDark: new MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.18, depthWrite: false }),
+  accent: new MeshBasicMaterial({ color: COLORS.amazon, toneMapped: false }), // board top strips, unlit like the shared Board's
 };
