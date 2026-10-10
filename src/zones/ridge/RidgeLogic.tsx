@@ -17,10 +17,11 @@ declare global {
   }
 }
 
-// Side-on framing while the car is on the ridge, so the road reads like a chart. Narrow (portrait)
-// screens get a longer distance so about 20 m of road stays in view.
-const OVERRIDE: CameraOverride = { id: 'ridge', elevation: 25 * DEG, distance: 34, blend: 1.2 };
-const overrideDistance = (aspect: number) => Math.min(58, Math.max(34, 34 * Math.sqrt(1.6 / aspect)));
+// Side-on framing while the car is on the ridge, so the road reads like a chart: about 50 m of road
+// (30-odd contests) on a desktop screen. The camera rig already pulls back on portrait screens, so
+// the distance shrinks a little there to keep the car readable (about 70 m on a phone).
+const OVERRIDE: CameraOverride = { id: 'ridge', elevation: 24 * DEG, distance: 44, blend: 1.2 };
+const overrideDistance = (aspect: number) => 44 * Math.min(1, aspect) ** 0.2;
 const CONFETTI = [RANK_SHADE.Newbie, RANK_SHADE.Pupil, RANK_SHADE.Specialist, RANK_SHADE.Expert, '#ffffff'];
 const GATE_S = MILESTONES.map((m) => sContest(m.index));
 
