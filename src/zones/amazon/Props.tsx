@@ -2,8 +2,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { AdditiveBlending, CanvasTexture, Euler, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
 import type { InstancedMesh } from 'three';
-import { CAMERA } from '../../config/world.ts';
+import { ZONE_BY_ID } from '../../config/layout.ts';
 import { useStore } from '../../state/store.ts';
+import { addLamps } from '../../world/plan.ts';
 import { ModelInstances } from './Instances.tsx';
 import type { Placement } from './Instances.tsx';
 import { M } from './materials.ts';
@@ -12,12 +13,21 @@ import { at } from './shared.ts';
 
 const DEG = Math.PI / 180;
 const RIM = 23.6;
+const HEAD_IN = 1.35; // the valley lamp's head sits this far in from its post (see world/plan.ts)
 
-// Street lights on the rim, arms reaching in over the plaza.
-const LAMP_ANGLES = [248, 292, 222, 318, 187, 353, 155, 25, 113, 67];
-const LAMPS: Placement[] = LAMP_ANGLES.map((deg) => {
+// Street lights on the rim, arms reaching in over the plaza. They are the valley's lamps, so they
+// light up with the rest of the valley at night. None stands in front of the Rewards or Oncall
+// platforms: from the arrival view a lamp head there covers the front of the exhibit.
+const LAMP_ANGLES = [248, 292, 187, 353, 155, 25, 113, 67];
+const [CU, CV] = ZONE_BY_ID.amazon.center;
+addLamps(LAMP_ANGLES.map((deg) => {
   const a = deg * DEG;
-  return { p: at(Math.cos(a) * RIM, Math.sin(a) * RIM), ry: Math.atan2(Math.cos(a), -Math.sin(a)) };
+  return { kind: 'street' as const, u: CU + Math.cos(a) * RIM, v: CV + Math.sin(a) * RIM, toward: [-Math.cos(a), -Math.sin(a)] as [number, number] };
+}));
+// Plaza point under each lamp head.
+const HEADS = LAMP_ANGLES.map((deg) => {
+  const a = deg * DEG;
+  return [Math.cos(a) * (RIM - HEAD_IN), Math.sin(a) * (RIM - HEAD_IN)] as const;
 });
 
 // Bench front is +Z: these face the camera, by the office doors, or turn towards the trophy.
@@ -28,8 +38,6 @@ const BENCHES: Placement[] = [
   { p: at(11.8, -18.6), ry: Math.atan2(-11.8, -18.6) },
 ];
 
-// Lamp head in the lamp's own frame (lamp-post-street at world scale: 6 m pole, arm towards -Z).
-const HEAD = new Vector3(0, 5.72, -1.62);
 const _m = new Matrix4();
 const _q = new Quaternion();
 const _e = new Euler();
@@ -48,56 +56,35 @@ function glowTexture(inner: string, outer: string) {
   return new CanvasTexture(c);
 }
 
-const additive = (map: CanvasTexture) => new MeshBasicMaterial({ map, transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false });
-
-// Night: warm bulbs under the lamp heads, a halo round each bulb and soft pools of light on the
-// paving (no real lights). The camera never turns, so the halos are fixed quads facing it.
-function LampGlow() {
+// Night: soft pools of light on the paving under each lamp head. The valley draws the bulbs, the
+// halos and the pools on the grass; its ground pools sit under the plaza paving, so the plaza
+// paints its own.
+function LampPools() {
   const night = useStore((s) => s.night);
-  const bulbs = useRef<InstancedMesh>(null);
-  const halos = useRef<InstancedMesh>(null);
   const pools = useRef<InstancedMesh>(null);
-  const mats = useMemo(() => ({
-    bulb: new MeshBasicMaterial({ color: '#fff1c4', toneMapped: false }),
-    halo: additive(glowTexture('rgba(255, 226, 170, 0.75)', 'rgba(255, 200, 120, 0)')),
-    pool: additive(glowTexture('rgba(255, 206, 128, 0.5)', 'rgba(255, 214, 140, 0)')),
+  const mat = useMemo(() => new MeshBasicMaterial({
+    map: glowTexture('rgba(255, 206, 128, 0.5)', 'rgba(255, 214, 140, 0)'),
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    toneMapped: false,
   }), []);
   useEffect(() => () => {
-    for (const m of Object.values(mats)) {
-      m.map?.dispose();
-      m.dispose();
-    }
-  }, [mats]);
+    mat.map?.dispose();
+    mat.dispose();
+  }, [mat]);
   useLayoutEffect(() => {
-    const b = bulbs.current;
-    const h = halos.current;
     const pl = pools.current;
-    if (!b || !h || !pl) return;
-    LAMPS.forEach((l, i) => {
-      _q.setFromEuler(_e.set(0, l.ry ?? 0, 0));
-      _p.copy(HEAD).applyQuaternion(_q).add(_s.set(l.p[0], l.p[1], l.p[2]));
-      b.setMatrixAt(i, _m.compose(_p, _q, _s.set(1, 1, 1)));
-      h.setMatrixAt(i, _m.compose(_p, _q.setFromEuler(_e.set(-CAMERA.elevation, 0, 0)), _s.set(1, 1, 1)));
-      _p.y = 0.05;
-      pl.setMatrixAt(i, _m.compose(_p, _q.setFromEuler(_e.set(-Math.PI / 2, 0, 0)), _s.set(1, 1, 1)));
-    });
-    for (const m of [b, h, pl]) {
-      m.instanceMatrix.needsUpdate = true;
-      m.computeBoundingSphere();
-    }
+    if (!pl) return;
+    _q.setFromEuler(_e.set(-Math.PI / 2, 0, 0));
+    HEADS.forEach(([u, v], i) => pl.setMatrixAt(i, _m.compose(_p.set(u, 0.05, -v), _q, _s.set(1, 1, 1))));
+    pl.instanceMatrix.needsUpdate = true;
+    pl.computeBoundingSphere();
   }, []);
   return (
-    <>
-      <instancedMesh ref={bulbs} args={[undefined, mats.bulb, LAMPS.length]} visible={night}>
-        <sphereGeometry args={[0.22, 10, 8]} />
-      </instancedMesh>
-      <instancedMesh ref={halos} args={[undefined, mats.halo, LAMPS.length]} visible={night}>
-        <planeGeometry args={[1.9, 1.9]} />
-      </instancedMesh>
-      <instancedMesh ref={pools} args={[undefined, mats.pool, LAMPS.length]} visible={night}>
-        <planeGeometry args={[7, 7]} />
-      </instancedMesh>
-    </>
+    <instancedMesh ref={pools} args={[undefined, mat, HEADS.length]} visible={night}>
+      <planeGeometry args={[7, 7]} />
+    </instancedMesh>
   );
 }
 
@@ -135,8 +122,7 @@ export function Props() {
 
   return (
     <>
-      <ModelInstances name="lamp-post-street" items={LAMPS} />
-      <LampGlow />
+      <LampPools />
       <ModelInstances name="bench-wood" items={BENCHES} />
       <ModelInstances name="tree-pine-cone" items={trees} />
       <ModelInstances name="plant-leafy" items={plants.leafy} shadows={quality === 'high'} />
@@ -166,9 +152,6 @@ export function Props() {
       </Static>
 
       <RigidBody type="fixed" colliders={false}>
-        {LAMPS.map((l, i) => (
-          <CylinderCollider key={`l${i}`} args={[1.6, 0.2]} position={[l.p[0], 1.6, l.p[2]]} />
-        ))}
         {BENCHES.map((b, i) => (
           <CuboidCollider key={`b${i}`} args={[0.8, 0.5, 0.42]} position={[b.p[0], 0.5, b.p[2]]} rotation={[0, b.ry ?? 0, 0]} />
         ))}
