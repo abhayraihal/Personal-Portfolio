@@ -11,7 +11,7 @@ const PLANK_H = 0.62;
 const GAP = 0.12;
 const BASE = 1.25; // height of the lowest plank's underside
 const POST_H = BASE + TAGS.length * (PLANK_H + GAP) + 0.25;
-const TEXT = 0.3;
+const TEXT = 0.34;
 // Rubik Bold averages a little over half an em per character; each plank is cut to its label.
 const plankLength = (text: string) => Math.max(3, text.length * TEXT * 0.56 + TIP + 0.6);
 

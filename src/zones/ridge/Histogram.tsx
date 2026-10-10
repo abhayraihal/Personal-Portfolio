@@ -83,12 +83,12 @@ export function Histogram() {
       <Board
         title="Solved by problem rating"
         lines={['1 block = 10 problems, rounded up', 'Block colour = rank at that rating']}
-        width={7.2}
-        titleSize={0.5}
-        lineSize={0.3}
+        width={8.4}
+        titleSize={0.58}
+        lineSize={0.37}
         accent={shadeFor('Expert', '#0000ff')}
         lift={0.9}
-        position={[xb - 4.2, 0, HIST.z + 0.3]}
+        position={[xb - 4.9, 0, HIST.z + 0.3]}
       />
     </>
   );
