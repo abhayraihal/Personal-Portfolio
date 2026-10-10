@@ -41,7 +41,10 @@ function ZoneMark({ zone, visited, current, onPick }: { zone: ZoneDef; visited: 
       role="button"
       tabIndex={0}
       aria-label={`Go to ${zone.title}, key ${zone.key}${visited ? ', visited' : ''}`}
-      onClick={() => onPick(zone)}
+      onClick={(e) => {
+        onPick(zone);
+        blurAfterPointer(e); // else the next Space (brake) or Enter would pick this zone again
+      }}
       onKeyDown={onKey}
       style={{ '--zone': zone.color } as CSSProperties}
     >

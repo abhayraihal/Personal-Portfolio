@@ -82,7 +82,7 @@ export function handlesEnter(target: EventTarget | null): boolean {
 
 // A button keeps focus after a mouse click, so the next Space (brake) would press it again.
 // Keyboard clicks have detail 0 and keep their focus.
-export function blurAfterPointer(e: { detail: number; currentTarget: HTMLElement }): void {
+export function blurAfterPointer(e: { detail: number; currentTarget: HTMLElement | SVGElement }): void {
   if (e.detail > 0) e.currentTarget.blur();
 }
 
