@@ -1,7 +1,8 @@
 // Shared colours and font files. In-world text must only use glyphs the fonts contain
 // (see src/config/glyphs.ts): troika fetches fallback fonts from a CDN for missing glyphs.
 
-const BASE = import.meta.env.BASE_URL;
+// import.meta.env is undefined when vite.config.ts imports this file at build time.
+const BASE: string = import.meta.env?.BASE_URL ?? '/portfolio/';
 
 export const COLORS = {
   accent: '#e2557f', // the pink polo in Abhay's IIT Mandi photo; car paint, UI accent

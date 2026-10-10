@@ -2,7 +2,8 @@
 // public GitHub repos, arXiv 2405.06467 / Springer LNCS, and the public Codeforces API.
 // Amazon work is described without internal system names, by his choice.
 
-const BASE = import.meta.env.BASE_URL;
+// import.meta.env is undefined when vite.config.ts imports this file at build time.
+const BASE: string = import.meta.env?.BASE_URL ?? '/portfolio/';
 
 export type LinkKind = 'mail' | 'phone' | 'linkedin' | 'github' | 'demo' | 'paper' | 'profile' | 'web';
 export type Link = { label: string; url: string; kind: LinkKind };
