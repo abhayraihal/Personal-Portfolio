@@ -59,8 +59,8 @@ const billboardFrame = () =>
   (frameGeometry ??= mergeParts([
     { g: new BoxGeometry(0.32, POST_H, 0.32), color: COLORS.inkSoft, at: [-POST_X, POST_H / 2, -BOARD_DEPTH - 0.1] },
     { g: new BoxGeometry(0.32, POST_H, 0.32), color: COLORS.inkSoft, at: [POST_X, POST_H / 2, -BOARD_DEPTH - 0.1] },
-    { g: new RoundedBoxGeometry(BOARD_W, BOARD_H, BOARD_DEPTH, 3, 0.12), color: COLORS.ink, at: [0, BOARD_CY, -BOARD_DEPTH / 2] },
-    { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 2, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
+    { g: new RoundedBoxGeometry(BOARD_W, BOARD_H, BOARD_DEPTH, 2, 0.12), color: COLORS.ink, at: [0, BOARD_CY, -BOARD_DEPTH / 2] },
+    { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 1, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
   ]));
 
 function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain'; x: number; z: number }) {
