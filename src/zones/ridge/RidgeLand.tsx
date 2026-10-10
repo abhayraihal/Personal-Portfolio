@@ -12,7 +12,7 @@ export function RidgeLand() {
   const geometry = useMemo(() => buildRidgeGeometry(), []);
   const materials = useMemo(
     () => ({
-      faces: selfLitMaterial({ vertexColors: true, roughness: 1, metalness: 0 }),
+      faces: selfLitMaterial({ vertexColors: true, roughness: 1, metalness: 0 }, 0.32, 0.1),
       top: new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }),
     }),
     [],

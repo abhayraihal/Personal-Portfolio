@@ -6,6 +6,7 @@ import { Board } from '../../components/Board.tsx';
 import { Label } from '../../components/Label.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { codeforces, rankFor } from '../../data/codeforces.ts';
+import { useStore } from '../../state/store.ts';
 import { cornerCutBox, shadeFor } from './geometry.ts';
 
 // Ridge-frame layout: the easy end sits by the ramp, harder ratings run left along the foot, the
@@ -24,6 +25,7 @@ export const HIST_X1 = columns[columns.length - 1].x;
 
 export function Histogram() {
   const ref = useRef<InstancedMesh>(null);
+  const low = useStore((s) => s.quality === 'low');
   const total = columns.reduce((n, c) => n + c.cubes, 0);
   const parts = useMemo(() => ({ geo: cornerCutBox(HIST.cube, HIST.cube, HIST.cube, 0.07), mat: new MeshStandardMaterial({ roughness: 0.6 }) }), []);
 
@@ -58,7 +60,7 @@ export function Histogram() {
   const plinthZ = HIST.z + 0.45;
   return (
     <>
-      <instancedMesh ref={ref} args={[parts.geo, parts.mat, total]} castShadow receiveShadow />
+      <instancedMesh ref={ref} args={[parts.geo, parts.mat, total]} castShadow={!low} receiveShadow />
       <RoundedBox args={[xa - xb, HIST.plinthH, plinthD]} radius={0.1} smoothness={2} position={[(xa + xb) / 2, HIST.plinthH / 2, plinthZ]} castShadow receiveShadow>
         <meshStandardMaterial color={COLORS.paperShade} roughness={1} />
       </RoundedBox>

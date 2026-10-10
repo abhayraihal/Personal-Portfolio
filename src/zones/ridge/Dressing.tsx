@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
+import { BallCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { Euler, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { modelScale, useMerged } from '../../components/Model.tsx';
 import type { ModelName } from '../../config/models.ts';
@@ -53,7 +54,7 @@ export function Dressing() {
     const tall: Item[] = [];
     const snowy: Item[] = [];
     const pines: Item[] = [];
-    for (let s = 6; s < S_END + 6; s += 4.2) {
+    for (let s = 12; s < S_END + 6; s += 4.2) { // clear of the explainer board at the foot
       for (let row = 0; row < 3; row++) {
         if (r() < (row === 0 ? 0.55 : 0.3)) continue;
         const ss = s + (r() - 0.5) * 3;
@@ -80,13 +81,22 @@ export function Dressing() {
     return { tall, snowy, pines, rocks, rocksB };
   }, []);
   const thin = <T,>(a: T[]) => (low ? a.filter((_, i) => i % 2 === 0) : a);
+  const trees = [thin(sets.tall), thin(sets.snowy), thin(sets.pines)];
   return (
     <>
-      <Instances name="tree-deodar-tall" items={thin(sets.tall)} />
-      <Instances name="tree-pine-snow" items={thin(sets.snowy)} />
-      <Instances name="tree-pine-full" items={thin(sets.pines)} />
-      <Instances name="rock-grey-b" items={sets.rocks} />
-      <Instances name="rock-grey-c" items={sets.rocksB} />
+      <Instances name="tree-deodar-tall" items={trees[0]} />
+      <Instances name="tree-pine-snow" items={trees[1]} />
+      <Instances name="tree-pine-full" items={trees[2]} />
+      <Instances name="rock-grey-b" items={sets.rocks} shadows={!low} />
+      <Instances name="rock-grey-c" items={sets.rocksB} shadows={!low} />
+      <RigidBody type="fixed" colliders={false}>
+        {trees.flat().map((t, i) => (
+          <CylinderCollider key={`t${i}`} args={[1.6, 0.35 * t.scale]} position={[t.x, t.y + 1.6, t.z]} />
+        ))}
+        {[...sets.rocks, ...sets.rocksB].map((r, i) => (
+          <BallCollider key={`r${i}`} args={[0.9 * r.scale]} position={[r.x, 0.05, r.z]} />
+        ))}
+      </RigidBody>
     </>
   );
 }

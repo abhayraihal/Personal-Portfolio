@@ -3,6 +3,7 @@ import { RoundedBox } from '@react-three/drei';
 import { Color, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { COLORS } from '../../config/palette.ts';
 import { contests, rankFor } from '../../data/codeforces.ts';
+import { useStore } from '../../state/store.ts';
 import { MILESTONES, N, S_END, S_SUMMIT, deckY, hwAt, sContest } from './profile.ts';
 import { END_WALL_H, END_WALL_T, END_WALL_FACE, railSides } from './shape.ts';
 import type { OutlinePoint } from './shape.ts';
@@ -53,8 +54,10 @@ const GATE_INDEX = new Set(MILESTONES.map((m) => m.index));
 // contest ended on, so the rail reads as a colour-coded timeline.
 export function RailPosts() {
   const ref = useRef<InstancedMesh>(null);
+  const low = useStore((s) => s.quality === 'low');
   const geometry = useMemo(() => cornerCutBox(RAIL_POST.w, RAIL_POST.h, RAIL_POST.w, 0.05), []);
-  const material = useMemo(() => selfLitMaterial({ roughness: 0.85 }, 0.8), []);
+  // the rank colours glow a little at night, like road reflectors
+  const material = useMemo(() => selfLitMaterial({ roughness: 0.85 }, 0.26, 0.75), []);
   const posts = useMemo(() => {
     const { front, back } = railSides(0.5);
     const neutral = '#7a5a3d';
@@ -91,7 +94,7 @@ export function RailPosts() {
     m.computeBoundingSphere();
   }, [posts]);
 
-  return <instancedMesh ref={ref} args={[geometry, material, posts.length]} castShadow receiveShadow />;
+  return <instancedMesh ref={ref} args={[geometry, material, posts.length]} castShadow={!low} receiveShadow />;
 }
 
 // The wall across the far end of the summit plaza: three courses of dry stone and a snow cap. The

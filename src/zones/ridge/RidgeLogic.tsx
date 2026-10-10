@@ -39,12 +39,9 @@ export function RidgeLogic() {
   );
 
   useEffect(() => {
-    const apply = (night: boolean) => {
-      selfLight.value = night ? 0.1 : 0.32;
-    };
-    apply(useStore.getState().night);
-    return useStore.subscribe((s, prev) => {
-      if (s.night !== prev.night) apply(s.night);
+    selfLight.night = useStore.getState().night;
+    return useStore.subscribe((s) => {
+      selfLight.night = s.night;
     });
   }, []);
 
