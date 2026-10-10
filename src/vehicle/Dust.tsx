@@ -8,6 +8,7 @@ import { car } from '../state/car.ts';
 import { events } from '../state/events.ts';
 import { useStore } from '../state/store.ts';
 import { wheelFx } from './fx.ts';
+import { DRIVE } from './tuning.ts';
 
 // Dust puffs kicked up by the rear wheels (launches, boost, slides, hard braking, landings) and
 // faint skid marks. Both are one InstancedMesh each with a fixed cap; nothing is allocated per frame.
@@ -42,6 +43,8 @@ function surfaceAt(x: number, z: number): Surface {
   }
   return 'grass';
 }
+
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 const _m = new Matrix4();
 const _q = new Quaternion();
@@ -140,7 +143,8 @@ export function Dust() {
     let rate = 0;
     if (grounded) {
       if (car.throttle > 0.6 && car.speed > -0.5 && speed < 6) rate = 6 + 14 * (1 - speed / 6);
-      if (car.boosting && speed > 2) rate = Math.max(rate, 14);
+      // Boost kicks dust while it pulls; the trail thins out towards boost top speed.
+      if (car.boosting && speed > 2) rate = Math.max(rate, 14 * (1 - smoothstep(Math.min(speed / DRIVE.boostMaxSpeed, 1))));
       if (car.slip > 2.5) rate = Math.max(rate, Math.min(26, (car.slip - 2.5) * 7));
       if (car.brakeLight && car.throttle <= 0 && speed > 8) rate = Math.max(rate, 6);
     }
