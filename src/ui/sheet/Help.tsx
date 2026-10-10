@@ -28,6 +28,7 @@ const KEYBOARD: [string, ReactNode][] = [
 const TOUCH: [string, ReactNode][] = [
   ['Drive', 'Drag anywhere on the left half of the screen'],
   ['Brake and boost', 'Hold the buttons at the bottom right'],
+  ['Horn', 'Tap the Horn button, left of Brake'],
   ['Read about something', 'Stop on a ring, then tap the button that appears'],
   ['Jump to a zone', 'Open the map and tap a zone'],
   ['Zoom', 'Pinch with two fingers on the right half'],
@@ -85,7 +86,10 @@ export function Help() {
           </section>
         </div>
         <p className="help__foot">
-          Rather read than drive? Press <kbd className="key">C</kbd> for the classic view, with everything on one page.
+          <span className="for-fine">
+            Rather read than drive? Press <kbd className="key">C</kbd> for the classic view, with everything on one page.
+          </span>
+          <span className="for-coarse">Rather read than drive? Tap the page icon at the top right for the classic view, with everything on one page.</span>
         </p>
       </section>
     </div>

@@ -578,6 +578,12 @@
   height: 20px;
 }
 
+/* Narrow windows: the role line goes, so the chip and the toolbar never meet. */
+@media (max-width: 860px) {
+  .chip__role {
+    display: none;
+  }
+}
 @media (max-width: 640px) {
   .chip {
     padding: 4px 4px 4px 4px;

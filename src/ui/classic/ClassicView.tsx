@@ -85,17 +85,20 @@ function Bullets({ items }: { items?: string[] }) {
   );
 }
 
+const PRINT_URL_MAX = 48; // longer addresses are no use on paper (the PDF keeps the link)
+
 // A link with its address printed after it on paper, where "GitHub" alone is no use.
-function CvLink({ link, label }: { link: Link; label?: string }) {
+function CvLink({ link, label, printUrl = true }: { link: Link; label?: string; printUrl?: boolean }) {
   const props = linkProps(link);
   const text = label ?? link.label;
   const url = shortUrl(link.url);
+  const showUrl = printUrl && link.kind !== 'mail' && link.kind !== 'phone' && url !== text && url.length <= PRINT_URL_MAX;
   return (
     <a className="cv-link" {...props} aria-label={props.target ? `${text}, opens in a new tab` : undefined}>
       <LinkIcon kind={link.kind} />
       <span>{text}</span>
       {props.target && <ExternalIcon />}
-      {link.kind !== 'mail' && link.kind !== 'phone' && url !== text && <span className="cv-url"> {url}</span>}
+      {showUrl && <span className="cv-url"> {url}</span>}
     </a>
   );
 }
@@ -136,16 +139,18 @@ function Experience() {
             <ItemHead title={job.company} when={job.dates} sub={`${job.role} · ${job.place}`} />
             <Chips items={stack} small />
             {parts.length ? (
-              parts.map((id) => {
-                const part = panels[id];
-                return (
-                  <div className="cv-part" key={id}>
-                    <h4 className="cv-part__title">{part.title}</h4>
-                    <Bullets items={part.bullets} />
-                    {part.meta && <Chips items={part.meta} small />}
-                  </div>
-                );
-              })
+              <div className="cv-parts">
+                {parts.map((id) => {
+                  const part = panels[id];
+                  return (
+                    <div className="cv-part" key={id}>
+                      <h4 className="cv-part__title">{part.title}</h4>
+                      <Bullets items={part.bullets} />
+                      {part.meta && <Chips items={part.meta} small />}
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <Bullets items={p.bullets} />
             )}
@@ -262,7 +267,7 @@ function Programming({ interactive }: { interactive: boolean }) {
       <ul className="cv-bullets">
         {otherPlatforms.map((o) => (
           <li key={o.platform}>
-            <CvLink link={{ label: o.platform, url: o.url, kind: 'profile' }} /> ({o.handle}): {o.stat}
+            <CvLink link={{ label: o.platform, url: o.url, kind: 'profile' }} printUrl={false} /> ({o.handle}): {o.stat}
           </li>
         ))}
         {other.bullets?.filter((b) => !otherPlatforms.some((o) => b.startsWith(o.platform))).map((b) => (

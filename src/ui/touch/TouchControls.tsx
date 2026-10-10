@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
+import { carActions } from '../../state/car.ts';
 import { useStore } from '../../state/store.ts';
 import { COARSE, useMediaQuery } from '../lib.ts';
 import { useUi } from '../uiStore.ts';
 
-// Touch driving: a floating joystick wherever the left thumb lands (left 45% of the screen) and
-// hold buttons for brake and boost. Writes store.touch, which the vehicle adds to the keyboard.
-// Up is forward, left is steer > 0. Only this layer blocks page scroll and zoom (touch-action).
+// Touch driving: a floating joystick wherever the left thumb lands (left 45% of the screen), hold
+// buttons for brake and boost, and a horn. Writes store.touch, which the vehicle adds to the
+// keyboard. Up is forward, left is steer > 0. Only this layer blocks page scroll and zoom
+// (touch-action).
 
 const RADIUS = 56; // px of knob travel for full throttle or full lock
 const DEAD = 0.12; // fraction of the radius that does nothing
@@ -121,6 +123,34 @@ function HoldButton({ name, label }: { name: 'brake' | 'boost'; label: string })
   );
 }
 
+// A tap, not a hold: one honk per press (the vehicle adds its own cooldown).
+function HornButton() {
+  const [down, setDown] = useState(false);
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      className="touch-btn touch-btn--horn"
+      data-down={down || undefined}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setDown(true);
+        carActions.honk();
+      }}
+      onPointerUp={() => setDown(false)}
+      onPointerCancel={() => setDown(false)}
+      onLostPointerCapture={() => setDown(false)}
+      onClick={(e) => {
+        if (e.detail === 0) carActions.honk(); // activated without a pointer (switch access, screen reader)
+      }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      Horn
+    </button>
+  );
+}
+
 export function TouchControls() {
   const coarse = useMediaQuery(COARSE);
   const phase = useStore((s) => s.phase);
@@ -152,6 +182,7 @@ export function TouchControls() {
       <div className="touch-btns">
         <HoldButton name="boost" label="Boost" />
         <HoldButton name="brake" label="Brake" />
+        <HornButton />
       </div>
     </div>
   );

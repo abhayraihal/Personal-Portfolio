@@ -56,15 +56,30 @@
     0 8px 18px rgba(35, 38, 45, 0.25);
 }
 
+/* Boost above Brake under the right thumb, the smaller Horn to the left of Brake. */
 .touch-btns {
   position: absolute;
   right: calc(16px + var(--safe-r));
   bottom: calc(22px + var(--safe-b));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  display: grid;
+  grid-template-areas:
+    '. boost'
+    'horn brake';
+  place-items: center;
+  gap: 16px 14px;
+  pointer-events: none;
+}
+.touch-btns > .touch-btn {
   pointer-events: auto;
+}
+.touch-btn--boost {
+  grid-area: boost;
+}
+.touch-btn--brake {
+  grid-area: brake;
+}
+.touch-btn--horn {
+  grid-area: horn;
 }
 .touch-btn {
   display: grid;
@@ -98,8 +113,21 @@
     0 5px 0 rgba(35, 38, 45, 0.3),
     0 12px 24px rgba(35, 38, 45, 0.3);
 }
+.touch-btn--horn {
+  width: 56px;
+  height: 56px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow:
+    0 4px 0 #0f1115,
+    0 10px 20px rgba(35, 38, 45, 0.28);
+  font-size: 15px;
+}
 .touch-btn[data-down] {
   transform: translateY(4px) scale(0.97);
+}
+.touch-btn--horn[data-down] {
+  box-shadow: 0 1px 0 #0f1115;
 }
 .touch-btn--boost[data-down] {
   box-shadow: 0 1px 0 var(--accent-deep);

@@ -1,5 +1,5 @@
 /* HUD while driving: toolbar, settings, toasts, ridge readout, interact prompt, first-time hint,
-   minimap and the teleport fade. */
+   minimap (with zone arrivals above it) and the teleport fade. */
 
 .hud {
   position: absolute;
@@ -127,10 +127,11 @@
   transform: translateX(20px);
 }
 
-/* Toasts and the ridge readout, top centre */
+/* Toasts and the ridge readout, top centre, under the chip and toolbar row (the ridge readout is
+   wider than the gap between them on most screens). */
 .topcenter {
   position: absolute;
-  top: calc(var(--edge) + var(--safe-t));
+  top: calc(var(--edge) + var(--safe-t) + 68px);
   left: 50%;
   display: flex;
   flex-direction: column;
@@ -161,21 +162,6 @@
 .toast[data-leaving] {
   animation: toast-out calc(var(--motion) * 240ms) ease-in both;
 }
-.toast--zone {
-  padding: 7px 20px 7px 7px;
-}
-.toast__key {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--zone);
-  color: var(--zone-text, #fff);
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
-  font: 400 23px/1 var(--font-display);
-}
 .toast__text {
   display: flex;
   flex-direction: column;
@@ -183,10 +169,6 @@
 }
 .toast__title {
   font: 400 22px/1.1 var(--font-display);
-}
-.toast__sub {
-  color: var(--ink-2);
-  font-size: 14px;
 }
 .toast--win {
   background: var(--accent-strong);
@@ -208,6 +190,69 @@
   to {
     opacity: 0;
     transform: translateY(-10px) scale(0.97);
+  }
+}
+
+/* Zone arrivals: a compact chip, one at a time. The one leaving fades out in the same spot as the
+   new one. Above the map on desktop (sliding in from the left), top centre on phones. */
+.toast--zone {
+  gap: 10px;
+  padding: 5px 16px 5px 5px;
+  border-radius: 14px;
+}
+.toast__key {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--zone);
+  color: var(--zone-text, #fff);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+  font: 400 19px/1 var(--font-display);
+}
+.toast--zone .toast__title {
+  font-size: 18px;
+}
+.toast__sub {
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.25;
+}
+.toasts--zone {
+  position: relative;
+  justify-content: flex-end;
+}
+.toasts--zone > .toast[data-leaving] {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+.topcenter .toasts--zone > .toast[data-leaving] {
+  right: 0;
+  width: max-content;
+  margin: 0 auto;
+}
+.corner .toasts--zone {
+  align-items: flex-start;
+}
+.corner .toast--zone {
+  animation-name: toast-in-left;
+}
+.corner .toast--zone[data-leaving] {
+  animation-name: toast-out-left;
+}
+@keyframes toast-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-14px) scale(0.96);
+  }
+}
+@keyframes toast-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-10px) scale(0.97);
   }
 }
 
@@ -298,7 +343,7 @@
   transform: translateX(-50%);
 }
 .hud[data-map='open'] .bottomcenter {
-  max-width: calc(100vw - 2 * 352px);
+  max-width: calc(100vw - 2 * 304px);
 }
 
 .prompt {
@@ -357,7 +402,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px 18px;
+  gap: 6px 14px;
   padding: 10px 18px;
   border-radius: 16px;
   background: rgba(35, 38, 45, 0.84);
@@ -399,11 +444,19 @@
   }
 }
 
-/* Minimap, bottom left */
-.minimap {
+/* Minimap, bottom left, with the zone arrivals stacked above it */
+.corner {
   position: absolute;
   bottom: calc(var(--edge) + var(--safe-b));
   left: calc(var(--edge) + var(--safe-l));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: calc(100vw - 2 * var(--edge));
+}
+.minimap {
+  --map-w: 256px; /* the SVG; the open box is this plus its padding */
   border-radius: 20px;
   background: var(--paper);
   box-shadow: var(--shadow-m);
@@ -442,11 +495,17 @@
 .minimap__title {
   font: 400 17px/1 var(--font-display);
 }
+.minimap[data-open='true'] {
+  width: calc(var(--map-w) + 16px);
+}
 .minimap__keys {
+  min-width: 0;
   margin-left: auto;
-  padding-left: 14px;
+  padding-left: 10px;
+  overflow: hidden;
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: 12px;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .minimap__body {
@@ -454,7 +513,7 @@
 }
 .minimap__svg {
   display: block;
-  width: 300px;
+  width: var(--map-w);
   height: auto;
   border-radius: 14px;
   background: #b7d39b;
@@ -500,7 +559,7 @@
 }
 .mm-zone__badge > text {
   fill: var(--ink);
-  font: 700 10.5px var(--font-body);
+  font: 700 12.5px var(--font-body);
 }
 .mm-zone__tick circle {
   fill: var(--ink);
@@ -516,10 +575,10 @@
 }
 .mm-zone__label {
   fill: var(--ink);
-  font: 700 11px var(--font-body);
+  font: 700 13.5px var(--font-body);
   paint-order: stroke;
   stroke: var(--paper);
-  stroke-width: 3px;
+  stroke-width: 3.5px;
   stroke-linejoin: round;
 }
 .mm-car > circle {
@@ -548,17 +607,26 @@
   transition: opacity calc(var(--motion) * 160ms + 30ms) ease-out;
 }
 
-/* Narrower desktop windows: toasts drop below the chip and toolbar. */
-@media (max-width: 1100px) {
+/* Very wide windows: room between the chip and the toolbar, and a larger map. */
+@media (min-width: 1600px) and (pointer: fine) {
   .topcenter {
-    top: calc(var(--edge) + var(--safe-t) + 68px);
+    top: calc(var(--edge) + var(--safe-t));
+    max-width: calc(100vw - 2 * 490px);
+  }
+}
+@media (min-width: 1600px) and (min-height: 1000px) and (pointer: fine) {
+  .minimap {
+    --map-w: 290px;
+  }
+  .hud[data-map='open'] .bottomcenter {
+    max-width: calc(100vw - 2 * 340px);
   }
 }
 
 /* Phones: toolbar stacks down the right edge, the map sits under the chip, the prompt floats
    above the touch controls. */
 @media (max-width: 640px), (pointer: coarse) {
-  .minimap {
+  .corner {
     top: calc(var(--edge) + var(--safe-t) + 60px);
     bottom: auto;
   }
@@ -569,8 +637,8 @@
     min-height: 40px;
     padding: 6px 12px 6px 10px;
   }
-  .minimap__svg {
-    width: min(300px, calc(100vw - 112px));
+  .minimap {
+    --map-w: min(300px, calc(100vw - 112px));
   }
   /* The map opens downwards here, so the chevron flips. */
   .minimap__toggle > .icon:last-child {
@@ -606,11 +674,11 @@
   }
 }
 /* Short touch screens (phones held sideways): the prompt and hint go back to the bottom edge,
-   between the joystick and the buttons. */
+   between the joystick and the buttons (Horn included). */
 @media (pointer: coarse) and (max-height: 540px) {
   .bottomcenter {
     bottom: calc(var(--safe-b) + 12px);
-    max-width: calc(100vw - 2 * 120px);
+    max-width: calc(100vw - 2 * 180px - 2 * var(--safe-r));
   }
 }
 @media (max-width: 640px) {
@@ -636,27 +704,52 @@
     width: min(296px, calc(100vw - 100px));
     transform-origin: top right;
   }
+  /* Toasts and the ridge readout line up under the map pill, clear of the toolbar column. */
   .topcenter {
     top: calc(var(--edge) + var(--safe-t) + 112px);
-    max-width: calc(100vw - 2 * 72px);
+    left: calc(var(--edge) + var(--safe-l));
+    align-items: flex-start;
+    max-width: calc(100vw - 2 * var(--edge) - 58px);
+    transform: none;
   }
-  .toast__title {
+  .topcenter .toasts {
+    align-items: flex-start;
+  }
+  .topcenter .toasts--zone > .toast[data-leaving] {
+    right: auto;
+    margin: 0;
+  }
+  .toast--win .toast__title {
     font-size: 19px;
   }
-  .toast__key {
-    width: 36px;
-    height: 36px;
-    font-size: 20px;
-  }
+  /* Two rows: count and rank, then the contest and its rating. */
   .ridge {
-    flex-wrap: wrap;
-    gap: 4px 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'count rank'
+      'main rating';
+    align-items: center;
+    gap: 2px 12px;
+    padding: 8px 12px 8px 14px;
   }
   .ridge__count {
-    width: 100%;
+    grid-area: count;
   }
   .ridge__main {
-    flex: 1 1 140px;
+    grid-area: main;
+  }
+  .ridge__rating {
+    grid-area: rating;
+  }
+  .ridge__rank {
+    grid-area: rank;
+    justify-self: end;
+    padding: 2px 10px 2px 7px;
+    font-size: 12.5px;
+  }
+  .ridge__rating strong {
+    font-size: 21px;
   }
 }
 
