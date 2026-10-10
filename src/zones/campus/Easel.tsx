@@ -66,7 +66,7 @@ export function Easel() {
       {/* Photo and caption on the frame, which rests on the ledge and leans back against the legs. */}
       <group position={[0, LEDGE_Y + 0.06, 0.3]} rotation={[TILT, 0, 0]}>
         <ImagePlane url={profile.photo.src} width={PHOTO} height={PHOTO} position={[0, frameH - BORDER - PHOTO / 2, 0.05]} />
-        <Label size={0.31} maxWidth={frameW - 0.12} textAlign="center" lineHeight={1.15} color={COLORS.ink} position={[0, BORDER + STRIP / 2, 0.05]}>
+        <Label size={0.34} maxWidth={frameW - 0.12} textAlign="center" lineHeight={1.15} color={COLORS.ink} position={[0, BORDER + STRIP / 2, 0.05]}>
           {CAPTION}
         </Label>
       </group>

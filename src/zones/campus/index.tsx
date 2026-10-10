@@ -1,6 +1,5 @@
 import { ZoneFrame } from '../../components/ZoneFrame.tsx';
 import { Buildings } from './Buildings.tsx';
-import { DevHook } from './DevHook.tsx';
 import { Easel } from './Easel.tsx';
 import { Ground } from './Ground.tsx';
 import { Lamps } from './Lamps.tsx';
@@ -15,7 +14,6 @@ import { Trail } from './Trail.tsx';
 export function CampusZone() {
   return (
     <ZoneFrame zone="campus">
-      <DevHook />
       <Ground />
       <Buildings />
       <Nature />

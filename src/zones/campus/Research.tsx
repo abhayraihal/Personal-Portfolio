@@ -121,7 +121,7 @@ function AnomalyField() {
   ]), []);
   const glow = useMemo(glowTexture, []);
   const fade = useMemo(beamTexture, []);
-  const st = useRef({ mode: 'scan' as 'scan' | 'lock', t: 0, lockT: 0, inGrid: true, target: new Vector3(-HALF, 0, -HALF), mix: 0, boxS: 0, ready: false });
+  const st = useRef({ mode: 'scan' as 'scan' | 'lock', t: 0, lockT: 0, inGrid: true, flip: 0, target: new Vector3(-HALF, 0, -HALF), mix: 0, boxS: 0, ready: false });
 
   useLayoutEffect(() => {
     const g = field.current;
@@ -140,16 +140,20 @@ function AnomalyField() {
     b.getWorldPosition(_v).applyMatrix4(_inv);
     const bx = _v.x, by = _v.y, bz = _v.z;
     const margin = F.step * 0.6;
-    const inGrid = Math.abs(bx) < HALF + margin && Math.abs(bz) < HALF + margin && by < 1.2;
-    if (inGrid !== s.inGrid) {
-      s.inGrid = inGrid;
-      if (found.current) found.current.visible = inGrid;
-      if (clear.current) clear.current.visible = !inGrid;
-      if (!inGrid) {
+    const nowIn = Math.abs(bx) < HALF + margin && Math.abs(bz) < HALF + margin && by < 1.2;
+    // Debounced, so a barrel rocking on the edge of the grid does not flicker the sign.
+    s.flip = nowIn === s.inGrid ? 0 : s.flip + dt;
+    if (s.flip > 0.35) {
+      s.flip = 0;
+      s.inGrid = nowIn;
+      if (found.current) found.current.visible = nowIn;
+      if (clear.current) clear.current.visible = !nowIn;
+      if (!nowIn) {
         s.mode = 'scan';
         playSound('coin', 0.6);
       }
     }
+    const inGrid = s.inGrid;
     const nearRow = Math.round((bz + HALF) / F.step);
     const nearCol = Math.round((bx + HALF) / F.step);
 
@@ -163,7 +167,9 @@ function AnomalyField() {
       const e = f * f * (3 - 2 * f);
       const [x0, z0] = cell(r0, c0);
       const [x1, z1] = cell(r1, c1);
-      s.target.set(x0 + (x1 - x0) * e, 0, z0 + (z1 - z0) * e);
+      const follow = 1 - Math.exp(-dt * 14);
+      s.target.x += (x0 + (x1 - x0) * e - s.target.x) * follow;
+      s.target.z += (z0 + (z1 - z0) * e - s.target.z) * follow;
       if (Math.floor(s.t) !== prev && inGrid && r0 === nearRow && c0 === nearCol) {
         s.mode = 'lock';
         s.lockT = 0;

@@ -6,6 +6,7 @@ import type { InstancedMesh, Mesh } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { modelScale } from '../../components/Model.tsx';
 import { ZONE_BY_ID } from '../../config/layout.ts';
+import { COLORS } from '../../config/palette.ts';
 import { CAMERA, screenToWorld } from '../../config/world.ts';
 import { coursework } from '../../data/profile.ts';
 import { car } from '../../state/car.ts';
@@ -49,7 +50,8 @@ function lampSpots(): LampSpot[] {
 
 const OFF = new Color('#000000');
 const WARM = new Color('#ffcf73');
-const GLASS_ON = new Color('#fff2c4');
+const GLASS_ON = new Color('#ffdc7a');
+const GLASS_OFF = new Color('#cf9b40'); // close to the lantern's own glass, so fading out is seamless
 const _c = new Color();
 const _m = new Matrix4();
 const _q = new Quaternion();
@@ -116,15 +118,16 @@ export function Lamps() {
       const target = isNight || s.timer[i] > 0 ? 1 : 0;
       const rate = target > s.level[i] ? 7 : 1.4;
       s.level[i] += Math.max(-rate * dt, Math.min(rate * dt, target - s.level[i]));
-      const lv = s.level[i];
       // Quantise so instance buffers only re-upload while a lamp is fading.
-      const shown = Math.round(lv * 40) / 40;
+      const shown = Math.round(s.level[i] * 40) / 40;
       if (shown === s.lastShown[i] && isNight === s.wasNight) continue;
       s.lastShown[i] = shown;
       changed = true;
       const glow = isNight ? 1 : 0.42;
-      const pop = shown > 0 ? 1 + 0.18 * Math.sin(Math.min(1, shown) * Math.PI) : 0;
+      // A small swell while lighting up; fading out blends back to the glass colour, then hides.
+      const pop = shown > 0.02 ? 1 + (target === 1 ? 0.18 * Math.sin(shown * Math.PI) : 0) : 0;
       g.setMatrixAt(i, _m.compose(_p.set(sp.x, GLASS_Y, sp.z), _q.identity(), _s.set(GLASS.hx * 2 * K * pop, (GLASS.y1 - GLASS.y0) * K * pop, GLASS.hz * 2 * K * pop)));
+      g.setColorAt(i, _c.copy(GLASS_OFF).lerp(GLASS_ON, shown));
       h.setColorAt(i, _c.copy(WARM).multiplyScalar(shown * glow));
       p.setColorAt(i, _c.copy(WARM).multiplyScalar(shown * (isNight ? 0.6 : 0.17)));
       const label = labels.current[i];
@@ -133,6 +136,7 @@ export function Lamps() {
     s.wasNight = isNight;
     if (changed) {
       g.instanceMatrix.needsUpdate = true;
+      if (g.instanceColor) g.instanceColor.needsUpdate = true;
       if (h.instanceColor) h.instanceColor.needsUpdate = true;
       if (p.instanceColor) p.instanceColor.needsUpdate = true;
     }
@@ -165,6 +169,9 @@ export function Lamps() {
         <planeGeometry args={[6, 6]} />
         <meshBasicMaterial map={tex} transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
       </instancedMesh>
+      <Label flat font="display" size={0.8} color={night ? LABEL_NIGHT : COLORS.iit} outlineWidth={night ? 0.06 : 0} outlineColor="#2a2312" position={[0, 0.06, -1.7]}>
+        Coursework
+      </Label>
       {spots.map((sp, i) => (
         <Label
           key={sp.course}

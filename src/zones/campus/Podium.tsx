@@ -1,7 +1,8 @@
 import { useMemo, useRef } from 'react';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import type { CollisionEnterPayload, RapierRigidBody } from '@react-three/rapier';
-import type { MeshStandardMaterial } from 'three';
+import { Vector3 } from 'three';
+import type { Group, MeshStandardMaterial } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { modelScale, useMerged } from '../../components/Model.tsx';
 import { Pad } from '../../components/Pad.tsx';
@@ -22,6 +23,7 @@ const BLOCK = { w: 2.9, d: 2.5 };
 const STAGE = { w: 7.6, d: 5.2, h: 0.16 };
 const BLOCK_Z = -0.75; // blocks sit towards the back of the stage, labels in front
 const TROPHY_S = 0.78;
+const _centre = new Vector3();
 
 // Gold keeps the kit palette with a little shine; silver is the same texture desaturated.
 function useTrophyMaterials() {
@@ -54,6 +56,7 @@ export function Podium() {
   // <Resettable> keeps its own ref.
   const trophies = useRef<(RapierRigidBody | null)[]>([null, null]);
   const lastBump = useRef(0);
+  const root = useRef<Group>(null);
   const geo = useMemo(() => mergeParts([
     { geo: roundedBox(STAGE.w, STAGE.h, STAGE.d, 0.05), color: '#d9cdb4', position: [0, STAGE.h / 2, 0] },
     ...PLACES.flatMap((p) => [
@@ -70,8 +73,12 @@ export function Podium() {
     lastBump.current = now;
     const hx = car.vx / (Math.hypot(car.vx, car.vz) || 1);
     const hz = car.vz / (Math.hypot(car.vx, car.vz) || 1);
+    root.current?.getWorldPosition(_centre);
     for (const b of trophies.current) {
       if (!b) continue;
+      // Only trophies still standing on the blocks get shaken off.
+      const t = b.translation();
+      if (t.y < STAGE.h + 0.5 || Math.hypot(t.x - _centre.x, t.z - _centre.z) > 4) continue;
       const m = b.mass();
       const up = Math.min(6.5, 1.2 + speed * 0.38);
       const push = Math.min(4, speed * 0.22);
@@ -82,7 +89,7 @@ export function Podium() {
   };
 
   return (
-    <group name="campus-podium" position={[PODIUM.x, 0, PODIUM.z]}>
+    <group ref={root} name="campus-podium" position={[PODIUM.x, 0, PODIUM.z]}>
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[STAGE.w / 2, STAGE.h / 2, STAGE.d / 2]} position={[0, STAGE.h / 2, 0]} />
       </RigidBody>

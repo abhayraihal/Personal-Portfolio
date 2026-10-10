@@ -32,7 +32,7 @@ export const BUILDINGS = {
 export const MONUMENT = { x: 14.2, z: -20.7, width: 8.2 };
 export const EDU_PAD: P2 = [14.4, -15.3];
 // Photo easel at the entrance, beside the hub road, next to the IIT Mandi sign.
-export const EASEL: P2 = [23.4, -10.9];
+export const EASEL: P2 = [24.2, -10.2];
 
 // ICPR research corner, right of the loop.
 export const RESEARCH = {

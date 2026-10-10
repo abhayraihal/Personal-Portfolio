@@ -34,13 +34,18 @@ const CONNECTOR_WIDTH = 7.6;
 
 const near = (p: P2, q: P2, d: number) => Math.hypot(p[0] - q[0], p[1] - q[1]) < d;
 
-// The outer kerb as an open line that stops either side of the junction mouth.
+// The outer kerb as an open line with a gap where the connector joins. The ring is rotated to
+// start at the junction, so the gap's points sit at both ends and the rest stays contiguous.
 function outerKerb(): P2[] {
-  const kerb = offsetPath(LOOP_PATH, -(LOOP.width / 2 - 0.18), true);
-  const mouth = CONNECTOR_WIDTH / 2 + 0.35;
-  const start = kerb.findIndex((p) => near(p, JUNCTION, LOOP.width / 2 + mouth) && !near(p, JUNCTION, LOOP.width / 2 + mouth - 0.6));
-  const rotated = [...kerb.slice(start), ...kerb.slice(0, start)];
-  return rotated.filter((p) => !near(p, JUNCTION, LOOP.width / 2 + mouth - 0.4));
+  const offset = LOOP.width / 2 - 0.18;
+  const kerb = offsetPath(LOOP_PATH, -offset, true);
+  let k = 0;
+  kerb.forEach((p, i) => {
+    if (Math.hypot(p[0] - JUNCTION[0], p[1] - JUNCTION[1]) < Math.hypot(kerb[k][0] - JUNCTION[0], kerb[k][1] - JUNCTION[1])) k = i;
+  });
+  // Where the kerb line meets the connector's edges.
+  const mouth = Math.hypot(CONNECTOR_WIDTH / 2, offset) - 0.1;
+  return [...kerb.slice(k), ...kerb.slice(0, k)].filter((p) => !near(p, JUNCTION, mouth));
 }
 
 // Centre-line dashes (1.2 m on, 1.2 m off), none across the junction.

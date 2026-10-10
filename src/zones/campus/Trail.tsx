@@ -1,12 +1,13 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { CylinderCollider, RigidBody } from '@react-three/rapier';
+import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, CatmullRomCurve3, Color, DoubleSide, Euler, Matrix4, PlaneGeometry, Quaternion, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
 import type { BufferGeometry, InstancedMesh } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Board } from '../../components/Board.tsx';
 import { Model, modelScale } from '../../components/Model.tsx';
 import { Pad } from '../../components/Pad.tsx';
+import { Resettable } from '../../components/Resettable.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { useStore } from '../../state/store.ts';
 import { cylinder, mergeParts } from './boxes.ts';
@@ -94,7 +95,7 @@ function Logs() {
 }
 
 // A mountain bike from rods and tori (no bicycle model exists in the kits). Side-on to the camera,
-// leaning on its kickstand.
+// leaning on its kickstand. It is a light dynamic body: bump it and it falls over, then goes home.
 function Bike() {
   const geo = useMemo(() => {
     const R = 0.33, tube = 0.05, hub = R + tube;
@@ -140,11 +141,13 @@ function Bike() {
     ]);
   }, []);
   return (
-    <group position={[TRAILHEAD.bike[0], 0, TRAILHEAD.bike[1]]} rotation={[0.1, 0.12, 0]} scale={1.4}>
-      <mesh geometry={geo} castShadow>
+    <Resettable position={[TRAILHEAD.bike[0], 0, TRAILHEAD.bike[1]]} rotation={[0, 0.5, 0]} colliders={false} linearDamping={0.3} angularDamping={0.6}>
+      {/* Narrow and low, like a bike on its kickstand: it topples instead of sliding. */}
+      <CuboidCollider args={[1.25, 0.52, 0.1]} position={[0.03, 0.52, 0]} density={20} friction={0.8} />
+      <mesh name="campus-bike" geometry={geo} rotation={[0.1, 0, 0]} scale={1.4} castShadow>
         <meshStandardMaterial vertexColors roughness={0.55} metalness={0.1} />
       </mesh>
-    </group>
+    </Resettable>
   );
 }
 
@@ -156,6 +159,12 @@ const _p = new Vector3();
 const _s = new Vector3(1, 1, 1);
 const _qf = new Quaternion();
 const _c = new Color();
+
+type FlagData = { axis: Vector3; base: Quaternion; flags: Vector3[] };
+function flagPose(d: FlagData, i: number, angle: number): Matrix4 {
+  _qf.setFromAxisAngle(d.axis, angle).multiply(d.base);
+  return _m.compose(_p.copy(d.flags[i]), _qf, _s);
+}
 
 // Prayer flags on a sagging string: blue, white, red, green, yellow, repeating.
 function FlagString({ a, b, count, sag = 0.7, seed = 0 }: { a: V3; b: V3; count: number; sag?: number; seed?: number }) {
@@ -175,28 +184,23 @@ function FlagString({ a, b, count, sag = 0.7, seed = 0 }: { a: V3; b: V3; count:
     return { string, axis, base, flags, plane };
   }, [a, b, count, sag]);
 
-  const pose = (i: number, angle: number) => {
-    _qf.setFromAxisAngle(data.axis, angle).multiply(data.base);
-    return _m.compose(_p.copy(data.flags[i]), _qf, _s);
-  };
-
   useLayoutEffect(() => {
     const m = mesh.current;
     if (!m) return;
     data.flags.forEach((_, i) => {
-      m.setMatrixAt(i, pose(i, 0.18));
+      m.setMatrixAt(i, flagPose(data, i, 0.18));
       m.setColorAt(i, _c.set(COLORS.flags[(i + seed) % COLORS.flags.length]));
     });
     m.instanceMatrix.needsUpdate = true;
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
     m.computeBoundingSphere();
-  });
+  }, [data, seed]);
 
   useFrame(({ clock }) => {
     const m = mesh.current;
     if (!m || still) return;
     const t = clock.elapsedTime;
-    for (let i = 0; i < data.flags.length; i++) m.setMatrixAt(i, pose(i, 0.2 + 0.22 * Math.sin(t * 2.1 + i * 0.85 + seed)));
+    for (let i = 0; i < data.flags.length; i++) m.setMatrixAt(i, flagPose(data, i, 0.2 + 0.22 * Math.sin(t * 2.1 + i * 0.85 + seed)));
     m.instanceMatrix.needsUpdate = true;
   });
 
@@ -234,10 +238,16 @@ function Poles({ poles }: { poles: V3[] }) {
 
 const [SX, SZ] = TRAILHEAD.sign;
 const L: V3 = [SX - 5.1, 4.5, SZ + 0.5];
-const R: V3 = [SX + 6.2, 4.3, SZ + 0.9];
+const R: V3 = [SX + 6.7, 4.3, SZ - 1.1]; // behind the bike, so it does not shield it
 const CORNER_L: V3 = [SX - SIGN.width / 2 + 0.2, SIGN_TOP, SZ];
 const CORNER_R: V3 = [SX + SIGN.width / 2 - 0.2, SIGN_TOP, SZ];
 const POLES: V3[] = [L, R];
+// Vertical prayer flags (darchog) by the trail entrance, clear of the loop road's outer edge.
+const DARCHOG = [
+  { name: 'banner-darchog-blue', x: -13.9, z: -9.9, ry: 0.3, s: 0.7 },
+  { name: 'banner-darchog-red', x: -12.5, z: -10.5, ry: -0.2, s: 0.66 },
+  { name: 'banner-darchog-green', x: -28.9, z: -3.6, ry: 0.5, s: 0.72 },
+] as const;
 
 export function Trail() {
   return (
@@ -259,9 +269,14 @@ export function Trail() {
       <Poles poles={POLES} />
       <FlagString a={L} b={CORNER_L} count={7} sag={0.55} />
       <FlagString a={CORNER_R} b={R} count={9} sag={0.6} seed={2} />
-      <Model name="banner-darchog-blue" scale={0.7} position={[-13.6, 0, -8.1]} rotation={[0, 0.3, 0]} />
-      <Model name="banner-darchog-red" scale={0.66} position={[-12.4, 0, -7.4]} rotation={[0, -0.2, 0]} />
-      <Model name="banner-darchog-green" scale={0.72} position={[-27.9, 0, -2.4]} rotation={[0, 0.5, 0]} />
+      {DARCHOG.map((d) => (
+        <Model key={d.name} name={d.name} scale={d.s} position={[d.x, 0, d.z]} rotation={[0, d.ry, 0]} />
+      ))}
+      <RigidBody type="fixed" colliders={false}>
+        {DARCHOG.map((d) => (
+          <CylinderCollider key={d.name} args={[2, 0.12]} position={[d.x, 2, d.z]} />
+        ))}
+      </RigidBody>
       <Pad
         id="campus-activities"
         label="Read about clubs and projects at IIT Mandi"
