@@ -45,7 +45,7 @@ export function CareerZone() {
         color={HIGHWAY_GREEN} textColor="#ffffff" accent="#ffffff" position={p(...start.board)} lift={1.1} />
       <Pad id="career-road" label="Read about my career" action={{ kind: 'panel', panel: 'career' }} position={p(...start.pad)} color={COLORS.accent} icon="Career" />
 
-      <Gantry position={p(0, rp.v)} title={razorpay.company.toUpperCase()} subtitle={`SDE Intern · RazorpayX Payouts · ${razorpay.dates}`} color={COLORS.razorpay} />
+      <Gantry position={p(0, rp.v)} title={razorpay.company.toUpperCase()} subtitle={`SDE Intern · ${razorpay.place} · ${razorpay.dates}`} color={COLORS.razorpay} />
       <Sign title="Razorpay" lines={RAZORPAY_LINES} width={6.8} lineSize={0.4} accent={COLORS.razorpay} position={p(...rp.board)} />
       <Pad id="career-razorpay" label="Read about Razorpay" action={{ kind: 'panel', panel: 'razorpay' }} position={p(...rp.pad)} color={COLORS.razorpay} icon="Razorpay" />
       <RedisRace />
