@@ -2,7 +2,9 @@
 // flags. Screen coordinates throughout (see geo.ts). The low quality tier keeps a stable subset of
 // the high tier, so switching tiers never moves anything.
 import { BOUNDS, ZONE_BY_ID } from '../config/layout.ts';
+import { MODELS } from '../config/models.ts';
 import type { ModelName } from '../config/models.ts';
+import { WORLD_SCALE } from '../config/world.ts';
 import type { Quality } from '../state/store.ts';
 import { streamEdgeAt } from './field.ts';
 import { ASPHALT, BRIDGE, DIRT, RING, STREAM_PATH, TRAIL, TRAIL_HALF, hillHeight, outside, roadDist, trailDist, zoneDist } from './geo.ts';
@@ -259,6 +261,20 @@ function buildDarchog(r: () => number): Item[] {
     }
   }
   return out;
+}
+
+// True when a tree's crown would hide a road or a zone: with the 45 deg camera a point h m up is
+// drawn over the ground h m further up the screen, so the cone is tested along +v.
+function hidesSomething(t: Item): boolean {
+  const m = MODELS[t.name];
+  const k = m.scale * WORLD_SCALE * t.s;
+  const R = Math.max(-m.min[0], m.max[0], -m.min[2], m.max[2]) * k;
+  const H = m.max[1] * k;
+  for (let h = 1.5; h < 0.85 * H; h += 1) {
+    const r = R * (1 - h / H) * 0.9;
+    for (const du of [-r, 0, r]) if (zoneDist(t.u + du, t.v + h) < 0.5 || roadDist(t.u + du, t.v + h) < 0.5) return true;
+  }
+  return false;
 }
 
 function treeType(r: () => number, edge: number): ModelName {
@@ -558,7 +574,9 @@ function build(): Plan {
     n++;
   }
 
-  return { trees, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam, markers };
+  // Filtered last so every placement above (and the random sequence) stays as it was.
+  const shown = trees.filter((t) => !hidesSomething(t));
+  return { trees: shown, hillTrees, rocks, cover, props, lamps, strings, poles, darchog, foam, markers };
 }
 
 // Share of decor kept in the low tier.

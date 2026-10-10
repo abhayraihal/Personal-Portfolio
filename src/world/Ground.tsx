@@ -14,12 +14,16 @@ import { ISLAND_Y } from './plan.ts';
 // cut out with discard; Stream.tsx draws the banks and water in the hole.
 
 const HUB = ZONE_BY_ID.hub.center;
+// Roads whose far end runs under a zone's own deck stop square there instead of rounding out
+// past it: the ridge deck starts 2 m before the end of the approach road.
+const SQUARE_END = new Set(['ridge-approach']);
 
 const FRAGMENT_PARS = /* glsl */ `
 uniform sampler2D uMask;
 uniform vec4 uMaskRect;
 uniform vec4 uAsph[${ASPHALT.length}];
 uniform float uAsphHalf[${ASPHALT.length}];
+uniform float uAsphSquare[${ASPHALT.length}];
 uniform vec4 uDirt[${DIRT.length}];
 uniform float uDirtHalf[${DIRT.length}];
 uniform vec4 uRing;
@@ -146,6 +150,10 @@ for (int i = 0; i < ${ASPHALT.length}; i++) {
   vec2 ap = p - a;
   float al = dot(ap, t);
   float d = length(ap - t * clamp(al, 0.0, L)) - uAsphHalf[i];
+  if (uAsphSquare[i] > 0.5 && al > 0.5 * L) {
+    vec2 q = vec2(abs(dot(ap, vec2(-t.y, t.x))) - uAsphHalf[i], al - L);
+    d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+  }
   if (d < near) { near = d; along = al; across = dot(ap, vec2(-t.y, t.x)); }
   dA = vw_smin(dA, d, 2.2);
 }
@@ -196,7 +204,8 @@ diffuseColor.rgb = col;
 
 const FRAGMENT_EMISSIVE = /* glsl */ `
 #include <emissivemap_fragment>
-totalEmissiveRadiance += uLamp * msk.g * msk.g * uNight * diffuseColor.rgb * 0.75;
+// The pool lifts dark asphalt too, not just the bright meadow around it.
+totalEmissiveRadiance += uLamp * msk.g * msk.g * uNight * (diffuseColor.rgb * 0.7 + 0.1);
 `;
 
 // Drifting cloud shadows only dim the sun, not the sky light.
@@ -213,6 +222,7 @@ function makeMaterial(mask: DataTexture) {
     uMaskRect: { value: new Vector4(...MASK_RECT) },
     uAsph: { value: ASPHALT.map((s) => new Vector4(s.a[0], s.a[1], s.b[0], s.b[1])) },
     uAsphHalf: { value: ASPHALT.map((s) => s.half) },
+    uAsphSquare: { value: ASPHALT.map((s, i) => (SQUARE_END.has(s.id) && ASPHALT[i + 1]?.id !== s.id ? 1 : 0)) },
     uDirt: { value: DIRT.map((s) => new Vector4(s.a[0], s.a[1], s.b[0], s.b[1])) },
     uDirtHalf: { value: DIRT.map((s) => s.half) },
     uRing: { value: new Vector4(RING.u, RING.v, RING.r, RING.half) },
