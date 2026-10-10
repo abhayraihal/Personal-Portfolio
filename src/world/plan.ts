@@ -52,10 +52,16 @@ const TREE_TYPES: ModelName[] = ['tree-deodar-tall', 'tree-deodar', 'tree-pine-f
 const TREE_R: Partial<Record<ModelName, number>> = {
   'tree-deodar-tall': 0.65, 'tree-deodar': 0.65, 'tree-pine-full': 0.6, 'tree-pine-cone': 0.5, 'tree-pine-snow': 0.6,
 };
-// Rough footprint radius (m at scale 1) and height for rocks, used for colliders and spacing.
+// Rough footprint radius and height for rocks at the kit's suggested scale, used for spacing.
 const ROCK_R: Partial<Record<ModelName, [number, number]>> = {
   'rock-grey-a': [0.7, 0.98], 'rock-grey-b': [0.95, 1.05], 'rock-grey-c': [0.85, 1.27],
   'rocks-snowcap-large': [2.0, 2.57], 'rocks-snowcap-small': [1.0, 0.97],
+};
+// The same at drawn size (models render WORLD_SCALE larger), for colliders the car meets where it
+// sees the rock. Spacing keeps the smaller table so the scatter does not move.
+const rockSize = (name: ModelName): [number, number] => {
+  const [r, h] = ROCK_R[name] ?? [0.8, 1];
+  return [r * WORLD_SCALE, h * WORLD_SCALE];
 };
 
 const insideBounds = (u: number, v: number, m: number) => u > BOUNDS.u0 + m && u < BOUNDS.u1 - m && v > BOUNDS.v0 + m && v < BOUNDS.v1 - m;
@@ -609,7 +615,7 @@ export function collidersFor(p: Plan): Collider[] {
   for (const t of p.trees) out.push({ kind: 'cyl', u: t.u, v: t.v, r: (TREE_R[t.name] ?? 0.6) * t.s, h: 3.2 });
   for (const k of p.rocks) {
     if (outside(k.u, k.v) > -0.5) continue;
-    const [rr, hh] = ROCK_R[k.name] ?? [0.8, 1];
+    const [rr, hh] = rockSize(k.name);
     if (hh * k.s > 0.55) out.push({ kind: 'cyl', u: k.u, v: k.v, r: rr * k.s * 0.85, h: hh * k.s });
     else out.push({ kind: 'ball', u: k.u, v: k.v, r: rr * k.s * 0.7, y: -rr * k.s * 0.25 });
   }
@@ -627,7 +633,7 @@ export function collidersFor(p: Plan): Collider[] {
       for (const f of [-0.6, 0, 0.6]) out.push({ kind: 'ball', u: k.u + au * half * f, v: k.v + av * half * f, r: 0.32 * k.s, y: 0.12 });
     } else if (k.name.startsWith('rock-')) {
       // Stream and bank boulders: block like other rocks when they stand tall, else a low bump.
-      const [rr, hh] = ROCK_R[k.name] ?? [0.8, 1];
+      const [rr, hh] = rockSize(k.name);
       const top = k.y + hh * k.s;
       if (top > 0.45) out.push({ kind: 'cyl', u: k.u, v: k.v, r: rr * k.s * 0.78, h: top });
       else out.push({ kind: 'ball', u: k.u, v: k.v, r: 0.6 * k.s, y: top - 0.6 * k.s });
