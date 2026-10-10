@@ -1,20 +1,25 @@
 import { use, useMemo } from 'react';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
-import { ExtrudeGeometry, Shape } from 'three';
+import { BoxGeometry, CylinderGeometry, ExtrudeGeometry, Shape, SphereGeometry } from 'three';
 import { Label } from '../../../components/Label.tsx';
 import { BOUNDS, ROADS, ROUNDABOUT, ZONE_BY_ID, ZONES } from '../../../config/layout.ts';
 import type { ZoneId } from '../../../config/layout.ts';
 import { COLORS } from '../../../config/palette.ts';
 import { canvasTexture, loadCanvasFonts, makeCanvas, textWidth } from '../canvas.ts';
 import { CU, CV } from '../frame.ts';
+import { mergeParts } from '../geom.ts';
+import type { Part } from '../geom.ts';
 
-// AI trip planner toy: a fingerpost with arrows to other parts of this valley (straight-line
-// distance between zone centres, from layout.ts) and a small map of the valley with a dashed trip
-// route starting at this garage. All of it is drawn from the layout data.
+// AI trip planner toy: a fingerpost with arrows to other parts of this valley (all of them lie to
+// the left of this garage; straight-line distance between zone centres, from layout.ts) and a small
+// map of the valley with a dashed trip route starting here. All of it is drawn from the layout data.
 
 const POST_H = 4.4;
 const ARROW_H = 0.46;
 const TEXT = 0.24;
+const MAP_X = -1.3;
+const MAP_Z = 0.3;
+const MAP_Y = 1.18;
 const DEST: ZoneId[] = ['amazon', 'ridge', 'campus', 'sports'];
 
 function arrowShape(len: number): Shape {
@@ -113,56 +118,47 @@ export function SignpostToy({ position }: { position: [number, number, number] }
         const du = z.center[0] - CU;
         const dv = z.center[1] - CV;
         const dist = Math.round(Math.hypot(du, dv) / 5) * 5;
-        // tilt the arrow in its own plane towards the zone's screen direction, within +-12 degrees
-        const tilt = Math.max(-0.21, Math.min(0.21, Math.atan2(dv, -du)));
         const text = `${z.title} · ${dist} m`;
         const len = textWidth(text, 'bodyBold', TEXT) + 0.85;
-        const geometry = new ExtrudeGeometry(arrowShape(len), { depth: 0.09, bevelEnabled: true, bevelSize: 0.025, bevelThickness: 0.025, bevelSegments: 1 });
-        return { id, text, color: z.color, tilt, geometry, y: POST_H - 0.4 - i * 0.58 };
+        return { id, text, color: z.color, len, y: POST_H - 0.4 - i * 0.58 };
       }),
     [],
+  );
+  // post, knob, arrow boards and the map board's frame and legs, as one mesh
+  const wood = useMemo(
+    () =>
+      mergeParts([
+        { g: new CylinderGeometry(0.12, 0.15, POST_H, 10), color: '#8a5a3b', at: [0, POST_H / 2, 0] },
+        { g: new SphereGeometry(0.16, 12, 8), color: COLORS.accent, at: [0, POST_H + 0.05, 0] },
+        ...arrows.map((a): Part => ({
+          g: new ExtrudeGeometry(arrowShape(a.len), { depth: 0.09, bevelEnabled: true, bevelSize: 0.025, bevelThickness: 0.025, bevelSegments: 1 }),
+          color: a.color,
+          at: [-0.05, a.y, 0.17],
+        })),
+        ...[-0.75, 0.75].map((x): Part => ({ g: new BoxGeometry(0.1, MAP_Y - 0.7, 0.1), color: '#8a5a3b', at: [MAP_X + x, (MAP_Y - 0.7) / 2, MAP_Z - 0.04] })),
+        { g: new BoxGeometry(1.95, 1.48, 0.1), color: '#8a5a3b', at: [MAP_X, MAP_Y, MAP_Z - 0.05] },
+      ]),
+    [arrows],
   );
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders={false}>
         <CylinderCollider args={[POST_H / 2, 0.16]} position={[0, POST_H / 2, 0]} />
-        <CuboidCollider args={[0.98, 0.75, 0.1]} position={[1.35, 1.45, 0.2]} />
+        <CuboidCollider args={[0.98, MAP_Y / 2 + 0.37, 0.1]} position={[MAP_X, MAP_Y / 2 + 0.37, MAP_Z - 0.05]} />
       </RigidBody>
-      <mesh position={[0, POST_H / 2, 0]} castShadow>
-        <cylinderGeometry args={[0.12, 0.15, POST_H, 10]} />
-        <meshStandardMaterial color="#8a5a3b" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, POST_H + 0.05, 0]} castShadow>
-        <sphereGeometry args={[0.16, 12, 8]} />
-        <meshStandardMaterial color={COLORS.accent} roughness={0.6} />
+      <mesh geometry={wood} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.8} />
       </mesh>
       {arrows.map((a) => (
-        <group key={a.id} position={[-0.05, a.y, 0.17]} rotation={[0, 0, -a.tilt]}>
-          <mesh geometry={a.geometry} castShadow>
-            <meshStandardMaterial color={a.color} roughness={0.7} />
-          </mesh>
-          <Label font="bodyBold" size={TEXT} color={COLORS.paper} anchorX="right" position={[-0.2, 0, 0.13]}>
-            {a.text}
-          </Label>
-        </group>
+        <Label key={a.id} font="bodyBold" size={TEXT} color={COLORS.paper} anchorX="right" position={[-0.25, a.y, 0.3]}>
+          {a.text}
+        </Label>
       ))}
-      {/* map board on two legs beside the post */}
-      <group position={[1.35, 0, 0.25]}>
-        {[-0.75, 0.75].map((x) => (
-          <mesh key={x} position={[x, 0.55, -0.04]} castShadow>
-            <boxGeometry args={[0.1, 1.1, 0.1]} />
-            <meshStandardMaterial color="#8a5a3b" roughness={0.9} />
-          </mesh>
-        ))}
-        <mesh position={[0, 1.45, -0.05]} castShadow>
-          <boxGeometry args={[1.95, 1.48, 0.1]} />
-          <meshStandardMaterial color="#8a5a3b" roughness={0.9} />
-        </mesh>
-        <mesh position={[0, 1.45, 0.006]}>
-          <planeGeometry args={[1.8, 1.35]} />
-          <meshBasicMaterial map={map} toneMapped={false} />
-        </mesh>
-      </group>
+      {/* map of the valley on a board under the arrows */}
+      <mesh position={[MAP_X, MAP_Y, MAP_Z + 0.006]}>
+        <planeGeometry args={[1.8, 1.35]} />
+        <meshBasicMaterial map={map} toneMapped={false} />
+      </mesh>
     </group>
   );
 }

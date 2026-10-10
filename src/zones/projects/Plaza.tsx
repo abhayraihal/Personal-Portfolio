@@ -28,7 +28,7 @@ function paintGeometry(): BufferGeometry {
     const x0 = bay.x - 4.6;
     const x1 = bay.x + 4.6;
     const zBack = r.board + 0.6;
-    const zFront = r.pad + 3.4;
+    const zFront = r.pad + (bay.row === 'back' ? 3.4 : 2.9);
     parts.push(rect(x0 - w / 2, zBack, x0 + w / 2, zFront));
     parts.push(rect(x1 - w / 2, zBack, x1 + w / 2, zFront));
   }
@@ -52,7 +52,7 @@ function BayFloors() {
       {BAYS.map((b) => {
         const r = ROWS[b.row];
         const z0 = r.board + 0.6;
-        const z1 = r.pad + 3.4;
+        const z1 = r.pad + (b.row === 'back' ? 3.4 : 2.9);
         return (
           <mesh key={b.project.panel} position={[b.x, Y.floor, (z0 + z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[9.2, z1 - z0]} />

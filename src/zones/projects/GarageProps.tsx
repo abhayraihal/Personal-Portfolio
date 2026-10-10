@@ -1,44 +1,32 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { CuboidCollider, CylinderCollider, InstancedRigidBodies, RigidBody } from '@react-three/rapier';
 import type { InstancedRigidBodyProps, RapierRigidBody } from '@react-three/rapier';
-import { BoxGeometry, Color, CylinderGeometry, Float32BufferAttribute, Matrix4, TorusGeometry } from 'three';
+import { BoxGeometry, CylinderGeometry, Matrix4, TorusGeometry } from 'three';
 import type { BufferGeometry, InstancedMesh } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { modelScale, modelSize, useMerged } from '../../components/Model.tsx';
 import { COLORS } from '../../config/palette.ts';
+import { mergeParts } from './geom.ts';
+import type { Part } from './geom.ts';
 import { useHomeReset } from './useHomeReset.ts';
 
 // Workshop clutter along the front of the garage: tyre stacks and oil drums to knock over, a tool
 // chest and two flower planters.
 
-function paint(g: BufferGeometry, hex: string): BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  const c = new Color(hex);
-  const n = out.attributes.position.count;
-  const arr = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) arr.set([c.r, c.g, c.b], i * 3);
-  out.setAttribute('color', new Float32BufferAttribute(arr, 3));
-  out.deleteAttribute('uv');
-  return out;
-}
-
 const TYRE_R = 0.62;
 const TYRE_H = 0.38;
 
 function tyreGeometry(): BufferGeometry {
-  const g = mergeGeometries([
-    paint(new TorusGeometry(0.43, 0.19, 10, 22).rotateX(Math.PI / 2), '#2b2d33'),
-    paint(new CylinderGeometry(0.3, 0.3, 0.2, 16), '#b9bcc6'),
-    paint(new CylinderGeometry(0.1, 0.1, 0.22, 10), '#6f7286'),
+  return mergeParts([
+    { g: new TorusGeometry(0.43, 0.19, 10, 22), color: '#2b2d33', rot: [Math.PI / 2, 0, 0] },
+    { g: new CylinderGeometry(0.3, 0.3, 0.2, 16), color: '#b9bcc6' },
+    { g: new CylinderGeometry(0.1, 0.1, 0.22, 10), color: '#6f7286' },
   ]);
-  g.computeVertexNormals();
-  return g;
 }
 
 const TYRES: [number, number, number][] = [
-  [-9.2, 19.4, 3],
-  [-7.7, 20.5, 2],
-  [9.6, 20.8, 2],
+  [-8.9, 22.0, 3],
+  [-7.4, 23.1, 2],
+  [9.8, 22.6, 2],
 ];
 
 function Tyres() {
@@ -63,9 +51,9 @@ function Tyres() {
 }
 
 const DRUMS: [number, number][] = [
-  [5.0, 19.9],
-  [6.1, 20.6],
-  [5.3, 21.3],
+  [4.9, 22.2],
+  [6.0, 22.9],
+  [5.2, 23.6],
 ];
 
 function Drums() {
@@ -84,49 +72,39 @@ function Drums() {
   );
 }
 
-function ToolChest({ position }: { position: [number, number, number] }) {
+function toolChestGeometry(): BufferGeometry {
   const W = 1.9;
   const H = 1.45;
   const D = 0.85;
-  const drawers = [0.32, 0.62, 0.88, 1.1, 1.3];
+  const parts: Part[] = [
+    { g: new BoxGeometry(W, H, D), color: '#d6382f', at: [0, 0.12 + H / 2, 0] },
+    { g: new BoxGeometry(W + 0.06, 0.06, D + 0.06), color: COLORS.inkSoft, at: [0, 0.12 + H + 0.03, 0] },
+  ];
+  for (const y of [0.32, 0.62, 0.88, 1.1, 1.3]) {
+    parts.push({ g: new BoxGeometry(W - 0.16, 0.025, 0.01), color: '#8f1f1a', at: [0, 0.12 + y, D / 2 + 0.005] });
+    parts.push({ g: new BoxGeometry(0.5, 0.05, 0.04), color: '#d9dde3', at: [0, 0.12 + y - 0.1, D / 2 + 0.03] });
+  }
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) parts.push({ g: new CylinderGeometry(0.07, 0.07, 0.1, 10), color: COLORS.ink, at: [x * (W / 2 - 0.12), 0.06, z * (D / 2 - 0.12)] });
+  return mergeParts(parts);
+}
+
+function ToolChest({ position }: { position: [number, number, number] }) {
+  const geometry = useMemo(toolChestGeometry, []);
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[W / 2, H / 2 + 0.06, D / 2]} position={[0, H / 2 + 0.06, 0]} />
+        <CuboidCollider args={[0.95, 0.785, 0.425]} position={[0, 0.785, 0]} />
       </RigidBody>
-      <mesh position={[0, 0.12 + H / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[W, H, D]} />
-        <meshStandardMaterial color="#d6382f" roughness={0.55} metalness={0.15} />
+      <mesh geometry={geometry} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.55} metalness={0.1} />
       </mesh>
-      {drawers.map((y, i) => (
-        <group key={i}>
-          <mesh position={[0, 0.12 + y, D / 2 + 0.005]}>
-            <boxGeometry args={[W - 0.16, 0.025, 0.01]} />
-            <meshStandardMaterial color="#8f1f1a" roughness={0.6} />
-          </mesh>
-          <mesh position={[0, 0.12 + y - 0.1, D / 2 + 0.03]}>
-            <boxGeometry args={[0.5, 0.05, 0.04]} />
-            <meshStandardMaterial color="#d9dde3" roughness={0.3} metalness={0.6} />
-          </mesh>
-        </group>
-      ))}
-      <mesh position={[0, 0.12 + H + 0.03, 0]} castShadow>
-        <boxGeometry args={[W + 0.06, 0.06, D + 0.06]} />
-        <meshStandardMaterial color={COLORS.inkSoft} roughness={0.6} />
-      </mesh>
-      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([x, z]) => (
-        <mesh key={`${x}${z}`} position={[x * (W / 2 - 0.12), 0.06, z * (D / 2 - 0.12)]}>
-          <cylinderGeometry args={[0.07, 0.07, 0.1, 10]} />
-          <meshStandardMaterial color={COLORS.ink} roughness={0.6} />
-        </mesh>
-      ))}
     </group>
   );
 }
 
 const PLANTERS: [number, number, number][] = [
-  [-14, 21.6, 3.4],
-  [13.2, 21.4, 3.4],
+  [-12.4, 22.9, 3.0],
+  [13.0, 22.2, 3.0],
 ];
 
 function Planters() {
@@ -143,7 +121,16 @@ function Planters() {
     });
     if (flowers.current) flowers.current.instanceMatrix.needsUpdate = true;
   }, [spots]);
-  const box = useMemo(() => new BoxGeometry(1, 1, 1), []);
+  const boxes = useMemo(
+    () =>
+      mergeParts(
+        PLANTERS.flatMap(([x, z, w]): Part[] => [
+          { g: new BoxGeometry(w, 0.6, 1.1), color: '#b98a5e', at: [x, 0.3, z] },
+          { g: new BoxGeometry(w - 0.2, 0.02, 0.9), color: '#6b4a32', at: [x, 0.605, z] },
+        ]),
+      ),
+    [],
+  );
   return (
     <group>
       <RigidBody type="fixed" colliders={false}>
@@ -151,16 +138,9 @@ function Planters() {
           <CuboidCollider key={i} args={[w / 2, 0.32, 0.55]} position={[x, 0.32, z]} />
         ))}
       </RigidBody>
-      {PLANTERS.map(([x, z, w], i) => (
-        <group key={i} position={[x, 0, z]}>
-          <mesh geometry={box} position={[0, 0.3, 0]} scale={[w, 0.6, 1.1]} castShadow receiveShadow>
-            <meshStandardMaterial color="#b98a5e" roughness={0.9} />
-          </mesh>
-          <mesh geometry={box} position={[0, 0.605, 0]} scale={[w - 0.2, 0.02, 0.9]} receiveShadow>
-            <meshStandardMaterial color="#6b4a32" roughness={1} />
-          </mesh>
-        </group>
-      ))}
+      <mesh geometry={boxes} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.9} />
+      </mesh>
       <instancedMesh ref={flowers} args={[geometry, material, spots.length]} castShadow frustumCulled={false} />
     </group>
   );
@@ -171,7 +151,7 @@ export function GarageProps() {
     <group>
       <Tyres />
       <Drums />
-      <ToolChest position={[-3.4, 0, 20.6]} />
+      <ToolChest position={[-2.6, 0, 23.2]} />
       <Planters />
     </group>
   );

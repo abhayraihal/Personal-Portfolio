@@ -176,47 +176,70 @@ export function posterTexture(key: string, spec: PosterSpec, size: [number, numb
   g.fillRect(0, 0, 26 * s, H);
 
   const left = 70 * s;
-  const textW = W * 0.56 - left;
+  const colW = W * 0.6 - left;
+  const bottom = H - 40 * s;
+
+  // Chip rows first, so they can sit on the bottom edge whatever the text above does.
+  const chipH = 52 * s;
+  const chipGap = 12 * s;
+  g.font = cssFont('bodyBold', 32 * s);
+  const rows: { text: string; w: number; x: number }[][] = [];
+  let row: { text: string; w: number; x: number }[] = [];
+  let cx = left;
+  for (const chip of spec.chips) {
+    const w = g.measureText(chip).width + 44 * s;
+    if (row.length && cx + w > left + colW) {
+      rows.push(row);
+      row = [];
+      cx = left;
+    }
+    row.push({ text: chip, w, x: cx });
+    cx += w + 14 * s;
+  }
+  if (row.length) rows.push(row);
+  const chipsTop = rows.length ? bottom - rows.length * chipH - (rows.length - 1) * chipGap : bottom;
+
   g.fillStyle = COLORS.ink;
   g.textBaseline = 'alphabetic';
   let titlePx = 104 * s;
   g.font = cssFont('display', titlePx);
-  const titleLines = wrap(g, spec.title, textW);
-  if (titleLines.length > 2) {
+  if (wrap(g, spec.title, colW).length > 2) {
     titlePx *= 0.8;
     g.font = cssFont('display', titlePx);
   }
-  let y = 64 * s;
-  for (const line of wrap(g, spec.title, textW)) {
+  let y = 60 * s;
+  for (const line of wrap(g, spec.title, colW)) {
     y += titlePx * 0.98;
     g.fillText(line, left, y);
   }
 
-  y += 30 * s;
-  g.font = cssFont('body', 40 * s);
+  // Tagline, shrunk if it would run into the chips.
+  let tagPx = 40 * s;
+  let lines: string[] = [];
+  for (;;) {
+    g.font = cssFont('body', tagPx);
+    lines = wrap(g, spec.tagline, colW);
+    if (y + 24 * s + lines.length * tagPx * 1.25 < chipsTop - 18 * s || tagPx < 26 * s) break;
+    tagPx -= 2 * s;
+  }
+  y += 24 * s;
   g.fillStyle = COLORS.inkSoft;
-  for (const line of wrap(g, spec.tagline, textW)) {
-    y += 50 * s;
+  for (const line of lines) {
+    y += tagPx * 1.25;
     g.fillText(line, left, y);
   }
 
-  // Stack chips along the bottom.
   g.font = cssFont('bodyBold', 32 * s);
-  let cx = left;
-  let cy = H - 110 * s;
-  for (const chip of spec.chips) {
-    const w = g.measureText(chip).width + 44 * s;
-    if (cx + w > W * 0.62) {
-      cx = left;
-      cy += 64 * s;
+  rows.forEach((r, i) => {
+    const top = chipsTop + i * (chipH + chipGap);
+    for (const chip of r) {
+      g.fillStyle = COLORS.accent;
+      roundRect(g, chip.x, top, chip.w, chipH, chipH / 2);
+      g.fill();
+      g.fillStyle = COLORS.paper;
+      g.fillText(chip.text, chip.x + 22 * s, top + chipH * 0.71);
     }
-    g.fillStyle = COLORS.accent;
-    roundRect(g, cx, cy, w, 52 * s, 26 * s);
-    g.fill();
-    g.fillStyle = COLORS.paper;
-    g.fillText(chip, cx + 22 * s, cy + 37 * s);
-    cx += w + 14 * s;
-  }
+  });
 
   // Year, top right.
   g.font = cssFont('bodyBold', 36 * s);
@@ -228,7 +251,7 @@ export function posterTexture(key: string, spec: PosterSpec, size: [number, numb
   g.fillStyle = COLORS.ink;
   g.fillText(String(spec.year), W - yw - 20 * s, 81 * s);
 
-  ART[spec.art](g, W * 0.62, H * 0.24, W * 0.33, H * 0.56);
+  ART[spec.art](g, W * 0.64, H * 0.26, W * 0.31, H * 0.54);
 
   const tex = canvasTexture(c, 8);
   cache.set(key, tex);

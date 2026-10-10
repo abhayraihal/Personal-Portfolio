@@ -19,7 +19,8 @@ export type Bay = {
 // Billboard face, lectern centre and pad centre (z) for each row.
 export const ROWS: Record<Row, { board: number; lectern: number; pad: number }> = {
   back: { board: -16, lectern: -12.4, pad: -8.4 },
-  front: { board: 7, lectern: 10.6, pad: 14.6 },
+  // 9.5 m clears the boulevard: a 5 m board hides about 5 m of ground behind it at 45 degrees.
+  front: { board: 9.5, lectern: 13.1, pad: 17.1 },
 };
 
 export const BAY_X = [-14, 0, 14];

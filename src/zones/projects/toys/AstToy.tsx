@@ -2,12 +2,14 @@ import { useMemo, useRef } from 'react';
 import { RoundedBox } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
-import { Color, Quaternion, Vector3 } from 'three';
+import { BoxGeometry, Color, CylinderGeometry, Quaternion, RingGeometry, Vector3 } from 'three';
 import type { Group, MeshStandardMaterial } from 'three';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { useStore } from '../../../state/store.ts';
 import { carNearZone } from '../frame.ts';
+import { mergeParts } from '../geom.ts';
+import type { Part } from '../geom.ts';
 import { astSignal } from './signals.ts';
 
 // The rule "age > 30 AND department = 'Sales'" as the project stores it: one operator node over
@@ -25,19 +27,13 @@ const BLACK = new Color('#000000');
 const _q = new Quaternion();
 const _y = new Vector3(0, 1, 0);
 
-function Rod({ from, to }: { from: [number, number, number]; to: [number, number, number] }) {
-  const { pos, quat, len } = useMemo(() => {
-    const a = new Vector3(...from);
-    const b = new Vector3(...to);
-    const dir = b.clone().sub(a).normalize();
-    return { pos: a.clone().add(b).multiplyScalar(0.5), quat: _q.clone().setFromUnitVectors(_y, dir), len: a.distanceTo(b) };
-  }, [from, to]);
-  return (
-    <mesh position={pos} quaternion={quat} castShadow>
-      <cylinderGeometry args={[0.08, 0.08, len, 10]} />
-      <meshStandardMaterial color={COLORS.ink} roughness={0.6} />
-    </mesh>
-  );
+// A rod between two points as a cylinder part.
+function rod(from: Vector3, to: Vector3): Part {
+  const dir = to.clone().sub(from).normalize();
+  const g = new CylinderGeometry(0.08, 0.08, from.distanceTo(to), 10);
+  g.applyQuaternion(_q.setFromUnitVectors(_y, dir));
+  const mid = from.clone().add(to).multiplyScalar(0.5);
+  return { g, color: COLORS.ink, at: [mid.x, mid.y, mid.z] };
 }
 
 // A leaf tile hanging from a hook at its top centre (the group origin).
@@ -97,24 +93,26 @@ export function AstToy({ position }: { position: [number, number, number] }) {
   });
 
   const hookY = ROOT_Y - HANG;
+  // plinth, accent ring, the post holding the root up, and the two rods
+  const base = useMemo(
+    () =>
+      mergeParts([
+        { g: new CylinderGeometry(1.8, 1.95, 0.44, 32), color: COLORS.paperShade, at: [0, 0.22, 0] },
+        { g: new RingGeometry(1.45, 1.62, 32), color: COLORS.accent, at: [0, 0.45, 0], rot: [-Math.PI / 2, 0, 0] },
+        { g: new BoxGeometry(0.24, ROOT_Y, 0.24), color: COLORS.inkSoft, at: [0, ROOT_Y / 2 + 0.2, -0.45] },
+        rod(new Vector3(-0.45, ROOT_Y - 0.4, 0), new Vector3(-LEAF_X, hookY, 0)),
+        rod(new Vector3(0.45, ROOT_Y - 0.4, 0), new Vector3(LEAF_X, hookY, 0)),
+      ]),
+    [hookY],
+  );
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders={false}>
         <CylinderCollider args={[0.22, 1.9]} position={[0, 0.22, 0]} />
         <CuboidCollider args={[0.14, ROOT_Y / 2, 0.14]} position={[0, ROOT_Y / 2, -0.45]} />
       </RigidBody>
-      {/* plinth and the post that holds the root up */}
-      <mesh position={[0, 0.22, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.8, 1.95, 0.44, 32]} />
-        <meshStandardMaterial color={COLORS.paperShade} roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.45, 1.62, 32]} />
-        <meshStandardMaterial color={COLORS.accent} roughness={0.8} />
-      </mesh>
-      <mesh position={[0, ROOT_Y / 2 + 0.2, -0.45]} castShadow>
-        <boxGeometry args={[0.24, ROOT_Y, 0.24]} />
-        <meshStandardMaterial color={COLORS.inkSoft} roughness={0.7} />
+      <mesh geometry={base} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.85} />
       </mesh>
       <group position={[0, ROOT_Y, 0]}>
         <RoundedBox args={[1.9, 1.02, 0.4]} radius={0.16} smoothness={3} castShadow>
@@ -124,8 +122,6 @@ export function AstToy({ position }: { position: [number, number, number] }) {
           AND
         </Label>
       </group>
-      <Rod from={[-0.45, ROOT_Y - 0.4, 0]} to={[-LEAF_X, hookY, 0]} />
-      <Rod from={[0.45, ROOT_Y - 0.4, 0]} to={[LEAF_X, hookY, 0]} />
       <group ref={left} position={[-LEAF_X, hookY, 0]}>
         <Leaf lines={['age > 30']} width={2.05} matRef={(m) => void (leafMats.current[0] = m)} />
       </group>

@@ -11,6 +11,8 @@ import { useStore } from '../../../state/store.ts';
 import { carNearZone, carX, carZ, localX, localZ, worldX, worldYaw, worldZ } from '../frame.ts';
 import { useHomeReset } from '../useHomeReset.ts';
 import { Y } from '../Plaza.tsx';
+import { mergeParts } from '../geom.ts';
+import type { Part } from '../geom.ts';
 import { NetworkBoard, network } from './NetworkBoard.tsx';
 
 // A three-lane test strip. Small kinematic cars drive up it, each casting 5 sensor rays, and
@@ -61,6 +63,8 @@ const _p = new Vector3();
 const _s = new Vector3();
 const _up = new Vector3(0, 1, 0);
 const _c = new Color();
+const _pos = { x: 0, y: 0, z: 0 };
+const _rot = { x: 0, y: 0, z: 0, w: 1 };
 const YELLOW = new Color('#f2c230');
 const DARK = new Color(COLORS.ink);
 
@@ -92,30 +96,32 @@ function carGeometry(): BufferGeometry {
   return g;
 }
 
-// Distance along a ray to an oriented rectangle, or Infinity.
+// Slab test on one axis: narrows [range.t0, range.t1]; false when the ray misses.
+const range = { t0: 0, t1: 0 };
+function slab(p: number, d: number, h: number): boolean {
+  if (Math.abs(d) < 1e-6) return Math.abs(p) <= h;
+  let a = (-h - p) / d;
+  let b = (h - p) / d;
+  if (a > b) {
+    const t = a;
+    a = b;
+    b = t;
+  }
+  if (a > range.t0) range.t0 = a;
+  if (b < range.t1) range.t1 = b;
+  return range.t0 <= range.t1;
+}
+
+// Distance along a ray to an oriented rectangle, or Infinity. No allocations: runs ~600 times a step.
 function rayRect(ot: number, os: number, dt: number, ds: number, o: Obstacle): number {
   const rt = ot - o.t;
   const rs = os - o.s;
-  // obstacle frame: u along (as, ax) heading axis, w across
-  const lu = rt * o.ax + rs * o.as;
-  const lw = rt * o.as - rs * o.ax;
-  const du = dt * o.ax + ds * o.as;
-  const dw = dt * o.as - ds * o.ax;
-  let t0 = -Infinity;
-  let t1 = Infinity;
-  for (const [p, d, h] of [[lu, du, o.hl], [lw, dw, o.hw]] as const) {
-    if (Math.abs(d) < 1e-6) {
-      if (Math.abs(p) > h) return Infinity;
-    } else {
-      let a = (-h - p) / d;
-      let b = (h - p) / d;
-      if (a > b) [a, b] = [b, a];
-      t0 = Math.max(t0, a);
-      t1 = Math.min(t1, b);
-      if (t0 > t1) return Infinity;
-    }
-  }
-  return t0 >= 0 ? t0 : t1 >= 0 ? 0 : Infinity;
+  // obstacle frame: u along its heading axis (ax, as), w across it
+  range.t0 = -Infinity;
+  range.t1 = Infinity;
+  if (!slab(rt * o.ax + rs * o.as, dt * o.ax + ds * o.as, o.hl)) return Infinity;
+  if (!slab(rt * o.as - rs * o.ax, dt * o.as - ds * o.ax, o.hw)) return Infinity;
+  return range.t0 >= 0 ? range.t0 : range.t1 >= 0 ? 0 : Infinity;
 }
 
 export function SelfDrivingToy() {
@@ -227,7 +233,6 @@ export function SelfDrivingToy() {
             Object.assign(c, { active: true, s: 0.3, t: LANES[lane], heading: 0, v: c.base, lane, scale: 0, leaving: false, decide: 0 });
           } else c.wait = 0.4;
         }
-        if (!c.active && body) body.setNextKinematicTranslation({ x: 0, y: -10 - i, z: 0 });
         continue;
       }
       // sensors
@@ -281,13 +286,24 @@ export function SelfDrivingToy() {
       if (c.leaving && c.scale <= 0) {
         c.active = false;
         c.wait = 0.4 + ((i * 7) % 5) * 0.25;
+        // park the body out of the way until the car respawns
+        _pos.x = worldX(toLocalX(0), toLocalZ(-6 - i));
+        _pos.y = -10;
+        _pos.z = worldZ(toLocalX(0), toLocalZ(-6 - i));
+        body?.setNextKinematicTranslation(_pos);
+        continue;
       }
       if (body) {
         const lx = toLocalX(c.t);
         const lz = toLocalZ(c.s);
         const yaw = worldYaw(-c.heading);
-        body.setNextKinematicTranslation({ x: worldX(lx, lz), y: CAR_H / 2 + 0.02 - (1 - c.scale) * 0.5, z: worldZ(lx, lz) });
-        body.setNextKinematicRotation({ x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) });
+        _pos.x = worldX(lx, lz);
+        _pos.y = CAR_H / 2 + 0.02 - (1 - c.scale) * 0.5;
+        _pos.z = worldZ(lx, lz);
+        _rot.y = Math.sin(yaw / 2);
+        _rot.w = Math.cos(yaw / 2);
+        body.setNextKinematicTranslation(_pos);
+        body.setNextKinematicRotation(_rot);
       }
     }
     // lead car drives the network board
@@ -339,11 +355,14 @@ export function SelfDrivingToy() {
   });
 
   const midZ = STRIP.z0 - STRIP.length / 2;
-  const dashes = useMemo(() => {
-    const out: [number, number][] = [];
-    for (const t of [-STRIP.lane / 2, STRIP.lane / 2]) for (let s = 0.4; s < STRIP.length - 0.4; s += 1.2) out.push([t, s]);
-    return out;
-  }, []);
+  const markings = useMemo(() => {
+    const parts: Part[] = [];
+    const flat = (w: number, l: number) => new PlaneGeometry(w, l).rotateX(-Math.PI / 2);
+    for (const side of [-1, 1]) parts.push({ g: flat(0.1, STRIP.length), color: '#ffffff', at: [STRIP.x + side * (HALF_W + 0.05), 0, midZ] });
+    for (const t of [-STRIP.lane / 2, STRIP.lane / 2])
+      for (let s = 0.4; s < STRIP.length - 0.4; s += 1.2) parts.push({ g: flat(0.09, 0.6), color: '#ffffff', at: [STRIP.x + t, 0, STRIP.z0 - s - 0.3] });
+    return mergeParts(parts);
+  }, [midZ]);
   return (
     <group>
       {/* road surface, edge lines, lane dashes */}
@@ -351,18 +370,9 @@ export function SelfDrivingToy() {
         <planeGeometry args={[HALF_W * 2 + 0.5, STRIP.length]} />
         <meshStandardMaterial color="#d4d4d0" roughness={1} />
       </mesh>
-      {[-1, 1].map((side) => (
-        <mesh key={side} position={[STRIP.x + side * (HALF_W + 0.05), Y.paint + 0.004, midZ]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.1, STRIP.length]} />
-          <meshBasicMaterial color="#ffffff" toneMapped={false} />
-        </mesh>
-      ))}
-      {dashes.map(([t, s], i) => (
-        <mesh key={i} position={[STRIP.x + t, Y.paint + 0.004, STRIP.z0 - s - 0.3]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.09, 0.6]} />
-          <meshBasicMaterial color="#ffffff" toneMapped={false} />
-        </mesh>
-      ))}
+      <mesh geometry={markings} position={[0, Y.paint + 0.004, 0]}>
+        <meshBasicMaterial color="#ffffff" toneMapped={false} />
+      </mesh>
       <instancedMesh ref={cars} args={[geometry, undefined, N_CARS]} castShadow frustumCulled={false}>
         <meshStandardMaterial vertexColors roughness={0.6} />
       </instancedMesh>
@@ -376,7 +386,7 @@ export function SelfDrivingToy() {
       ))}
       {BOXES.map((b, i) => (
         <RigidBody key={i} ref={(r) => void (boxBodies.current[i] = r)} colliders={false} position={[toLocalX(b.t), BOX_HALF.h + 0.02, toLocalZ(b.s)]}>
-          <CuboidCollider args={[BOX_HALF.w, BOX_HALF.h, BOX_HALF.l]} mass={0.6} />
+          <CuboidCollider args={[BOX_HALF.w, BOX_HALF.h, BOX_HALF.l]} mass={2.5} />
           <mesh castShadow receiveShadow>
             <boxGeometry args={[BOX_HALF.w * 2, BOX_HALF.h * 2, BOX_HALF.l * 2]} />
             <meshStandardMaterial color="#e5402f" roughness={0.6} />

@@ -1,12 +1,14 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import { CanvasTexture, DoubleSide, Matrix4, PlaneGeometry, Quaternion, Shape, Vector3 } from 'three';
+import { BoxGeometry, CanvasTexture, DoubleSide, Matrix4, PlaneGeometry, Quaternion, Shape, ShapeGeometry, Vector3 } from 'three';
 import type { InstancedMesh, Mesh, MeshBasicMaterial } from 'three';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { useStore } from '../../../state/store.ts';
-import { carNearZone } from '../frame.ts';
+import { carNearZone, worldX, worldZ } from '../frame.ts';
+import { mergeParts } from '../geom.ts';
+import type { Part } from '../geom.ts';
 import { scanSignal } from './signals.ts';
 
 // A toy house on a model base. Parking on the scan2scope pad lowers a scan sheet over it, then a
@@ -53,6 +55,7 @@ const FILL_S = 0.7;
 const TOTAL = DRAW_START + DRAW_S + FILL_S;
 const HOLD_S = 7; // the plan stays this long after the car leaves the pad
 const SHEET_TOP = 3.7;
+const CAMERA_ID = 'projects-scan2scope';
 const SHEET_BOTTOM = BASE_H + 0.05;
 
 const _m = new Matrix4();
@@ -75,15 +78,15 @@ function sheetTexture() {
   return new CanvasTexture(c);
 }
 
-function House() {
-  const gable = useMemo(() => {
-    const s = new Shape();
-    s.moveTo(-HZ - 0.08, 0);
-    s.lineTo(HZ + 0.08, 0);
-    s.lineTo(0, 1.05);
-    s.closePath();
-    return s;
-  }, []);
+const flat = (w: number, d: number) => new PlaneGeometry(w, d).rotateX(-Math.PI / 2);
+
+// The toy house on its plinth, as one vertex-coloured mesh.
+function houseGeometry() {
+  const gable = new Shape();
+  gable.moveTo(-HZ - 0.08, 0);
+  gable.lineTo(HZ + 0.08, 0);
+  gable.lineTo(0, 1.05);
+  gable.closePath();
   const wallH = 1.5;
   const top = BASE_H + wallH;
   // Roof slabs rest on the gable edges and overhang the eaves.
@@ -93,73 +96,45 @@ function House() {
   const edge = Math.hypot(rise, half);
   const T = 0.16;
   const over = 0.4;
+  const glass = '#9fd3e6';
+  const parts: Part[] = [
+    { g: new BoxGeometry(HX * 2 + 1.3, BASE_H, HZ * 2 + 1.3), color: '#b98a5e', at: [0, BASE_H / 2, 0] },
+    { g: flat(HX * 2 + 1.1, HZ * 2 + 1.1), color: '#8fbf6a', at: [0, BASE_H + 0.006, 0] },
+    { g: flat(0.6, 0.62), color: '#e9dcc4', at: [-0.8, BASE_H + 0.012, HZ + 0.3] },
+    { g: new BoxGeometry(HX * 2, wallH, HZ * 2), color: COLORS.paper, at: [0, BASE_H + wallH / 2, 0] },
+    ...[-1, 1].map((side): Part => ({ g: new ShapeGeometry(gable), color: COLORS.paperShade, at: [side * HX, top, 0], rot: [0, (side * Math.PI) / 2, 0] })),
+    ...[-1, 1].map((side): Part => ({
+      g: new BoxGeometry(HX * 2 + 0.5, T, edge + over),
+      color: COLORS.accent,
+      at: [0, top + rise / 2 + (T / 2) * Math.cos(slope) - (over / 2) * Math.sin(slope), side * (half / 2 + (T / 2) * Math.sin(slope) + (over / 2) * Math.cos(slope))],
+      rot: [side * slope, 0, 0],
+    })),
+    { g: new BoxGeometry(0.36, 0.9, 0.36), color: COLORS.accentDark, at: [1.0, top + 0.75, -0.45] },
+    { g: new PlaneGeometry(0.7, 1.16), color: '#9a6b45', at: [-0.8, BASE_H + 0.58, HZ + 0.005] },
+    { g: new PlaneGeometry(0.42, 0.5), color: glass, at: [0.75, BASE_H + 0.95, HZ + 0.005] },
+    { g: new PlaneGeometry(0.42, 0.5), color: glass, at: [1.35, BASE_H + 0.95, HZ + 0.005] },
+    { g: new PlaneGeometry(0.8, 0.5), color: glass, at: [HX + 0.005, BASE_H + 0.95, 0.5], rot: [0, Math.PI / 2, 0] },
+  ];
+  return mergeParts(parts);
+}
+
+function House() {
+  const geometry = useMemo(houseGeometry, []);
   return (
     <group>
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[HX + 0.65, 1.45, HZ + 0.65]} position={[0, 1.45, 0]} />
       </RigidBody>
-      {/* model base: wood plinth with a lawn top and a path to the door */}
-      <mesh position={[0, BASE_H / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[HX * 2 + 1.3, BASE_H, HZ * 2 + 1.3]} />
-        <meshStandardMaterial color="#b98a5e" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, BASE_H + 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[HX * 2 + 1.1, HZ * 2 + 1.1]} />
-        <meshStandardMaterial color="#8fbf6a" roughness={1} />
-      </mesh>
-      <mesh position={[-0.8, BASE_H + 0.012, HZ + 0.3]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[0.6, 0.62]} />
-        <meshStandardMaterial color="#e9dcc4" roughness={1} />
-      </mesh>
-      <mesh position={[0, BASE_H + wallH / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[HX * 2, wallH, HZ * 2]} />
-        <meshStandardMaterial color={COLORS.paper} roughness={0.9} />
-      </mesh>
-      {[-1, 1].map((side) => (
-        <mesh key={side} position={[side * HX, top, 0]} rotation={[0, (side * Math.PI) / 2, 0]} castShadow>
-          <shapeGeometry args={[gable]} />
-          <meshStandardMaterial color={COLORS.paperShade} roughness={0.9} side={DoubleSide} />
-        </mesh>
-      ))}
-      {[-1, 1].map((side) => (
-        <mesh
-          key={side}
-          position={[
-            0,
-            top + rise / 2 + (T / 2) * Math.cos(slope) - (over / 2) * Math.sin(slope),
-            side * (half / 2 + (T / 2) * Math.sin(slope) + (over / 2) * Math.cos(slope)),
-          ]}
-          rotation={[side * slope, 0, 0]}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={[HX * 2 + 0.5, T, edge + over]} />
-          <meshStandardMaterial color={COLORS.accent} roughness={0.75} />
-        </mesh>
-      ))}
-      <mesh position={[1.0, top + 0.75, -0.45]} castShadow>
-        <boxGeometry args={[0.36, 0.9, 0.36]} />
-        <meshStandardMaterial color={COLORS.accentDark} roughness={0.8} />
-      </mesh>
-      <mesh position={[-0.8, BASE_H + 0.58, HZ + 0.005]}>
-        <planeGeometry args={[0.7, 1.16]} />
-        <meshStandardMaterial color="#9a6b45" roughness={0.9} />
-      </mesh>
-      {[0.75, 1.35].map((x) => (
-        <mesh key={x} position={[x, BASE_H + 0.95, HZ + 0.005]}>
-          <planeGeometry args={[0.42, 0.5]} />
-          <meshStandardMaterial color="#9fd3e6" roughness={0.4} />
-        </mesh>
-      ))}
-      <mesh position={[HX + 0.005, BASE_H + 0.95, 0.5]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[0.8, 0.5]} />
-        <meshStandardMaterial color="#9fd3e6" roughness={0.4} />
+      <mesh geometry={geometry} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.85} />
       </mesh>
     </group>
   );
 }
 
-export function Scan2ScopeToy({ position }: { position: [number, number, number] }) {
+export function Scan2ScopeToy({ position, pad }: { position: [number, number, number]; pad: [number, number] }) {
+  // camera target while parked: between the pad and the house with its plan
+  const VIEW: [number, number] = [(pad[0] + position[0]) / 2, (pad[1] + position[2] + PLAN_Z / 2) / 2];
   const walls = useRef<InstancedMesh>(null);
   const ghost = useRef<InstancedMesh>(null);
   const sheet = useRef<Mesh>(null);
@@ -205,6 +180,7 @@ export function Scan2ScopeToy({ position }: { position: [number, number, number]
   useLayoutEffect(() => {
     writeWalls(walls.current, 0);
     writeWalls(ghost.current, segs.total + 1);
+    return () => useStore.getState().clearCameraOverride(CAMERA_ID);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -212,9 +188,17 @@ export function Scan2ScopeToy({ position }: { position: [number, number, number]
     const s = st.current;
     const dt = Math.min(delta, 0.1);
     const parked = scanSignal.parked;
-    if (parked && !s.wasParked) {
-      s.t = useStore.getState().reducedMotion ? TOTAL : 0;
-      s.fade = 1;
+    if (parked !== s.wasParked) {
+      const store = useStore.getState();
+      if (parked) {
+        s.t = store.reducedMotion ? TOTAL : 0;
+        s.fade = 1;
+        // Frame the house, its plan and the bay together while parked. Narrow screens step back.
+        if (!store.reducedMotion) {
+          const narrow = typeof window !== 'undefined' && window.innerWidth < window.innerHeight;
+          store.setCameraOverride({ id: CAMERA_ID, target: [worldX(VIEW[0], VIEW[1]), 1, worldZ(VIEW[0], VIEW[1])], distance: narrow ? 40 : undefined, blend: 1.2 });
+        }
+      } else store.clearCameraOverride(CAMERA_ID);
     }
     s.wasParked = parked;
     if (s.t < 0 || !carNearZone()) return;

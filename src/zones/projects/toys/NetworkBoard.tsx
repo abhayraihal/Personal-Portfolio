@@ -1,11 +1,12 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import { CircleGeometry, Color, Matrix4, PlaneGeometry, Quaternion, RingGeometry, Shape, ShapeGeometry, Vector3 } from 'three';
+import { BoxGeometry, CircleGeometry, Color, Matrix4, PlaneGeometry, Quaternion, RingGeometry, Shape, ShapeGeometry, Vector3 } from 'three';
 import type { InstancedMesh } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COLORS } from '../../../config/palette.ts';
 import { carNearZone } from '../frame.ts';
+import { mergeParts } from '../geom.ts';
 
 // A 5-6-4 network drawn the way the project's visualiser draws it: inputs at the bottom, outputs
 // (with arrows) at the top, links yellow or blue by weight sign. Input nodes light up from the
@@ -147,6 +148,15 @@ export function NetworkBoard({ position }: { position: [number, number, number] 
   });
 
   const cy = LIFT + H / 2;
+  const frame = useMemo(
+    () =>
+      mergeParts([
+        { g: new BoxGeometry(0.24, cy, 0.24), color: COLORS.inkSoft, at: [-(W / 2 - 0.5), cy / 2, -0.2] },
+        { g: new BoxGeometry(0.24, cy, 0.24), color: COLORS.inkSoft, at: [W / 2 - 0.5, cy / 2, -0.2] },
+        { g: new BoxGeometry(W + 0.3, H + 0.3, 0.26), color: COLORS.ink, at: [0, cy, -0.14] },
+      ]),
+    [cy],
+  );
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders={false}>
@@ -154,15 +164,8 @@ export function NetworkBoard({ position }: { position: [number, number, number] 
         <CuboidCollider args={[0.12, LIFT / 2, 0.12]} position={[-W / 2 + 0.5, LIFT / 2, -0.2]} />
         <CuboidCollider args={[0.12, LIFT / 2, 0.12]} position={[W / 2 - 0.5, LIFT / 2, -0.2]} />
       </RigidBody>
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * (W / 2 - 0.5), cy / 2, -0.2]} castShadow>
-          <boxGeometry args={[0.24, cy, 0.24]} />
-          <meshStandardMaterial color={COLORS.inkSoft} roughness={0.8} />
-        </mesh>
-      ))}
-      <mesh position={[0, cy, -0.14]} castShadow receiveShadow>
-        <boxGeometry args={[W + 0.3, H + 0.3, 0.26]} />
-        <meshStandardMaterial color={COLORS.ink} roughness={0.85} />
+      <mesh geometry={frame} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.85} />
       </mesh>
       <group position={[0, cy, 0.0]}>
         <mesh>

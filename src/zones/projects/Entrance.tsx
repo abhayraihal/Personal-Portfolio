@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import { ExtrudeGeometry, Shape } from 'three';
+import { BoxGeometry, ExtrudeGeometry, Shape } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
 import { ZONE } from './frame.ts';
+import { mergeParts } from './geom.ts';
 import { ENTRANCE } from './layout.ts';
 
 // Where the road arrives: a garage-shaped sign beside the road, the zone name painted on the road
@@ -25,8 +26,16 @@ function garageShape(): Shape {
 }
 
 function GarageSign() {
-  const board = useMemo(() => new ExtrudeGeometry(garageShape(), { depth: 0.24, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 2 }), []);
   const postX = SIGN.w / 2 - 0.7;
+  const board = useMemo(
+    () =>
+      mergeParts([
+        { g: new BoxGeometry(0.28, SIGN.lift, 0.28), color: COLORS.inkSoft, at: [-postX, SIGN.lift / 2, -0.14] },
+        { g: new BoxGeometry(0.28, SIGN.lift, 0.28), color: COLORS.inkSoft, at: [postX, SIGN.lift / 2, -0.14] },
+        { g: new ExtrudeGeometry(garageShape(), { depth: 0.24, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 2 }), color: ZONE.color, at: [0, SIGN.lift, -0.3] },
+      ]),
+    [postX],
+  );
   const top = SIGN.lift + SIGN.wall;
   return (
     <group position={[SIGN.x, 0, SIGN.z]}>
@@ -35,14 +44,8 @@ function GarageSign() {
         <CuboidCollider args={[0.16, SIGN.lift / 2, 0.16]} position={[postX, SIGN.lift / 2, -0.14]} />
         <CuboidCollider args={[SIGN.w / 2, SIGN.wall / 2, 0.16]} position={[0, SIGN.lift + SIGN.wall / 2, -0.14]} />
       </RigidBody>
-      {[-postX, postX].map((x) => (
-        <mesh key={x} position={[x, SIGN.lift / 2, -0.14]} castShadow>
-          <boxGeometry args={[0.28, SIGN.lift, 0.28]} />
-          <meshStandardMaterial color={COLORS.inkSoft} roughness={0.8} />
-        </mesh>
-      ))}
-      <mesh geometry={board} position={[0, SIGN.lift, -0.3]} castShadow receiveShadow>
-        <meshStandardMaterial color={ZONE.color} roughness={0.75} />
+      <mesh geometry={board} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.75} />
       </mesh>
       {/* a little roll-up door under the gable, for the garage look */}
       <mesh position={[0, top + SIGN.roof * 0.36, 0.005]}>

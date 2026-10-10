@@ -4,6 +4,8 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Euler, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, SphereGeometry, SRGBColorSpace, Vector3 } from 'three';
 import type { Texture } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeParts } from './geom.ts';
+import type { Part } from './geom.ts';
 import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
@@ -19,7 +21,7 @@ const CAB_D = 1.05;
 const CAB_H = 2.55;
 const GAP = 0.24;
 const SIDES = ['#e2557f', '#7c5cff', '#3fa7b5', '#f2c230'];
-const SCREEN = { w: 1.2, h: 0.92, y: 1.64, z: 0.47, tilt: -0.2 };
+const SCREEN = { w: 1.2, h: 0.92, y: 1.56, z: 0.47, tilt: -0.2 };
 const WALL_H = 4.0;
 const VALANCE = 0.42;
 const AWNING_FRONT = 1.75; // how far the awning reaches in front of the wall
@@ -64,7 +66,7 @@ function cabinetGeometry(side: string): BufferGeometry {
     part(new CylinderGeometry(0.065, 0.065, 0.05, 12), '#5ee07a', [0.4, 1.12, CAB_D / 2 + 0.12], [0.22, 0, 0]),
     // screen bezel and marquee
     part(new BoxGeometry(SCREEN.w + 0.16, SCREEN.h + 0.16, 0.05), '#111216', [0, SCREEN.y, SCREEN.z], [SCREEN.tilt, 0, 0]),
-    part(new BoxGeometry(CAB_W - 0.14, 0.5, 0.26), '#fff3c9', [0, CAB_H - 0.3, CAB_D / 2 - 0.16]),
+    part(new BoxGeometry(CAB_W - 0.14, 0.46, 0.26), '#fff3c9', [0, CAB_H - 0.26, CAB_D / 2 - 0.16]),
     part(new BoxGeometry(CAB_W + 0.04, 0.1, CAB_D + 0.06), s, [0, CAB_H + 0.02, 0]),
   ];
   const g = mergeGeometries(parts);
@@ -120,66 +122,60 @@ function Cabinet({ index, x }: { index: number; x: number }) {
       </mesh>
       {p.image ? <ImageScreen url={p.image} /> : <PosterScreen title={p.title} line={p.line} year={p.year} />}
       <Label font="bodyBold" size={0.19} color={COLORS.ink} maxWidth={CAB_W - 0.3} textAlign="center" lineHeight={1.05}
-        position={[0, CAB_H - 0.3, CAB_D / 2 - 0.02]}>
+        position={[0, CAB_H - 0.26, CAB_D / 2 - 0.02]}>
         {p.title}
       </Label>
     </group>
   );
 }
 
+// Back wall, floor mat, striped awning, valance and posts as one mesh.
+function boothGeometry(wallW: number): BufferGeometry {
+  const wallZ = -CAB_D / 2 - 0.25;
+  const stripes = 10;
+  const len = Math.hypot(AWNING_FRONT + 0.3, 0.38);
+  const tilt = Math.atan2(0.38, AWNING_FRONT + 0.3);
+  const sw = (wallW + 0.4) / stripes;
+  const frontZ = wallZ + AWNING_FRONT + 0.3;
+  const parts: Part[] = [
+    { g: new BoxGeometry(wallW, WALL_H, 0.24), color: '#4b3c8f', at: [0, WALL_H / 2, wallZ] },
+    { g: new PlaneGeometry(wallW, CAB_D + 1.6).rotateX(-Math.PI / 2), color: '#3b2f6b', at: [0, 0.026, 0.25] },
+    { g: new BoxGeometry(wallW + 0.4, VALANCE, 0.08), color: COLORS.accent, at: [0, WALL_H - 0.38 - VALANCE / 2, frontZ] },
+  ];
+  for (let i = 0; i < stripes; i++) {
+    const g = new BoxGeometry(sw + 0.002, 0.08, len).translate(-wallW / 2 - 0.2 + sw * (i + 0.5), 0, len / 2);
+    parts.push({ g, color: i % 2 ? COLORS.paper : COLORS.accent, at: [0, WALL_H + 0.02, wallZ], rot: [tilt, 0, 0] });
+  }
+  for (const sx of [-1, 1]) parts.push({ g: new CylinderGeometry(0.07, 0.07, WALL_H - 0.38, 8), color: COLORS.ink, at: [sx * (wallW / 2 + 0.1), (WALL_H - 0.38) / 2, frontZ] });
+  return mergeParts(parts);
+}
+
 export function Arcade({ x, z, padZ }: { x: number; z: number; padZ: number }) {
   const n = earlyProjects.length;
   const span = n * CAB_W + (n - 1) * GAP;
   const wallW = span + 1.0;
-  const stripes = 10;
-  const awningLen = Math.hypot(AWNING_FRONT + 0.3, 0.38);
-  const awningTilt = Math.atan2(0.38, AWNING_FRONT + 0.3);
+  const booth = useMemo(() => boothGeometry(wallW), [wallW]);
+  const wallZ = -CAB_D / 2 - 0.25;
+  const frontZ = wallZ + AWNING_FRONT + 0.3;
   return (
     <group>
       <group position={[x, 0, z]}>
         <RigidBody type="fixed" colliders={false}>
-          <CuboidCollider args={[wallW / 2, WALL_H / 2, 0.12]} position={[0, WALL_H / 2, -CAB_D / 2 - 0.25]} />
+          <CuboidCollider args={[wallW / 2, WALL_H / 2, 0.12]} position={[0, WALL_H / 2, wallZ]} />
           <CuboidCollider args={[span / 2, CAB_H / 2, CAB_D / 2]} position={[0, CAB_H / 2, 0]} />
           {[-1, 1].map((sx) => (
-            <CuboidCollider key={sx} args={[0.08, 1.6, 0.08]} position={[sx * (wallW / 2 + 0.1), 1.6, -CAB_D / 2 - 0.25 + AWNING_FRONT + 0.3]} />
+            <CuboidCollider key={sx} args={[0.08, 1.6, 0.08]} position={[sx * (wallW / 2 + 0.1), 1.6, frontZ]} />
           ))}
         </RigidBody>
-        {/* back wall and floor mat */}
-        <mesh position={[0, WALL_H / 2, -CAB_D / 2 - 0.25]} castShadow receiveShadow>
-          <boxGeometry args={[wallW, WALL_H, 0.24]} />
-          <meshStandardMaterial color="#4b3c8f" roughness={0.9} />
-        </mesh>
-        <mesh position={[0, 0.026, 0.25]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[wallW, CAB_D + 1.6]} />
-          <meshStandardMaterial color="#3b2f6b" roughness={1} />
+        <mesh geometry={booth} castShadow receiveShadow>
+          <meshStandardMaterial vertexColors roughness={0.85} />
         </mesh>
         {earlyProjects.map((_, i) => (
           <Cabinet key={i} index={i} x={-span / 2 + CAB_W / 2 + i * (CAB_W + GAP)} />
         ))}
-        {/* striped awning from the wall top, with a front valance carrying the sign */}
-        <group position={[0, WALL_H + 0.02, -CAB_D / 2 - 0.25]} rotation={[awningTilt, 0, 0]}>
-          {Array.from({ length: stripes }, (_, i) => (
-            <mesh key={i} position={[-wallW / 2 - 0.2 + ((wallW + 0.4) / stripes) * (i + 0.5), 0, awningLen / 2]} castShadow>
-              <boxGeometry args={[(wallW + 0.4) / stripes + 0.002, 0.08, awningLen]} />
-              <meshStandardMaterial color={i % 2 ? COLORS.paper : COLORS.accent} roughness={0.8} />
-            </mesh>
-          ))}
-        </group>
-        <group position={[0, WALL_H - 0.38 - VALANCE / 2, -CAB_D / 2 - 0.25 + AWNING_FRONT + 0.3]}>
-          <mesh castShadow>
-            <boxGeometry args={[wallW + 0.4, VALANCE, 0.08]} />
-            <meshStandardMaterial color={COLORS.accent} roughness={0.8} />
-          </mesh>
-          <Label font="display" size={0.3} color={COLORS.paper} position={[0, 0.01, 0.05]}>
-            {`Early projects · ${YEARS}`}
-          </Label>
-        </group>
-        {[-1, 1].map((sx) => (
-          <mesh key={sx} position={[sx * (wallW / 2 + 0.1), (WALL_H - 0.38) / 2, -CAB_D / 2 - 0.25 + AWNING_FRONT + 0.3]} castShadow>
-            <cylinderGeometry args={[0.07, 0.07, WALL_H - 0.38, 8]} />
-            <meshStandardMaterial color={COLORS.ink} roughness={0.6} />
-          </mesh>
-        ))}
+        <Label font="display" size={0.3} color={COLORS.paper} position={[0, WALL_H - 0.38 - VALANCE / 2 + 0.01, frontZ + 0.05]}>
+          {`Early projects · ${YEARS}`}
+        </Label>
       </group>
       <Pad id="projects-early" label="Read about the early projects" action={{ kind: 'panel', panel: 'project-early' }} position={[x, 0, padZ]} />
     </group>
