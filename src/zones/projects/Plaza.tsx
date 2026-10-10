@@ -80,9 +80,9 @@ export function Plaza() {
       <mesh geometry={paint} position={[0, Y.paint, 0]} receiveShadow>
         <meshStandardMaterial color={PAINT} roughness={1} />
       </mesh>
-      {/* the road surface carried into the plaza up to the arcade */}
-      <mesh position={[-2.5, Y.road, (BOULEVARD.z0 + BOULEVARD.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[41, BOULEVARD.z1 - BOULEVARD.z0]} />
+      {/* the road surface carried into the plaza up to the arcade, from where the world road ends */}
+      <mesh position={[(BOULEVARD.x0 + BOULEVARD.x1) / 2, Y.road, (BOULEVARD.z0 + BOULEVARD.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[BOULEVARD.x1 - BOULEVARD.x0, BOULEVARD.z1 - BOULEVARD.z0]} />
         <meshStandardMaterial color={COLORS.road} roughness={1} />
       </mesh>
     </group>

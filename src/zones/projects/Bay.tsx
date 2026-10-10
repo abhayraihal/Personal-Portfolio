@@ -3,6 +3,7 @@ import { useTexture } from '@react-three/drei';
 import { ConvexHullCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, SRGBColorSpace } from 'three';
 import type { BufferGeometry, Texture } from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
@@ -58,8 +59,8 @@ const billboardFrame = () =>
   (frameGeometry ??= mergeParts([
     { g: new BoxGeometry(0.32, POST_H, 0.32), color: COLORS.inkSoft, at: [-POST_X, POST_H / 2, -BOARD_DEPTH - 0.1] },
     { g: new BoxGeometry(0.32, POST_H, 0.32), color: COLORS.inkSoft, at: [POST_X, POST_H / 2, -BOARD_DEPTH - 0.1] },
-    { g: new BoxGeometry(BOARD_W, BOARD_H, BOARD_DEPTH), color: COLORS.ink, at: [0, BOARD_CY, -BOARD_DEPTH / 2] },
-    { g: new BoxGeometry(BOARD_W, 0.18, BOARD_DEPTH + 0.04), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.09, -BOARD_DEPTH / 2] },
+    { g: new RoundedBoxGeometry(BOARD_W, BOARD_H, BOARD_DEPTH, 3, 0.12), color: COLORS.ink, at: [0, BOARD_CY, -BOARD_DEPTH / 2] },
+    { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 2, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
   ]));
 
 function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain'; x: number; z: number }) {

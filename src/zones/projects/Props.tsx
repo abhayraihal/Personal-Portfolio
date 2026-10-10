@@ -64,7 +64,6 @@ export const LAMPS: Spot[] = [
   [-7, -5.4, -Math.PI / 2],
   [-7, 5.4, Math.PI / 2],
   [17.4, -5.4, -Math.PI / 2],
-  [-19.6, 5.4, Math.PI / 2],
 ];
 const LAMP_H = 4.6;
 const ARM = 0.95;

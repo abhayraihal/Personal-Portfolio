@@ -11,7 +11,7 @@ import { ENTRANCE } from './layout.ts';
 // Where the road arrives: a garage-shaped sign beside the road, the zone name painted on the road
 // and a pad for the projects panel.
 const PAINT = '#f4eedf';
-const SIGN = { x: -25.4, z: 6.6, w: 6.0, wall: 1.9, roof: 0.95, lift: 1.7 };
+const SIGN = { x: -24.2, z: 6.6, w: 6.0, wall: 1.9, roof: 0.95, lift: 1.7 };
 
 function garageShape(): Shape {
   const { w, wall, roof } = SIGN;

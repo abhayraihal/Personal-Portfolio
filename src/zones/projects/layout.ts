@@ -47,4 +47,4 @@ export const IMAGE_H = 3.5;
 // Entrance and the early-projects arcade at the far end of the boulevard.
 export const ENTRANCE = { x: -21, z: 0 };
 export const ARCADE = { x: 22.4, z: -3.2, padZ: 1.5 };
-export const BOULEVARD = { z0: -4, z1: 4 };
+export const BOULEVARD = { x0: -27.5, x1: 18, z0: -4, z1: 4 };
