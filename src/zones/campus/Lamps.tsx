@@ -12,9 +12,11 @@ import { coursework } from '../../data/profile.ts';
 import { car } from '../../state/car.ts';
 import { events, playSound } from '../../state/events.ts';
 import { useStore } from '../../state/store.ts';
+import type { P2 } from './geometry.ts';
 import { glowTexture, normals } from './geometry.ts';
 import { InstancedModel } from './Instanced.tsx';
-import { LAMP_RING } from './layout.ts';
+import { JUNCTION, LAMP_RING, LOOP } from './layout.ts';
+import { NIGHT_TEXT } from './Night.tsx';
 
 const LAMP = 'lamp-post-lantern';
 const LAMP_S = 0.8;
@@ -27,24 +29,37 @@ const HOLD = 9; // seconds a lamp stays lit after the car leaves (daytime)
 
 const [CU, CV] = ZONE_BY_ID.campus.center;
 
-type LampSpot = { x: number; z: number; lx: number; lz: number; course: string };
+type Anchor = { x: 'left' | 'center' | 'right'; y: 'top' | 'middle' | 'bottom' };
+type LampSpot = { x: number; z: number; lx: number; lz: number; anchor: Anchor; course: string };
 
+const RING_R = LOOP.r - 3.4; // corner radius of the lamp ring
+// Labels hang off their lamp on the lawn side. Seen from beside the loop, the lamp below a side
+// label leans its head over the label's height in perspective, so side labels sit further in and
+// a little lower than their own lamp.
+const LABEL = { gap: 0.95, sideGap: 1.55, sideDrop: 1.4 };
+
+// Nine lamps over the top half of the lawn, evenly spaced and symmetric about the top centre. The
+// spacing puts the gap between two lamps where the hub road's line meets the ring, so a car driving
+// straight in from the road passes between them.
 function lampSpots(): LampSpot[] {
   const ring = LAMP_RING;
   const ns = normals(ring, true);
   const n = ring.length;
   const step = 0.25;
-  const perimeter = n * step;
-  // Lamps run from low on the right side, over the top, to low on the left side (counter-clockwise),
-  // so every label lies in front of or beside its own post, never behind it.
-  const from = perimeter - 4.9;
-  const span = 4.9 + 27.8;
-  const gap = span / (coursework.length - 1);
+  // Arc lengths from the ring's start (top of its right side), counter-clockwise on screen.
+  const top = (Math.PI / 2) * RING_R + (LOOP.hx - LOOP.r);
+  const corner: P2 = [LOOP.hx - LOOP.r, -(LOOP.hz - LOOP.r)];
+  const road = Math.atan2(corner[1] - JUNCTION[1], JUNCTION[0] - corner[0]) * RING_R;
+  const half = (coursework.length - 1) / 2;
+  const spacing = (top - road) / (half - 1.5);
   return coursework.map((course, i) => {
-    const k = Math.round((from + i * gap) / step) % n;
+    const k = ((Math.round((top + (i - half) * spacing) / step) % n) + n) % n;
     const [x, z] = ring[k];
-    const [nx, nz] = ns[k]; // left of travel = towards the lawn centre
-    return { x, z, lx: x + nx * 1.65, lz: z + nz * 1.65, course };
+    const [nx, nz] = ns[k]; // left of travel = towards the lawn
+    const ax = nx > 0.5 ? 'left' : nx < -0.5 ? 'right' : 'center';
+    if (ax !== 'center') return { x, z, lx: x + nx * LABEL.sideGap, lz: z + LABEL.sideDrop, anchor: { x: ax, y: 'top' }, course };
+    const ay = nz > 0.5 ? 'top' : nz < -0.5 ? 'bottom' : 'middle';
+    return { x, z, lx: x + nx * LABEL.gap, lz: z + nz * LABEL.gap, anchor: { x: ax, y: ay }, course };
   });
 }
 
@@ -60,7 +75,7 @@ const _s = new Vector3();
 
 const LABEL_OFF = '#2f343d';
 const LABEL_ON = '#9a5c00';
-const LABEL_NIGHT = '#ffe2a0';
+const LABEL_NIGHT = NIGHT_TEXT.color;
 
 export function Lamps() {
   const spots = useMemo(lampSpots, []);
@@ -169,7 +184,7 @@ export function Lamps() {
         <planeGeometry args={[6, 6]} />
         <meshBasicMaterial map={tex} transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
       </instancedMesh>
-      <Label flat font="display" size={0.8} color={night ? LABEL_NIGHT : COLORS.iit} outlineWidth={night ? 0.06 : 0} outlineColor="#2a2312" position={[0, 0.06, -1.7]}>
+      <Label flat font="display" size={0.8} color={night ? LABEL_NIGHT : COLORS.iit} outlineWidth={night ? 0.06 : 0} outlineColor={NIGHT_TEXT.outline} position={[0, 0.06, -2.5]}>
         Coursework
       </Label>
       {spots.map((sp, i) => (
@@ -182,11 +197,13 @@ export function Lamps() {
           font="bodyBold"
           size={0.43}
           maxWidth={3.1}
-          textAlign="center"
+          anchorX={sp.anchor.x}
+          anchorY={sp.anchor.y}
+          textAlign={sp.anchor.x}
           lineHeight={1.05}
           color={night ? LABEL_NIGHT : LABEL_OFF}
           outlineWidth={night ? 0.045 : 0}
-          outlineColor="#2a2312"
+          outlineColor={NIGHT_TEXT.outline}
           position={[sp.lx, 0.06, sp.lz]}
         >
           {sp.course}

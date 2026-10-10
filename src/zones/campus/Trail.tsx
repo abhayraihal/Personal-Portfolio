@@ -1,8 +1,8 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
-import { BoxGeometry, CatmullRomCurve3, Color, DoubleSide, Euler, Matrix4, PlaneGeometry, Quaternion, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
-import type { BufferGeometry, InstancedMesh } from 'three';
+import { ConvexHullCollider, CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Euler, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
+import type { InstancedMesh } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Board } from '../../components/Board.tsx';
 import { Model, modelScale } from '../../components/Model.tsx';
@@ -18,26 +18,60 @@ import { Y } from './Ground.tsx';
 import { InstancedModel } from './Instanced.tsx';
 import type { Placement } from './Instanced.tsx';
 import { KICKER, TRAIL, TRAIL_WIDTH, TRAILHEAD } from './layout.ts';
+import { BoardNightWash, boardFace } from './Night.tsx';
 
 // Sign wording from panels.activities: 'Led rides for the Mountain Biking Club (MTB) at IIT Mandi.'
-const SIGN = { title: 'Mountain Biking Club', line: 'Led club rides', width: 6.5, lift: 1.2 };
-const SIGN_TOP = SIGN.lift + 0.8 + 0.6 * 1.3 + 0.42 * 1.45; // Board height formula
+type V3 = [number, number, number];
 
-// ramp-kicker is a quarter-pipe end (native x -1..0, lip at z = 0, curve dropping towards +z).
-// Two of them back to back make a tabletop: up-ramp, flat top, down-ramp, rideable both ways.
-// Colliders are convex hulls: the real curve goes vertical at the top, and the car's overhang
-// would hit it before its wheels climb.
+const SIGN = { title: 'Mountain Biking Club', line: 'Led club rides', width: 6.5, lift: 1.2 };
+const SIGN_FACE = boardFace({ width: SIGN.width, lines: 1, titleSize: 0.6, lineSize: 0.42, lift: SIGN.lift });
+const SIGN_TOP = SIGN_FACE.centreY + SIGN_FACE.height / 2;
+
+// Packed-dirt tabletop on the straight: up-ramp, flat top, down-ramp, rideable both ways. One
+// convex hull is both the collider and the mesh, so the wheels sit exactly on what is drawn.
+const DIRT_TOP = '#caa171';
+const DIRT_RAMP = '#bb9161';
+const DIRT_SIDE = '#8d6640';
+
+function tabletopPoints(): V3[] {
+  const { base, top, height, length, flat } = KICKER;
+  const L = length / 2;
+  const T = flat / 2;
+  return [
+    [-base / 2, 0, -L], [base / 2, 0, -L], [base / 2, 0, L], [-base / 2, 0, L],
+    [-top / 2, height, -T], [top / 2, height, -T], [top / 2, height, T], [-top / 2, height, T],
+  ];
+}
+
 function Kicker() {
-  const k = modelScale('ramp-kicker');
-  const scale: [number, number, number] = [KICKER.width / k, KICKER.height / (0.3 * k), KICKER.curve / (0.3 * k)];
-  const half: [number, number, number] = [KICKER.width / 2, 0, 0];
+  const pts = useMemo(tabletopPoints, []);
+  const { geo, hull } = useMemo(() => {
+    const quads = (faces: number[][]) => {
+      const pos: number[] = [];
+      for (const [a, b, c, d] of faces) for (const i of [a, b, c, a, c, d]) pos.push(...pts[i]);
+      const g = new BufferGeometry();
+      g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+      g.computeVertexNormals();
+      return g;
+    };
+    // Corners 0-3 on the ground, 4-7 on top (same order); faces wound to point outwards.
+    const top = quads([[4, 7, 6, 5]]);
+    const ramps = quads([[0, 4, 5, 1], [2, 6, 7, 3]]);
+    const sides = quads([[1, 5, 6, 2], [3, 7, 4, 0]]);
+    return {
+      geo: mergeParts([{ geo: top, color: DIRT_TOP }, { geo: ramps, color: DIRT_RAMP }, { geo: sides, color: DIRT_SIDE }]),
+      hull: new Float32Array(pts.flat()),
+    };
+  }, [pts]);
   return (
-    <RigidBody type="fixed" colliders="hull" position={[KICKER.x, 0, KICKER.z]} friction={1}>
-      <group rotation={[0, Math.PI, 0]}>
-        <Model name="ramp-kicker" scale={scale} position={half} />
-      </group>
-      <Model name="ramp-kicker" scale={scale} position={half} />
-    </RigidBody>
+    <group position={[KICKER.x, 0, KICKER.z]}>
+      <RigidBody type="fixed" colliders={false}>
+        <ConvexHullCollider args={[hull]} friction={1} />
+      </RigidBody>
+      <mesh geometry={geo} castShadow receiveShadow>
+        <meshStandardMaterial vertexColors roughness={1} />
+      </mesh>
+    </group>
   );
 }
 
@@ -49,7 +83,7 @@ const LOG_BOTTOM = 0.106; // native distance from the axis-ish origin to the und
 type LogSpec = { s: number; side: number; length: number; diameter: number; across?: boolean };
 // s = arc length along the trail; side = -1/1 for the trail edges, 0 for across the trail.
 const LOGS: LogSpec[] = [
-  { s: 2.6, side: 0, length: TRAIL_WIDTH + 0.8, diameter: 0.3, across: true },
+  { s: 1.4, side: 0, length: TRAIL_WIDTH + 0.8, diameter: 0.3, across: true }, // trail entrance, clear of the pad
   { s: 7.5, side: 1, length: 3.2, diameter: 0.52 },
   { s: 13.4, side: -1, length: 2.8, diameter: 0.5 },
   { s: 22.5, side: -1, length: 3.4, diameter: 0.55 },
@@ -151,7 +185,6 @@ function Bike() {
   );
 }
 
-type V3 = [number, number, number];
 const FLAG_W = 0.46;
 const FLAG_H = 0.54;
 const _m = new Matrix4();
@@ -266,6 +299,7 @@ export function Trail() {
         lift={SIGN.lift}
         position={[SX, 0, SZ]}
       />
+      <BoardNightWash face={SIGN_FACE} x={SX} z={SZ} />
       <Poles poles={POLES} />
       <FlagString a={L} b={CORNER_L} count={7} sag={0.55} />
       <FlagString a={CORNER_R} b={R} count={9} sag={0.6} seed={2} />

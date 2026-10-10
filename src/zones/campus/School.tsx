@@ -12,6 +12,7 @@ import type { Part } from './boxes.ts';
 import { rod } from './Easel.tsx';
 import { Y } from './Ground.tsx';
 import { SCHOOL } from './layout.ts';
+import { NightWash } from './Night.tsx';
 
 const school = panels.school;
 const CITY = (school.kicker ?? '').split('·').pop()?.trim() ?? ''; // 'Delhi'
@@ -82,12 +83,13 @@ export function School() {
       <mesh geometry={geo.leaves} castShadow>
         <meshStandardMaterial color="#3b3f4a" roughness={0.6} metalness={0.3} />
       </mesh>
+      <NightWash width={SIGN.w - 0.16} height={SIGN.h - 0.32} position={[0, SIGN.y + 0.08 + (SIGN.h - 0.32) / 2, PILLAR.w / 2 + 0.222]} />
       {/* name board across the pillars, high enough to drive under */}
       <group position={[0, SIGN.y + SIGN.h / 2, PILLAR.w / 2 + 0.23]}>
         <Label font="bodyBold" size={0.44} color={COLORS.ink} position={[0, 0.2, 0]}>
           {NAME}
         </Label>
-        <Label size={0.4} color={COLORS.inkSoft} position={[0, -0.42, 0]}>
+        <Label size={0.42} color={COLORS.ink} position={[0, -0.42, 0]}>
           {MARKS}
         </Label>
       </group>
