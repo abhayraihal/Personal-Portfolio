@@ -13,8 +13,9 @@ import { railPointAt } from './Rails.tsx';
 // RidgeLogic sets flash[i] to 1 when the car drives through gate i; the gate glows and fades.
 export const gateFlash: number[] = MILESTONES.map(() => 0);
 
-const PILLAR = 0.62;
-const SINK = 1; // below the deck, so a pillar standing over the cliff edge stays buried in the face
+const PILLAR = 0.62; // along the road
+const PILLAR_D = 0.42; // across it: from the rail's inner face to just inside the deck edge
+const SINK = 0.4;
 const HEIGHT = 5.1; // deck to the top of the lintel
 const LINTEL_H = 0.75;
 const PLAQUE_H = 1.4;
@@ -28,13 +29,13 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
   const { front, back } = useMemo(() => railSides(0.5), []);
   // Pillars sit just outside the rail line, inner faces flush with the rail, so a car sliding
   // along the rail is not caught on them.
-  const out = (PILLAR - RAIL_VIS_T) / 2;
+  const out = (PILLAR_D - RAIL_VIS_T) / 2;
   const zf = railPointAt(front, s).z + out;
   const zb = railPointAt(back, s).z - out;
   const color = shadeFor(m.name, m.color);
   const parts = useMemo(() => {
-    const pillar = cornerCutBox(PILLAR, HEIGHT + SINK, PILLAR, 0.09);
-    const lintel = cornerCutBox(PILLAR + 0.12, LINTEL_H, zf - zb + PILLAR + 0.3, 0.1);
+    const pillar = cornerCutBox(PILLAR, HEIGHT + SINK, PILLAR_D, 0.09);
+    const lintel = cornerCutBox(PILLAR + 0.12, LINTEL_H, zf - zb + PILLAR_D + 0.3, 0.1);
     const mat = new MeshStandardMaterial({ color, roughness: 0.75, emissive: new Color(color), emissiveIntensity: 0 });
     return { pillar, lintel, mat };
   }, [color, zf, zb]);
@@ -50,7 +51,7 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
   });
 
   const w = plaqueWidth(m.label);
-  const zPlaque = zf + PILLAR / 2 + 0.14;
+  const zPlaque = zf + PILLAR_D / 2 + 0.14;
   const yPlaque = y0 + HEIGHT - PLAQUE_H / 2 + 0.05;
   return (
     <group position={[-s, 0, 0]}>
@@ -69,7 +70,7 @@ function Gate({ m, index }: { m: Milestone; index: number }) {
       </Label>
       <RigidBody type="fixed" colliders={false}>
         {[zf, zb].map((z) => (
-          <CuboidCollider key={z} args={[PILLAR / 2, (HEIGHT + SINK) / 2, PILLAR / 2]} position={[0, y0 + (HEIGHT + SINK) / 2 - SINK, z]} />
+          <CuboidCollider key={z} args={[PILLAR / 2, (HEIGHT + SINK) / 2, PILLAR_D / 2]} position={[0, y0 + (HEIGHT + SINK) / 2 - SINK, z]} />
         ))}
       </RigidBody>
     </group>
