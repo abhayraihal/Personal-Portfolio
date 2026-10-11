@@ -105,6 +105,7 @@ const _v = new Vector3();
 const _w = new Vector3();
 
 export function Tennis({ position }: { position: V3 }) {
+  const low = useStore((s) => s.quality === 'low');
   const root = useRef<Group>(null);
   const court = useMemo(courtGeometry, []);
   const frame = useMemo(frameGeometry, []);
@@ -192,7 +193,7 @@ export function Tennis({ position }: { position: V3 }) {
       <mesh geometry={machine} material={paintMaterial} position={[MACHINE.x, 0, MACHINE.z]} castShadow receiveShadow />
       <InstancedRigidBodies ref={bodies} instances={instances} colliders={false} ccd linearDamping={0.12} angularDamping={0.9}
         colliderNodes={[<BallCollider key="b" args={[BALL_R]} mass={0.25} restitution={0.72} friction={0.6} />]} onCollisionEnter={onHit}>
-        <instancedMesh args={[ballGeo, paintMaterial, BALLS]} castShadow frustumCulled={false} />
+        <instancedMesh args={[ballGeo, paintMaterial, BALLS]} castShadow={!low} frustumCulled={false} />
       </InstancedRigidBodies>
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[0.05, NET.h / 2, NET.half]} position={[0, NET.h / 2, 0]} restitution={0.2} />

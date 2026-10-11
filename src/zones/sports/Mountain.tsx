@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ConvexHullCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BufferAttribute, BufferGeometry, Color, SphereGeometry } from 'three';
+import { useStore } from '../../state/store.ts';
 import { InstancedModel } from '../career/kit/instances.tsx';
 import type { Placement } from '../career/kit/instances.tsx';
 import type { V3 } from '../career/kit/frame.ts';
@@ -92,7 +93,7 @@ function mountainGeometry(): { geometry: BufferGeometry; hull: Float32Array } {
 
 // Switchbacks up the face towards the camera (+z), from the foot to just under the summit.
 const TRAIL_LIFT = 0.2; // the facets sit a little off the smooth slope; keep the trail above them
-const TRAIL: [number, number][] = [[-3.6, 8.4], [2.9, 6.2], [-2.6, 4.5], [2.0, 3.0], [-1.4, 1.8], [0.5, 0.7]];
+const TRAIL: [number, number][] = [[-4.9, 9.0], [2.9, 6.2], [-2.6, 4.5], [2.0, 3.0], [-1.4, 1.8], [0.5, 0.7]];
 
 function trailGeometry(): { geometry: BufferGeometry; markers: V3[] } {
   const markers: V3[] = [];
@@ -201,6 +202,7 @@ const ROCKS: Placement[] = [
 ];
 
 export function Mountain() {
+  const low = useStore((s) => s.quality === 'low');
   const { geometry, hull } = useMemo(mountainGeometry, []);
   const trail = useMemo(trailGeometry, []);
   const camp = useMemo(() => campGeometry(trail.markers), [trail]);
@@ -218,8 +220,8 @@ export function Mountain() {
           <CuboidCollider args={[1.15, 0.8, 1.3]} position={[8.9, 0.8, 4.6]} />
         </RigidBody>
       </group>
-      <InstancedModel name="tree-pine-snow" items={TREES} />
-      <InstancedModel name="rock-grey-c" items={ROCKS} />
+      <InstancedModel name="tree-pine-snow" items={TREES} shadows={!low} />
+      <InstancedModel name="rock-grey-c" items={ROCKS} shadows={!low} />
       <Flags list={flags} />
     </group>
   );

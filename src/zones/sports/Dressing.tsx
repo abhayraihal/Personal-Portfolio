@@ -14,7 +14,7 @@ import type { BoxCollider, Placement } from '../career/kit/instances.tsx';
 import { box, cyl, paint, paintMaterial } from '../career/kit/paint.ts';
 import type { Part } from '../career/kit/paint.ts';
 import { placeParts, tube } from './bike.ts';
-import { STADIUM, TRACK, TRACK_R_OUT } from './plan.ts';
+import { STADIUM, TRACK, TRACK_R_OUT, VOLLEY } from './plan.ts';
 
 // Park furniture: lanterns along the paths (the valley's own lamps, so they glow and pool light at
 // night), four floodlight masts round the stadium, benches, bins, bunting along the promenade and
@@ -25,10 +25,10 @@ const screen = (x: number, z: number) => ({ u: CU + x, v: CV - z });
 
 // Lantern posts, zone-local (x, z).
 const LANTERNS: [number, number][] = [
-  [-1.4, -16.7], [13.8, -16.7], [27.6, -16.7], [42.6, -16.4], // far side of the promenade
-  [-12.4, -10.6], [20.6, -11.4], // near side, clear of the stadium-front signs
+  [13.8, -16.7], [27.6, -16.7], [42.6, -16.4], // far side of the promenade, between venue pads
+  [-17.5, -6.5], [-1.5, -11.0], [20.6, -11.4], // near side, clear of the signs and the respawn
   [32.3, 2.4], [32.3, 19.6], [37.0, 9.6], // along the right path
-  [-25.4, 33.6], [24.3, 33.4], [32.0, 44.2], // by the pool, the volleyball and the bowling approach
+  [-25.4, 33.6], [29.2, 33.8], [32.0, 44.2], // by the pool, the volleyball and the bowling approach
   [-23.4, -21.6], [-8.2, -21.8], // either side of the plaza
 ];
 addLamps(LANTERNS.map(([x, z]) => ({ kind: 'lantern' as const, ...screen(x, z) })));
@@ -148,9 +148,9 @@ function StadiumWash() {
 const BENCHES: Placement[] = [
   { position: [17.6, 0, -16.9] }, { position: [31.2, 0, -16.9] },
   { position: [-21.2, 0, -12.6], rotationY: Math.PI / 2 }, { position: [32.4, 0, 26.0], rotationY: Math.PI / 2 },
-  { position: [-9.4, 0, 33.6] }, { position: [16.6, 0, 33.6] }, { position: [44.0, 0, 9.7] },
+  { position: [-9.4, 0, 33.85] }, { position: [28.6, 0, 37.6] }, { position: [51.6, 0, 9.7] },
 ];
-const BINS: V3[] = [[19.3, 0, -16.9], [-19.9, 0, -14.6], [-7.6, 0, 33.6], [33.6, 0, 27.8]];
+const BINS: V3[] = [[19.3, 0, -16.9], [-19.9, 0, -14.6], [-7.6, 0, 33.9], [33.6, 0, 27.8]];
 const benchBoxes: BoxCollider[] = BENCHES.map((b) => ({ position: [b.position[0], 0.5, b.position[2]] as V3, half: [1.15, 0.5, 0.55] as V3, rotationY: b.rotationY }));
 
 function binGeometry() {
@@ -162,23 +162,25 @@ function binGeometry() {
   return paint(parts);
 }
 
-// Bunting along the far side of the promenade, from lantern to lantern.
+// Beach bunting over the volleyball court, on poles at the rope's corners. Strung along the court's
+// long sides, so on screen it never crosses a pad or a path for long.
+const VB = { x0: VOLLEY.x - 9.3, x1: VOLLEY.x + 10.5, z0: VOLLEY.z - 5.9, z1: VOLLEY.z + 5.9, h: 2.9 };
+const BUNT_POLES: V3[] = [[VB.x0, 0, VB.z0], [VB.x1, 0, VB.z0], [VB.x0, 0, VB.z1], [VB.x1, 0, VB.z1]];
 const BUNTING: [V3, V3][] = [
-  [[-1.4, 3.7, -16.7], [13.8, 3.7, -16.7]],
-  [[13.8, 3.7, -16.7], [27.6, 3.7, -16.7]],
-  [[27.6, 3.7, -16.7], [42.6, 3.7, -16.4]],
+  [[VB.x0, VB.h - 0.1, VB.z0], [VB.x1, VB.h - 0.1, VB.z0]],
+  [[VB.x0, VB.h - 0.1, VB.z1], [VB.x1, VB.h - 0.1, VB.z1]],
 ];
 const BUNT_COLORS = ['#e2557f', '#f2c230', '#2f6fd6', '#4caf50', '#f4f4f0'];
 
 function buntingGeometry() {
-  const parts: Part[] = [];
+  const parts: Part[] = BUNT_POLES.map((p) => ({ geo: cyl(0.05, 0.06, VB.h, 8), color: '#f2efe6', at: [p[0], VB.h / 2, p[2]] as V3 }));
   for (const [a, b] of BUNTING) {
     const len = Math.hypot(b[0] - a[0], b[2] - a[2]);
     const n = Math.floor(len / 0.7);
     let prev: V3 = a;
     for (let i = 1; i <= n; i++) {
       const t = i / n;
-      const sag = Math.sin(t * Math.PI) * 0.9;
+      const sag = Math.sin(t * Math.PI) * 0.7;
       const p: V3 = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - sag, a[2] + (b[2] - a[2]) * t];
       parts.push(tube(prev, p, 0.012, '#f4f0e6', 4));
       prev = p;

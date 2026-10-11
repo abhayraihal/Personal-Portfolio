@@ -154,6 +154,7 @@ const X = new Vector3(1, 0, 0);
 const Y = new Vector3(0, 1, 0);
 
 export function Volleyball({ position }: { position: V3 }) {
+  const low = useStore((s) => s.quality === 'low');
   const sand = useMemo(sandGeometry, []);
   const court = useMemo(courtGeometry, []);
   const barrier = useMemo(barrierGeometry, []);
@@ -287,16 +288,16 @@ export function Volleyball({ position }: { position: V3 }) {
     <group position={position}>
       <mesh geometry={sand} material={paintMaterial} receiveShadow />
       <mesh geometry={court} material={paintMaterial} castShadow receiveShadow />
-      <mesh geometry={barrier} material={paintMaterial} castShadow />
+      <mesh geometry={barrier} material={paintMaterial} castShadow={!low} />
       <mesh geometry={beach} material={paintMaterial} castShadow receiveShadow />
       <mesh geometry={net.geo} material={net.mat} castShadow />
-      <mesh ref={ball} geometry={ballGeo} material={paintMaterial} castShadow />
+      <mesh ref={ball} geometry={ballGeo} material={paintMaterial} castShadow={!low} />
       {bodies.map((g, i) => (
         <group key={i} ref={(el) => { figures.current[i] = el; }}>
-          <mesh geometry={g} material={paintMaterial} castShadow />
+          <mesh geometry={g} material={paintMaterial} castShadow={!low} />
         </group>
       ))}
-      <instancedMesh ref={arms} args={[arm, paintMaterial, 8]} castShadow frustumCulled={false} />
+      <instancedMesh ref={arms} args={[arm, paintMaterial, 8]} castShadow={!low} frustumCulled={false} />
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[(ropeX1 - ropeX0) / 2, 0.5, 0.08]} position={[(ropeX0 + ropeX1) / 2, 0.5, ropeZ0]} />
         <CuboidCollider args={[(ropeX1 - ropeX0) / 2, 0.5, 0.08]} position={[(ropeX0 + ropeX1) / 2, 0.5, ropeZ1]} />

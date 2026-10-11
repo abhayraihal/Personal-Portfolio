@@ -270,7 +270,7 @@ export function Gaming() {
           <CuboidCollider args={[shelf.width / 2 + 0.35, (CASE.lift + CASE.h) / 2, 0.42]} position={[0, (CASE.lift + CASE.h) / 2, -0.1]} />
         </RigidBody>
       </group>
-      <Sign title="Gaming" lines={[`PlayStation: ${gaming.playstation}`, `Steam: ${gaming.steam}`, 'Plays a lot of CS:GO']} width={5.2} titleSize={0.6} lineSize={0.38}
+      <Sign title="Gaming" lines={[`PlayStation: ${gaming.playstation}`, `Steam: ${gaming.steam}`, 'Plays a lot of CS:GO']} width={5.6} titleSize={0.6} lineSize={0.34}
         accent={PURPLE} lift={0.8} position={[GAME_BOARD.x, 0, GAME_BOARD.z]} />
       <Pad id="sports-gaming" label="Read about gaming" icon="Gaming" action={{ kind: 'panel', panel: 'gaming' }} position={[GAMING_PAD.x, 0, GAMING_PAD.z]} radius={2.4} color={PURPLE} />
     </group>

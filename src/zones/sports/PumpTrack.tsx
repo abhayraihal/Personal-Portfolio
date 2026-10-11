@@ -13,6 +13,7 @@ import { bicycleParts, placeParts, tube } from './bike.ts';
 
 export const PT = { straight: 10, r: 4.2, w: 3.4, rollers: 3, rollerH: 0.42, bankIn: 0.08, bankOut: 1.25, fallOut: 1.5, fallIn: 0.9 };
 const LIFT = 0.012; // the mesh sits this far above the meadow so the two never fight
+const RACK_SCALE = 1.4;
 
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -124,7 +125,8 @@ function rackGeometry() {
   parts.push(tube([0.72, 0.05, -0.95], [0.72, 0.05, 0.95], 0.035, steel));
   parts.push(...placeParts(bicycleParts('#e2442f', '#23262d'), [0.15, 0, -0.38]));
   parts.push(...placeParts(bicycleParts('#2fa7a0', '#23262d'), [0.25, 0, 0.38]));
-  return paint(parts);
+  // Toy-sized: a little bigger than the car would make them, so they read from the camera.
+  return paint(parts).scale(RACK_SCALE, RACK_SCALE, RACK_SCALE);
 }
 
 export function PumpTrack({ position, rack, yaw = 0 }: { position: V3; rack: V3; yaw?: number }) {
@@ -148,7 +150,7 @@ export function PumpTrack({ position, rack, yaw = 0 }: { position: V3; rack: V3;
       <group position={rack}>
         <mesh geometry={rackGeo} material={paintMaterial} castShadow receiveShadow />
         <RigidBody type="fixed" colliders={false}>
-          <CuboidCollider args={[0.85, 0.6, 1.05]} position={[0.3, 0.6, 0]} />
+          <CuboidCollider args={[0.85 * RACK_SCALE, 0.6 * RACK_SCALE, 1.05 * RACK_SCALE]} position={[0.3 * RACK_SCALE, 0.6 * RACK_SCALE, 0]} />
         </RigidBody>
       </group>
     </group>

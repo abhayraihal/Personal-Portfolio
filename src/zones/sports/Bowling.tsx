@@ -113,6 +113,7 @@ function loadStrikes(): number {
 type TextMesh = { text: string; sync: () => void };
 
 export function Bowling() {
+  const low = useStore((s) => s.quality === 'low');
   const lane = useMemo(laneGeometry, []);
   const pinGeo = useMemo(pinGeometry, []);
   const ballGeo = useMemo(() => bowlingBallGeometry(BALL_R), []);
@@ -323,7 +324,7 @@ export function Bowling() {
           <CylinderCollider key="c" args={[PIN.h / 2, PIN.r]} position={[0, PIN.h / 2, 0]} friction={0.45} restitution={0.25}
             massProperties={{ mass: PIN.mass, centerOfMass: { x: 0, y: 0.48, z: 0 }, principalAngularInertia: { x: 0.46, y: 0.05, z: 0.46 }, angularInertiaLocalFrame: { x: 0, y: 0, z: 0, w: 1 } }} />,
         ]}>
-        <instancedMesh args={[pinGeo, paintMaterial, PINS.length]} castShadow receiveShadow frustumCulled={false} />
+        <instancedMesh args={[pinGeo, paintMaterial, PINS.length]} castShadow={!low} receiveShadow frustumCulled={false} />
       </InstancedRigidBodies>
       <RigidBody ref={ball} position={SPAWN} colliders={false} ccd linearDamping={0.06} angularDamping={0.12} onCollisionEnter={onBallHit}>
         <BallCollider args={[BALL_R]} mass={26} friction={0.5} restitution={0.15} />

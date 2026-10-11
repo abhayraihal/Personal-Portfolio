@@ -8,7 +8,7 @@ import { paint, paintMaterial } from '../career/kit/paint.ts';
 import type { Part } from '../career/kit/paint.ts';
 import { flatGeometry, fixWinding, loopBand, loopPoints } from './geom.ts';
 import type { Loop } from './geom.ts';
-import { formatLap, resetLap, stepLap } from './lap.ts';
+import { formatLap, lap, resetLap, stepLap } from './lap.ts';
 import { TRACK, TRACK_R_OUT } from './plan.ts';
 
 // The running track around the pitch: four terracotta lanes with white lines, a start line with a
@@ -81,7 +81,9 @@ export function Track() {
 
   useFrame(() => {
     if (!car.ready) return;
+    const wasRunning = lap.running;
     const res = stepLap(performance.now());
+    if (!wasRunning && lap.running) playSound('click', 0.6);
     if (!res) return;
     const s = useStore.getState();
     const t = formatLap(res.ms);

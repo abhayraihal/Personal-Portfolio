@@ -181,6 +181,7 @@ const DIVER_PIVOT = 0.8; // the dive turns the diver about a point this high, ne
 const SWIM = { z: -WATER.d / 2 + LANE * 1.5, x: WATER.w / 2 - 0.9, speed: 1.35 };
 
 export function Pool({ position }: { position: V3 }) {
+  const low = useStore((s) => s.quality === 'low');
   const deck = useMemo(deckGeometry, []);
   const fence = useMemo(fenceGeometry, []);
   const water = useMemo(() => {
@@ -232,6 +233,16 @@ export function Pool({ position }: { position: V3 }) {
   const ringMesh = useMemo(() => {
     const geo = new RingGeometry(0.82, 1, 28);
     const mat = new MeshBasicMaterial({ color: '#ffffff', transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false });
+    // Rings stop at the pool walls.
+    mat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vPoolXZ;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPoolXZ = (instanceMatrix * vec4(transformed, 1.0)).xz;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vPoolXZ;')
+        .replace('void main() {', `void main() {\n  if (abs(vPoolXZ.x) > ${(WATER.w / 2).toFixed(2)} || abs(vPoolXZ.y) > ${(WATER.d / 2).toFixed(2)}) discard;`);
+    };
+    mat.customProgramCacheKey = () => 'sports-pool-ripple';
     return { geo, mat };
   }, []);
   const dropMesh = useMemo(() => ({ geo: new SphereGeometry(0.06, 6, 4), mat: new MeshBasicMaterial({ color: '#f2fbff', toneMapped: false }) }), []);
@@ -355,8 +366,8 @@ export function Pool({ position }: { position: V3 }) {
         arms = 2.9;
         if (u > 0.92 && s.dt < 3.3) {
           s.dt = 4;
-          ripple(BOARD.x1 - 1.0, BOARD.z, 1.6, 1.8);
-          ripple(BOARD.x1 - 1.0, BOARD.z, 1.0, 1.2);
+          ripple(BOARD.x1 - 1.0, BOARD.z, 1.25, 1.7);
+          ripple(BOARD.x1 - 1.0, BOARD.z, 0.8, 1.2);
           splash(BOARD.x1 - 1.0, BOARD.z, 16, 1.4);
         }
       } else {
@@ -410,7 +421,7 @@ export function Pool({ position }: { position: V3 }) {
   return (
     <group ref={root} position={position}>
       <mesh geometry={deck} material={paintMaterial} castShadow receiveShadow />
-      <mesh geometry={fence} material={paintMaterial} castShadow />
+      <mesh geometry={fence} material={paintMaterial} castShadow={!low} />
       <mesh geometry={water} material={waterMat} position={[0, WATER.y, 0]} receiveShadow />
       <instancedMesh ref={beadMesh} args={[beads.geo, paintMaterial, beads.items.length]} />
       <group ref={boardRef} position={[BOARD.x0, BOARD.y, BOARD.z]}>
@@ -436,7 +447,7 @@ export function Pool({ position }: { position: V3 }) {
         </group>
       </group>
       <instancedMesh ref={rings} args={[ringMesh.geo, ringMesh.mat, RIPPLES]} frustumCulled={false} renderOrder={1} />
-      <instancedMesh ref={drops} args={[dropMesh.geo, dropMesh.mat, DROPS]} frustumCulled={false} />
+      <instancedMesh ref={drops} args={[dropMesh.geo, dropMesh.mat, DROPS]} frustumCulled={false} visible={!low} />
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[hx, 0.65, 0.08]} position={[0, 0.65, -hz]} />
         <CuboidCollider args={[hx, 0.65, 0.08]} position={[0, 0.65, hz]} />

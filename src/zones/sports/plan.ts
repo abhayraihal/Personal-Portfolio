@@ -59,10 +59,10 @@ export const PATHS: [number, number][][] = [
 export const TABLE = { x: -4.6, z: -22.6 };
 export const TABLE_PAD = { x: -4.6, z: -18.4 };
 // Gaming: the board, the den and the game shelf in a row, the pad in front of the den.
-export const GAME_BOARD = { x: 2.6, z: -22.4 };
+export const GAME_BOARD = { x: 2.4, z: -22.6 };
 export const DEN = { x: 9.6, z: -27.4 };
 export const GAME_SHELF = { x: 20.1, z: -27.2 };
-export const GAMING_PAD = { x: 9.6, z: -20.4 };
+export const GAMING_PAD = { x: 5.4, z: -20.2 }; // between the board and the den, so a phone shows both
 export const TYPING = { x: 34.6, z: -23.2 };
 export const TYPING_PAD = { x: 34.6, z: -18.6 };
 export const MOUNTAIN = { x: 53.5, z: -23, r: 8.2, h: 7.2 };
@@ -73,7 +73,7 @@ export const TENNIS_PAD = { x: 36.8, z: -1.2 };
 // The pump track runs up the screen (turned a quarter), between the right path and the bowling lane.
 export const PUMP = { x: 46.6, z: 24.4 };
 export const PUMP_PAD = { x: 37.6, z: 27.6 };
-export const BIKE_RACK = { x: 38.3, z: 39.6 };
+export const BIKE_RACK = { x: 44.6, z: 9.9 }; // above the pump track, in view from its pad
 // Bowling lane along the right edge, bowled up the screen: the camera looks down it from behind the
 // ball. z falls towards the pins.
 export const BOWL = { x: 58.6, width: 4.6, approachZ: 43.4, foulZ: 38.6, headZ: 21.2, backZ: 15.4 };
