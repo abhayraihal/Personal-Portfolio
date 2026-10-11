@@ -37,8 +37,8 @@ export const TRACK_R_OUT = TRACK.rIn + TRACK.lanes * TRACK.lane;
 
 // Stadium front along the far straight: football and running pads either side of the scoreboard.
 export const SCOREBOARD = { x: STADIUM.x, z: STADIUM.z - TRACK_R_OUT - 3.2 };
-export const FOOTBALL_PAD = { x: STADIUM.x - 11.4, z: SCOREBOARD.z + 0.6 };
-export const RUNNING_PAD = { x: STADIUM.x + 11.4, z: SCOREBOARD.z + 0.6 };
+export const FOOTBALL_PAD = { x: STADIUM.x - 8.8, z: SCOREBOARD.z + 0.7 };
+export const RUNNING_PAD = { x: STADIUM.x + 8.8, z: SCOREBOARD.z + 0.7 };
 
 // Entrance plaza at the end of the road, with the park sign behind it.
 export const PLAZA = { x: -15, z: -14, r: 7 };
@@ -62,8 +62,11 @@ export const TYPING = { x: 33.5, z: -23.5 };
 export const MOUNTAIN = { x: 53.5, z: -23, r: 8.2, h: 7.2 };
 
 export const TENNIS = { x: 49, z: 1.5 };
+export const TENNIS_PAD = { x: 36.8, z: -1.2 };
 export const VOLLEY = { x: 49, z: 16.5 };
+export const VOLLEY_PAD = { x: 37, z: 17.6 };
 export const PUMP = { x: 49, z: 33 };
 
-export const POOL = { x: -13, z: 37.5 };
+export const POOL = { x: -14.25, z: 38.2 };
+export const POOL_PAD = { x: -1.5, z: 40 };
 export const BOWLING = { x: 17.5, z: 38.2 };
