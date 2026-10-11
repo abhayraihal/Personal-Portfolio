@@ -22,25 +22,31 @@ const BOARD_DEPTH = 0.3;
 const LIFT = 0.75; // ground to the bottom of the frame
 
 // Plane whose UVs crop the texture to fill the frame ('cover'), or a smaller plane that shows the
-// whole image ('contain').
-function imageGeometry(aspect: number, fit: 'cover' | 'contain'): PlaneGeometry {
+// whole image ('contain'). `cropTop` cuts that share of the image off the top first.
+function imageGeometry(aspect: number, fit: 'cover' | 'contain', cropTop = 0): PlaneGeometry {
   const frameAspect = IMAGE_W / IMAGE_H;
+  const top = 1 - cropTop;
+  const a = aspect / top;
   if (fit === 'contain') {
-    const w = aspect >= frameAspect ? IMAGE_W : IMAGE_H * aspect;
-    const h = aspect >= frameAspect ? IMAGE_W / aspect : IMAGE_H;
-    return new PlaneGeometry(w, h);
+    const w = a >= frameAspect ? IMAGE_W : IMAGE_H * a;
+    const h = a >= frameAspect ? IMAGE_W / a : IMAGE_H;
+    const g = new PlaneGeometry(w, h);
+    const uv = g.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * top);
+    uv.needsUpdate = true;
+    return g;
   }
   const g = new PlaneGeometry(IMAGE_W, IMAGE_H);
   const uv = g.attributes.uv;
-  let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
-  if (aspect > frameAspect) {
-    const k = frameAspect / aspect;
+  let u0 = 0, u1 = 1, v0 = 0, v1 = top;
+  if (a > frameAspect) {
+    const k = frameAspect / a;
     u0 = (1 - k) / 2;
     u1 = 1 - u0;
   } else {
-    const k = aspect / frameAspect;
-    v0 = (1 - k) / 2;
-    v1 = 1 - v0;
+    const k = a / frameAspect;
+    v0 = (top * (1 - k)) / 2;
+    v1 = top - v0;
   }
   for (let i = 0; i < uv.count; i++) {
     uv.setXY(i, uv.getX(i) ? u1 : u0, uv.getY(i) ? v1 : v0);
@@ -55,7 +61,7 @@ const BOARD_CY = LIFT + BOARD_H / 2;
 const POST_X = BOARD_W / 2 - 0.8;
 const POST_H = LIFT + BOARD_H - 0.3;
 
-// Frame, posts and the zone-colour top strip: one geometry shared by all six billboards.
+// Frame, posts and the zone-colour top strip: one geometry shared by every billboard.
 let frameGeometry: BufferGeometry | null = null;
 const billboardFrame = () =>
   (frameGeometry ??= mergeParts([
@@ -92,10 +98,12 @@ function useBehindFade(x: number, z: number) {
   return useMemo(() => [0, 1, 2].map((i) => (m: Material | null) => void (mats.current[i] = m)), []);
 }
 
-function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain'; x: number; z: number }) {
+type Fit = { fit: 'cover' | 'contain'; x: number; z: number; backing?: string; cropTop?: number };
+
+function Billboard({ map, fit, z, x, backing = '#ffffff', cropTop = 0 }: Fit & { map: Texture }) {
   const img = map.image as { width?: number; height?: number } | undefined;
   const aspect = img?.width && img.height ? img.width / img.height : IMAGE_W / IMAGE_H;
-  const geometry = useMemo(() => imageGeometry(aspect, fit), [aspect, fit]);
+  const geometry = useMemo(() => imageGeometry(aspect, fit, cropTop), [aspect, fit, cropTop]);
   const frame = useMemo(billboardFrame, []);
   const fadeRefs = useBehindFade(x, z);
   return (
@@ -111,7 +119,7 @@ function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain';
       {fit === 'contain' && (
         <mesh position={[0, BOARD_CY, 0.006]}>
           <planeGeometry args={[IMAGE_W, IMAGE_H]} />
-          <meshBasicMaterial ref={fadeRefs[1]} color="#ffffff" toneMapped={false} transparent />
+          <meshBasicMaterial ref={fadeRefs[1]} color={backing} toneMapped={false} transparent />
         </mesh>
       )}
       <mesh geometry={geometry} position={[0, BOARD_CY, 0.012]}>
@@ -121,14 +129,14 @@ function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain';
   );
 }
 
-function ImageBillboard({ url, ...rest }: { url: string; fit: 'cover' | 'contain'; x: number; z: number }) {
+function ImageBillboard({ url, ...rest }: Fit & { url: string }) {
   const tex = useTexture(url);
   tex.colorSpace = SRGBColorSpace;
   tex.anisotropy = 8;
   return <Billboard map={tex} {...rest} />;
 }
 
-function PosterBillboard({ bay, ...rest }: { bay: BayDef; fit: 'cover' | 'contain'; x: number; z: number }) {
+function PosterBillboard({ bay, ...rest }: Fit & { bay: BayDef }) {
   use(loadCanvasFonts());
   const p = bay.project;
   const map = coverTexture(p.panel, p.title, bay.art ?? 'map');
@@ -207,9 +215,11 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
   const x0 = -LECTERN_W / 2 + 0.42;
   const top = SLANT / 2;
   const titleY = top - 0.62;
-  const titleW = textWidth(p.title, 'display', TITLE);
   const year = String(p.year);
   const yearW = textWidth(year, 'bodyBold', 0.32) + 0.44;
+  // A long title shrinks until it and the year pill fit on one line.
+  const titleSize = Math.min(TITLE, (LECTERN_W - 0.84 - 0.3 - yearW) / textWidth(p.title, 'display', 1));
+  const titleW = textWidth(p.title, 'display', titleSize);
   const tagW = useMemo(() => taglineWidth(p.tagline, LECTERN_W - 0.84), [p.tagline]);
 
   // Chips run left to right along the bottom edge, scaled down if the stack is too long to fit.
@@ -252,7 +262,7 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
         <mesh geometry={chipGeometry} position={[0, 0, faceZ]}>
           <meshBasicMaterial color={COLORS.accent} toneMapped={false} />
         </mesh>
-        <Label font="display" size={TITLE} color={COLORS.ink} anchorX="left" anchorY="middle" position={[x0, titleY, faceZ + 0.01]}>
+        <Label font="display" size={titleSize} color={COLORS.ink} anchorX="left" anchorY="middle" position={[x0, titleY, faceZ + 0.01]}>
           {p.title}
         </Label>
         <Label font="bodyBold" size={0.32} color={COLORS.paper} anchorX="center" anchorY="middle"
@@ -280,7 +290,7 @@ export function Bay({ bay, onParked }: { bay: BayDef; onParked?: (parked: boolea
   return (
     <group>
       {p.image ? (
-        <ImageBillboard url={p.image} fit={bay.fit} x={bay.x} z={row.board} />
+        <ImageBillboard url={p.image} fit={bay.fit} x={bay.x} z={row.board} backing={bay.backing} cropTop={bay.cropTop} />
       ) : (
         <PosterBillboard bay={bay} fit={bay.fit} x={bay.x} z={row.board} />
       )}

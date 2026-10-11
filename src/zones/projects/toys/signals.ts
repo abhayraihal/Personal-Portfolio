@@ -1,8 +1,14 @@
 // Pad-to-toy signals: a bay's pad flips `parked`, the toy reads it in useFrame.
 export type ToySignal = { parked: boolean; changedAt: number };
 
-export const scanSignal: ToySignal = { parked: false, changedAt: 0 };
-export const astSignal: ToySignal = { parked: false, changedAt: 0 };
+const signal = (): ToySignal => ({ parked: false, changedAt: 0 });
+
+export const scanSignal = signal();
+export const astSignal = signal();
+export const shootersSignal = signal();
+export const ballSignal = signal();
+export const cinemaSignal = signal();
+export const covidSignal = signal();
 
 export function setParked(s: ToySignal, parked: boolean) {
   s.parked = parked;

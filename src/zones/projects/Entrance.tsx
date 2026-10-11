@@ -4,7 +4,7 @@ import { BoxGeometry, ExtrudeGeometry, Shape } from 'three';
 import { Label } from '../../components/Label.tsx';
 import { Pad } from '../../components/Pad.tsx';
 import { COLORS } from '../../config/palette.ts';
-import { earlyProjects, projects } from '../../data/profile.ts';
+import { allProjects } from '../../data/profile.ts';
 import { ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
 import { ENTRANCE } from './layout.ts';
@@ -14,8 +14,8 @@ import { ENTRANCE } from './layout.ts';
 const PAINT = '#f4eedf';
 const SIGN = { x: -24.2, z: 6.6, w: 6.0, wall: 1.9, roof: 0.95, lift: 1.7 };
 // The road paint and the HUD already show the zone subtitle, so the sign says what is inside.
-const YEARS = [...projects, ...earlyProjects].map((p) => p.year);
-const SIGN_LINE = `${projects.length + earlyProjects.length} projects, ${Math.min(...YEARS)} to ${Math.max(...YEARS)}`;
+const YEARS = allProjects.map((p) => p.year);
+const SIGN_LINE = `${allProjects.length} projects, ${Math.min(...YEARS)} to ${Math.max(...YEARS)}`;
 
 function garageShape(): Shape {
   const { w, wall, roof } = SIGN;
