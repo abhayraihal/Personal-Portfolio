@@ -72,9 +72,10 @@ export function bicycleParts(frame: string, accent = '#23262d'): Part[] {
   return parts;
 }
 
-// Move parts into another frame: translate by `at`, turn about y by `yaw` (in place, returns parts).
-export function placeParts(parts: Part[], at: V3, yaw = 0): Part[] {
-  const q = new Quaternion().setFromAxisAngle(UP, yaw);
+// Move parts into another frame: tilt about x by `tilt`, turn about y by `yaw`, then translate by
+// `at` (in place, returns parts).
+export function placeParts(parts: Part[], at: V3, yaw = 0, tilt = 0): Part[] {
+  const q = new Quaternion().setFromAxisAngle(UP, yaw).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), tilt));
   const v = new Vector3();
   const e = new Euler();
   const pq = new Quaternion();

@@ -4,6 +4,7 @@ import { Football } from './Football.tsx';
 import { Ground } from './Ground.tsx';
 import { Pitch } from './Pitch.tsx';
 import { Bowling } from './Bowling.tsx';
+import { Dressing } from './Dressing.tsx';
 import { Gaming } from './Gaming.tsx';
 import { Mountain } from './Mountain.tsx';
 import { BIKE_RACK, BOWL_PAD, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TABLE_PAD, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
@@ -22,6 +23,7 @@ export function SportsZone() {
   return (
     <ZoneFrame zone="sports">
       <Ground />
+      <Dressing />
       <Entrance />
       <Track />
       <Pitch />

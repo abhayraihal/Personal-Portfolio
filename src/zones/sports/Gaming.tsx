@@ -164,14 +164,12 @@ function ledGeometry(): BufferGeometry {
 type Cover = { bg: string; band: string; ink: string; art: Part[] };
 const CASE = { w: 1.5, h: 2.05, d: 0.18, gap: 0.16, lift: 0.5 };
 
+const disc = (r: number) => new CircleGeometry(r, 24);
+const tri = () => new CircleGeometry(0.42, 3);
+
 function coverArt(i: number, x: number, y: number, z: number): Cover {
   const top = y + CASE.h * 0.73;
   const flat = (geo: BufferGeometry, color: string, dx: number, dy: number, s: [number, number, number] = [1, 1, 1], rot = 0): Part => ({ geo, color, at: [x + dx, top + dy, z], scale: s, rot: [0, 0, rot] });
-  const disc = (r: number) => new CircleGeometry(r, 24);
-  const tri = () => {
-    const g = new CircleGeometry(0.42, 3);
-    return g;
-  };
   switch (i) {
     case 0: // CS:GO: a crosshair on orange
       return { bg: '#e8892e', band: '#23262d', ink: '#ffffff', art: [
