@@ -53,7 +53,7 @@ const BANDED = modelSize('crate-wood-banded')[0];
 const [CONE_W, CONE_H] = modelSize('traffic-cone');
 
 // A small pyramid near the entrance and a banded crate near the turn to the 2022 street, both in
-// the lane away from the camera so they never cover the car; cones in a slalom.
+// the lane away from the camera so they never cover the car.
 const CRATES: Place[] = [
   { x: -5.2, y: 0, z: -2.2, yaw: 0.05 },
   { x: -5.2 + CRATE + 0.02, y: 0, z: -2.2, yaw: -0.04 },
