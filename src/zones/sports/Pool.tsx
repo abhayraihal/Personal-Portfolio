@@ -68,7 +68,7 @@ vec2 sc = vec2(p.x * 2.6 + t * 0.3, p.y * 2.6);
 float sh = vw_hash12(floor(sc));
 float spark = step(0.93, sh) * smoothstep(0.26, 0.0, length(fract(sc) - 0.5)) * (0.5 + 0.5 * sin(t * 4.0 + sh * 40.0));
 totalEmissiveRadiance += spark * vec3(1.0, 0.97, 0.88) * 0.55 * (1.0 - uNight);
-totalEmissiveRadiance += wcol * uNight * 0.75;
+totalEmissiveRadiance += wcol * uNight * 0.55;
 `;
 
 function waterMaterial() {
