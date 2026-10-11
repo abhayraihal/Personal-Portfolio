@@ -82,5 +82,5 @@ export const TOYS_2022 = {
   shooters: { x: -18.4, z: -39.6 },
   ball: { x: -4.1, z: -38.6 },
   cinema: { x: 11.1, z: 0 }, // parts are placed on their own z (see DriveInToy)
-  covid: { x: 28.75, z: -44.6 },
+  covid: { x: 28.6, z: -44.6 },
 };
