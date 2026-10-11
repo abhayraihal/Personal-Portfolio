@@ -3,7 +3,7 @@
 // Amazon work is described without internal system names, by his choice.
 
 // import.meta.env is undefined when vite.config.ts imports this file at build time.
-const BASE: string = import.meta.env?.BASE_URL ?? '/portfolio/';
+const BASE: string = import.meta.env?.BASE_URL ?? '/Personal-Portfolio/';
 
 export type LinkKind = 'mail' | 'phone' | 'linkedin' | 'github' | 'demo' | 'paper' | 'profile' | 'web';
 export type Link = { label: string; url: string; kind: LinkKind };
@@ -587,6 +587,6 @@ export const panels: Record<PanelId, Panel> = {
       'Built with React Three Fiber, drei, Rapier physics and zustand on Vite, and hosted on GitHub Pages.',
       "3D models are from Kenney's CC0 kits. Fonts are Lilita One and Rubik (SIL Open Font License).",
     ],
-    links: [{ label: 'Source on GitHub', url: `${contact.github}/portfolio`, kind: 'github' }],
+    links: [{ label: 'Source on GitHub', url: `${contact.github}/Personal-Portfolio`, kind: 'github' }],
   },
 };

@@ -3,9 +3,9 @@ import { defineConfig, runnerImport } from 'vite';
 import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// GitHub Pages project site: https://<user>.github.io/portfolio/. The deploy workflow passes
+// GitHub Pages project site: https://<user>.github.io/Personal-Portfolio/. The deploy workflow passes
 // BASE_PATH from actions/configure-pages, so a renamed repo or a <user>.github.io repo still works.
-const base = process.env.BASE_PATH ?? '/portfolio/';
+const base = process.env.BASE_PATH ?? '/Personal-Portfolio/';
 
 // Writes the recruiter card, the classic view and the head tags (title, description, Open Graph,
 // JSON-LD, icons, font preloads) into index.html, so the page reads without JavaScript. The markup

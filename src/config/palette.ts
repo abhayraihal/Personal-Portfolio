@@ -2,7 +2,7 @@
 // (see src/config/glyphs.ts): troika fetches fallback fonts from a CDN for missing glyphs.
 
 // import.meta.env is undefined when vite.config.ts imports this file at build time.
-const BASE: string = import.meta.env?.BASE_URL ?? '/portfolio/';
+const BASE: string = import.meta.env?.BASE_URL ?? '/Personal-Portfolio/';
 
 export const COLORS = {
   accent: '#e2557f', // the pink polo in Abhay's IIT Mandi photo; car paint, UI accent

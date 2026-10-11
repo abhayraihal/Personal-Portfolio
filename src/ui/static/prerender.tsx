@@ -12,7 +12,7 @@ import { ClassicView } from '../classic/ClassicView.tsx';
 // Never put the phone number in index.html: ClassicView leaves it out in 'static' mode, and the
 // tags below don't use it.
 
-// GitHub Pages: the deploy workflow sets the base path ('/portfolio/' for this repo), so the
+// GitHub Pages: the deploy workflow sets the base path ('/Personal-Portfolio/' for this repo), so the
 // absolute URLs follow it if the repo is renamed or becomes the user site.
 const ORIGIN = 'https://abhayraihal.github.io';
 const BASE = import.meta.env.BASE_URL;
@@ -22,7 +22,7 @@ const OG_IMAGE_ALT = `${profile.name}'s name in big 3D letters over a road in a 
 
 const attr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const text = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-// An app path under BASE ('/portfolio/images/x.jpg') as an absolute URL on the live site.
+// An app path under BASE ('/Personal-Portfolio/images/x.jpg') as an absolute URL on the live site.
 const absolute = (path: string) => SITE_URL + path.slice(BASE.length);
 
 const font = (href: string) => `<link rel="preload" href="${attr(href)}" as="font" type="font/woff" crossorigin />`;

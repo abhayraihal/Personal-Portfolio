@@ -2,7 +2,7 @@
 
 A 3D portfolio you explore by driving a jeep around a small Himalayan valley, modelled loosely on the IIT Mandi campus where I studied. Each part of the valley is one part of my work: a career road that ends at Amazon, a projects garage, a ridge road built from my Codeforces rating history, the IIT Mandi campus and a football pitch.
 
-Live site: https://abhayraihal.github.io/portfolio/
+Live site: https://abhayraihal.github.io/Personal-Portfolio/
 
 If you'd rather read than drive, the page opens with a plain HTML summary, and the classic view (press `C`, or open `#classic`) has everything as a printable page.
 
@@ -29,7 +29,7 @@ Run it locally:
 
 ```sh
 npm ci
-npm run dev       # http://127.0.0.1:4311/portfolio/
+npm run dev       # http://127.0.0.1:4311/Personal-Portfolio/
 npm run build     # type-check, then build to dist/
 ```
 

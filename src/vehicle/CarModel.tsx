@@ -11,7 +11,7 @@ import { repaintPalette, splitBody } from './paint.ts';
 import { LEAN, LIGHTS, MODEL, PAINT, WHEELS } from './tuning.ts';
 
 // public/models/car-kit/vehicle-jeep-suv.glb references Textures/colormap.png relative to itself.
-// BASE_URL is vite.config `base` ('/portfolio/' unless BASE_PATH is set), in dev too.
+// BASE_URL is vite.config `base` ('/Personal-Portfolio/' unless BASE_PATH is set), in dev too.
 const MODEL_URL = `${import.meta.env.BASE_URL}${MODEL.url}`;
 // Second argument false: no DRACOLoader. drei would otherwise point it at www.gstatic.com.
 const USE_DRACO = false;
