@@ -51,7 +51,7 @@ export const RIGHT_PATH_X = 34.6;
 export const NEAR_PATH_Z = 30.6;
 export const PATH_W = 3.4;
 export const PATHS: [number, number][][] = [
-  [[PLAZA.x + 5, PROMENADE_Z], [46.5, PROMENADE_Z]],
+  [[PLAZA.x + 5, PROMENADE_Z], [48.6, PROMENADE_Z]],
   [[RIGHT_PATH_X, PROMENADE_Z], [RIGHT_PATH_X, 41.5]],
   [[-23.5, NEAR_PATH_Z], [RIGHT_PATH_X, NEAR_PATH_Z]],
 ];
@@ -60,6 +60,7 @@ export const TABLE = { x: -2.5, z: -22.5 };
 export const GAMING = { x: 10.5, z: -25.5 };
 export const TYPING = { x: 33.5, z: -23.5 };
 export const MOUNTAIN = { x: 53.5, z: -23, r: 8.2, h: 7.2 };
+export const TREK_PAD = { x: 52.8, z: -9.6 };
 
 export const TENNIS = { x: 49, z: 1.5 };
 export const TENNIS_PAD = { x: 36.8, z: -1.2 };

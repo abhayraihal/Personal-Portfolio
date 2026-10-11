@@ -4,7 +4,8 @@ import { Football } from './Football.tsx';
 import { Ground } from './Ground.tsx';
 import { Mock } from './Mock.tsx';
 import { Pitch } from './Pitch.tsx';
-import { BIKE_RACK, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TENNIS, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
+import { Mountain } from './Mountain.tsx';
+import { BIKE_RACK, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
 import { PumpTrack } from './PumpTrack.tsx';
 import { Pool } from './Pool.tsx';
 import { Tennis } from './Tennis.tsx';
@@ -38,6 +39,9 @@ export function SportsZone() {
       <PumpTrack position={[PUMP.x, 0, PUMP.z]} rack={[BIKE_RACK.x, 0, BIKE_RACK.z]} />
       <VenueSign id="sports-cycling" title="Cycling" sign={[PUMP_PAD.x, PUMP_PAD.z - 3.6]} pad={[PUMP_PAD.x, PUMP_PAD.z]}
         label="Read about cycling" icon="Cycling" />
+      <Mountain />
+      <VenueSign id="sports-trekking" title="Trekking" sign={[TREK_PAD.x, TREK_PAD.z - 3.5]} pad={[TREK_PAD.x, TREK_PAD.z]}
+        label="Read about trekking" icon="Trekking" />
       <Pool position={[POOL.x, 0, POOL.z]} />
       <VenueSign id="sports-swimming" title="Swimming" sign={[POOL_PAD.x, POOL_PAD.z - 3.6]} pad={[POOL_PAD.x, POOL_PAD.z]}
         label="Read about swimming" icon="Swimming" />
