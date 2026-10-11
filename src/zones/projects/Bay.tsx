@@ -1,9 +1,8 @@
-import { use, useMemo, useRef } from 'react';
+import { use, useEffect, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import { ConvexHullCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, SRGBColorSpace } from 'three';
-import type { BufferGeometry, Material, Texture } from 'three';
+import type { BufferGeometry, Texture } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../components/Label.tsx';
@@ -14,7 +13,8 @@ import { loadCanvasFonts, textWidth } from './canvas.ts';
 import { IMAGE_H, IMAGE_W, ROWS } from './layout.ts';
 import type { Bay as BayDef } from './layout.ts';
 import { coverTexture } from './posters.ts';
-import { carNearZone, carX, carZ, ZONE } from './frame.ts';
+import { useBehindFade } from './fade.ts';
+import { worldX, worldZ, ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
 
 const FRAME = 0.28; // border around the image
@@ -22,25 +22,31 @@ const BOARD_DEPTH = 0.3;
 const LIFT = 0.75; // ground to the bottom of the frame
 
 // Plane whose UVs crop the texture to fill the frame ('cover'), or a smaller plane that shows the
-// whole image ('contain').
-function imageGeometry(aspect: number, fit: 'cover' | 'contain'): PlaneGeometry {
+// whole image ('contain'). `cropTop` cuts that share of the image off the top first.
+function imageGeometry(aspect: number, fit: 'cover' | 'contain', cropTop = 0): PlaneGeometry {
   const frameAspect = IMAGE_W / IMAGE_H;
+  const top = 1 - cropTop;
+  const a = aspect / top;
   if (fit === 'contain') {
-    const w = aspect >= frameAspect ? IMAGE_W : IMAGE_H * aspect;
-    const h = aspect >= frameAspect ? IMAGE_W / aspect : IMAGE_H;
-    return new PlaneGeometry(w, h);
+    const w = a >= frameAspect ? IMAGE_W : IMAGE_H * a;
+    const h = a >= frameAspect ? IMAGE_W / a : IMAGE_H;
+    const g = new PlaneGeometry(w, h);
+    const uv = g.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * top);
+    uv.needsUpdate = true;
+    return g;
   }
   const g = new PlaneGeometry(IMAGE_W, IMAGE_H);
   const uv = g.attributes.uv;
-  let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
-  if (aspect > frameAspect) {
-    const k = frameAspect / aspect;
+  let u0 = 0, u1 = 1, v0 = 0, v1 = top;
+  if (a > frameAspect) {
+    const k = frameAspect / a;
     u0 = (1 - k) / 2;
     u1 = 1 - u0;
   } else {
-    const k = aspect / frameAspect;
-    v0 = (1 - k) / 2;
-    v1 = 1 - v0;
+    const k = a / frameAspect;
+    v0 = (top * (1 - k)) / 2;
+    v1 = top - v0;
   }
   for (let i = 0; i < uv.count; i++) {
     uv.setXY(i, uv.getX(i) ? u1 : u0, uv.getY(i) ? v1 : v0);
@@ -55,7 +61,7 @@ const BOARD_CY = LIFT + BOARD_H / 2;
 const POST_X = BOARD_W / 2 - 0.8;
 const POST_H = LIFT + BOARD_H - 0.3;
 
-// Frame, posts and the zone-colour top strip: one geometry shared by all six billboards.
+// Frame, posts and the zone-colour top strip: one geometry shared by every billboard.
 let frameGeometry: BufferGeometry | null = null;
 const billboardFrame = () =>
   (frameGeometry ??= mergeParts([
@@ -65,39 +71,17 @@ const billboardFrame = () =>
     { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 1, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
   ]));
 
-// From the fixed 45-degree camera a billboard hides the ground behind it for about its own height.
-// While the car is in that strip the board fades, so the car never disappears behind it. The
-// materials stay transparent at full opacity otherwise, so fading never recompiles a shader.
+// The board hides about its own height of ground behind it; it fades while the car is there.
 const HIDES = LIFT + BOARD_H + 0.3;
-const FADED = 0.22;
 
-function useBehindFade(x: number, z: number) {
-  const mats = useRef<(Material | null)[]>([]);
-  const k = useRef(1);
-  useFrame((_, delta) => {
-    const near = carNearZone();
-    const cz = carZ();
-    const behind = near && Math.abs(carX() - x) < BOARD_W / 2 + 1.6 && cz < z - BOARD_DEPTH && cz > z - HIDES - 1;
-    const goal = behind ? FADED : 1;
-    if (k.current === goal) return;
-    // fade while the car is around; snap back once it has left (a teleport out, say)
-    const next = near ? k.current + (goal - k.current) * Math.min(1, delta * 8) : goal;
-    k.current = Math.abs(goal - next) < 0.01 ? goal : next;
-    for (const m of mats.current) {
-      if (!m) continue;
-      m.opacity = k.current;
-      m.depthWrite = k.current === 1;
-    }
-  });
-  return useMemo(() => [0, 1, 2].map((i) => (m: Material | null) => void (mats.current[i] = m)), []);
-}
+type Fit = { fit: 'cover' | 'contain'; x: number; z: number; backing?: string; cropTop?: number };
 
-function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain'; x: number; z: number }) {
+function Billboard({ map, fit, z, x, backing = '#ffffff', cropTop = 0 }: Fit & { map: Texture }) {
   const img = map.image as { width?: number; height?: number } | undefined;
   const aspect = img?.width && img.height ? img.width / img.height : IMAGE_W / IMAGE_H;
-  const geometry = useMemo(() => imageGeometry(aspect, fit), [aspect, fit]);
+  const geometry = useMemo(() => imageGeometry(aspect, fit, cropTop), [aspect, fit, cropTop]);
   const frame = useMemo(billboardFrame, []);
-  const fadeRefs = useBehindFade(x, z);
+  const fadeRefs = useBehindFade(x, z - BOARD_DEPTH, BOARD_W / 2, HIDES - BOARD_DEPTH, 3);
   return (
     <group position={[x, 0, z]}>
       <RigidBody type="fixed" colliders={false}>
@@ -111,7 +95,7 @@ function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain';
       {fit === 'contain' && (
         <mesh position={[0, BOARD_CY, 0.006]}>
           <planeGeometry args={[IMAGE_W, IMAGE_H]} />
-          <meshBasicMaterial ref={fadeRefs[1]} color="#ffffff" toneMapped={false} transparent />
+          <meshBasicMaterial ref={fadeRefs[1]} color={backing} toneMapped={false} transparent />
         </mesh>
       )}
       <mesh geometry={geometry} position={[0, BOARD_CY, 0.012]}>
@@ -121,14 +105,14 @@ function Billboard({ map, fit, z, x }: { map: Texture; fit: 'cover' | 'contain';
   );
 }
 
-function ImageBillboard({ url, ...rest }: { url: string; fit: 'cover' | 'contain'; x: number; z: number }) {
+function ImageBillboard({ url, ...rest }: Fit & { url: string }) {
   const tex = useTexture(url);
   tex.colorSpace = SRGBColorSpace;
   tex.anisotropy = 8;
   return <Billboard map={tex} {...rest} />;
 }
 
-function PosterBillboard({ bay, ...rest }: { bay: BayDef; fit: 'cover' | 'contain'; x: number; z: number }) {
+function PosterBillboard({ bay, ...rest }: Fit & { bay: BayDef }) {
   use(loadCanvasFonts());
   const p = bay.project;
   const map = coverTexture(p.panel, p.title, bay.art ?? 'map');
@@ -207,9 +191,11 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
   const x0 = -LECTERN_W / 2 + 0.42;
   const top = SLANT / 2;
   const titleY = top - 0.62;
-  const titleW = textWidth(p.title, 'display', TITLE);
   const year = String(p.year);
   const yearW = textWidth(year, 'bodyBold', 0.32) + 0.44;
+  // A long title shrinks until it and the year pill fit on one line.
+  const titleSize = Math.min(TITLE, (LECTERN_W - 0.84 - 0.3 - yearW) / textWidth(p.title, 'display', 1));
+  const titleW = textWidth(p.title, 'display', titleSize);
   const tagW = useMemo(() => taglineWidth(p.tagline, LECTERN_W - 0.84), [p.tagline]);
 
   // Chips run left to right along the bottom edge, scaled down if the stack is too long to fit.
@@ -252,7 +238,7 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
         <mesh geometry={chipGeometry} position={[0, 0, faceZ]}>
           <meshBasicMaterial color={COLORS.accent} toneMapped={false} />
         </mesh>
-        <Label font="display" size={TITLE} color={COLORS.ink} anchorX="left" anchorY="middle" position={[x0, titleY, faceZ + 0.01]}>
+        <Label font="display" size={titleSize} color={COLORS.ink} anchorX="left" anchorY="middle" position={[x0, titleY, faceZ + 0.01]}>
           {p.title}
         </Label>
         <Label font="bodyBold" size={0.32} color={COLORS.paper} anchorX="center" anchorY="middle"
@@ -274,13 +260,28 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
   );
 }
 
+// Bays whose toy stands beside the bay frame the two together on portrait screens while parked.
+function frameToy(bay: BayDef, on: boolean) {
+  const store = useStore.getState();
+  const id = `projects-bay-${bay.project.panel}`;
+  if (!on || !bay.view) return store.clearCameraOverride(id);
+  if (typeof window === 'undefined' || window.innerWidth >= window.innerHeight) return;
+  const [x, z] = bay.view;
+  store.setCameraOverride({ id, target: [worldX(x, z), 1, worldZ(x, z)], blend: 1.2 });
+}
+
 export function Bay({ bay, onParked }: { bay: BayDef; onParked?: (parked: boolean) => void }) {
   const row = ROWS[bay.row];
   const p = bay.project;
+  useEffect(() => () => frameToy(bay, false), [bay]);
+  const parked = (on: boolean) => {
+    frameToy(bay, on);
+    onParked?.(on);
+  };
   return (
     <group>
       {p.image ? (
-        <ImageBillboard url={p.image} fit={bay.fit} x={bay.x} z={row.board} />
+        <ImageBillboard url={p.image} fit={bay.fit} x={bay.x} z={row.board} backing={bay.backing} cropTop={bay.cropTop} />
       ) : (
         <PosterBillboard bay={bay} fit={bay.fit} x={bay.x} z={row.board} />
       )}
@@ -290,8 +291,8 @@ export function Bay({ bay, onParked }: { bay: BayDef; onParked?: (parked: boolea
         label={p.title}
         action={{ kind: 'panel', panel: p.panel }}
         position={[bay.x, 0, row.pad]}
-        onEnter={onParked ? () => onParked(true) : undefined}
-        onLeave={onParked ? () => onParked(false) : undefined}
+        onEnter={() => parked(true)}
+        onLeave={() => parked(false)}
       />
     </group>
   );

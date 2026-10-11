@@ -1,18 +1,11 @@
 // Posters drawn on a canvas for projects that have no screenshot: paper background, ink text,
-// accent pink, plus a small drawn illustration. Text comes from profile.ts.
+// accent pink, plus a drawing. Text comes from profile.ts, the COVID chart from covid.ts.
 import type { CanvasTexture } from 'three';
 import { COLORS } from '../../config/palette.ts';
+import { covid } from '../../data/covid.ts';
 import { canvasTexture, cssFont, makeCanvas, roundRect, wrap } from './canvas.ts';
 
-export type PosterArt = 'map' | 'weather' | 'chart';
-
-export type PosterSpec = {
-  title: string;
-  tagline: string;
-  chips: string[];
-  year: number;
-  art: PosterArt;
-};
+export type PosterArt = 'map' | 'weather' | 'covid';
 
 const cache = new Map<string, CanvasTexture>();
 
@@ -129,9 +122,34 @@ function drawWeather(g: CanvasRenderingContext2D, x: number, y: number, w: numbe
   g.fill();
 }
 
-function drawChart(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  // An icon of a line chart with a dashed continuation. Decoration, not data.
+function drawCovid(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  // The real series from covid.ts as an area chart: training days teal, test days pink, split
+  // where the project splits them (the first 65% of days).
+  const d = covid.daily;
+  const n = d.length;
+  const split = n - Math.ceil(n * (1 - covid.trainShare));
+  const max = Math.max(...d);
+  const px = (i: number) => x + (i / (n - 1)) * w;
+  const py = (v: number) => y + h - (v / max) * h * 0.92;
+  const area = (i0: number, i1: number, color: string) => {
+    g.fillStyle = color;
+    g.beginPath();
+    g.moveTo(px(i0), y + h);
+    for (let i = i0; i <= i1; i++) g.lineTo(px(i), py(d[i]));
+    g.lineTo(px(i1), y + h);
+    g.closePath();
+    g.fill();
+  };
+  area(0, split - 1, COLORS.water);
+  area(split, n - 1, COLORS.accent);
   g.strokeStyle = COLORS.ink;
+  g.lineWidth = 4;
+  g.setLineDash([12, 10]);
+  g.beginPath();
+  g.moveTo(px(split - 0.5), y);
+  g.lineTo(px(split - 0.5), y + h);
+  g.stroke();
+  g.setLineDash([]);
   g.lineWidth = 7;
   g.lineCap = 'round';
   g.beginPath();
@@ -139,28 +157,9 @@ function drawChart(g: CanvasRenderingContext2D, x: number, y: number, w: number,
   g.lineTo(x, y + h);
   g.lineTo(x + w, y + h);
   g.stroke();
-  const pts = [0.05, 0.75, 0.2, 0.6, 0.32, 0.68, 0.45, 0.35, 0.58, 0.48, 0.7, 0.3];
-  g.strokeStyle = COLORS.accent;
-  g.lineWidth = 9;
-  g.lineJoin = 'round';
-  g.beginPath();
-  for (let i = 0; i < pts.length; i += 2) {
-    const px = x + pts[i] * w;
-    const py = y + pts[i + 1] * h;
-    if (i === 0) g.moveTo(px, py);
-    else g.lineTo(px, py);
-  }
-  g.stroke();
-  g.setLineDash([14, 12]);
-  g.beginPath();
-  g.moveTo(x + 0.7 * w, y + 0.3 * h);
-  g.lineTo(x + 0.84 * w, y + 0.38 * h);
-  g.lineTo(x + 0.96 * w, y + 0.22 * h);
-  g.stroke();
-  g.setLineDash([]);
 }
 
-const ART: Record<PosterArt, typeof drawMap> = { map: drawMap, weather: drawWeather, chart: drawChart };
+const ART: Record<PosterArt, typeof drawMap> = { map: drawMap, weather: drawWeather, covid: drawCovid };
 
 // Billboard cover for a bay with no screenshot: the title and a large drawing, nothing else. The
 // lectern in front already shows the tagline, year and stack at a readable size. 1024 x 600, the
@@ -203,102 +202,6 @@ export function coverTexture(key: string, title: string, art: PosterArt): Canvas
   g.scale(k, k);
   ART[art](g, 0, 0, box.w / k, box.h / k);
   g.restore();
-
-  const tex = canvasTexture(c, 8);
-  cache.set(key, tex);
-  return tex;
-}
-
-// 1024 x 600 poster, matching the billboard image area (6.0 x 3.5 m). Call after loadCanvasFonts().
-export function posterTexture(key: string, spec: PosterSpec, size: [number, number] = [1024, 600]): CanvasTexture {
-  const hit = cache.get(key);
-  if (hit) return hit;
-  const [W, H] = size;
-  const [c, g] = makeCanvas(W, H);
-  const s = W / 1024;
-  g.fillStyle = COLORS.paper;
-  g.fillRect(0, 0, W, H);
-  // Pink band down the left edge.
-  g.fillStyle = COLORS.accent;
-  g.fillRect(0, 0, 26 * s, H);
-
-  const left = 70 * s;
-  const colW = W * 0.6 - left;
-  const bottom = H - 40 * s;
-
-  // Chip rows first, so they can sit on the bottom edge whatever the text above does.
-  const chipH = 52 * s;
-  const chipGap = 12 * s;
-  g.font = cssFont('bodyBold', 32 * s);
-  const rows: { text: string; w: number; x: number }[][] = [];
-  let row: { text: string; w: number; x: number }[] = [];
-  let cx = left;
-  for (const chip of spec.chips) {
-    const w = g.measureText(chip).width + 44 * s;
-    if (row.length && cx + w > left + colW) {
-      rows.push(row);
-      row = [];
-      cx = left;
-    }
-    row.push({ text: chip, w, x: cx });
-    cx += w + 14 * s;
-  }
-  if (row.length) rows.push(row);
-  const chipsTop = rows.length ? bottom - rows.length * chipH - (rows.length - 1) * chipGap : bottom;
-
-  g.fillStyle = COLORS.ink;
-  g.textBaseline = 'alphabetic';
-  let titlePx = 104 * s;
-  g.font = cssFont('display', titlePx);
-  if (wrap(g, spec.title, colW).length > 2) {
-    titlePx *= 0.8;
-    g.font = cssFont('display', titlePx);
-  }
-  let y = 60 * s;
-  for (const line of wrap(g, spec.title, colW)) {
-    y += titlePx * 0.98;
-    g.fillText(line, left, y);
-  }
-
-  // Tagline, shrunk if it would run into the chips.
-  let tagPx = 40 * s;
-  let lines: string[] = [];
-  for (;;) {
-    g.font = cssFont('body', tagPx);
-    lines = wrap(g, spec.tagline, colW);
-    if (y + 24 * s + lines.length * tagPx * 1.25 < chipsTop - 18 * s || tagPx < 26 * s) break;
-    tagPx -= 2 * s;
-  }
-  y += 24 * s;
-  g.fillStyle = COLORS.inkSoft;
-  for (const line of lines) {
-    y += tagPx * 1.25;
-    g.fillText(line, left, y);
-  }
-
-  g.font = cssFont('bodyBold', 32 * s);
-  rows.forEach((r, i) => {
-    const top = chipsTop + i * (chipH + chipGap);
-    for (const chip of r) {
-      g.fillStyle = COLORS.accent;
-      roundRect(g, chip.x, top, chip.w, chipH, chipH / 2);
-      g.fill();
-      g.fillStyle = COLORS.paper;
-      g.fillText(chip.text, chip.x + 22 * s, top + chipH * 0.71);
-    }
-  });
-
-  // Year, top right.
-  g.font = cssFont('bodyBold', 36 * s);
-  const yw = g.measureText(String(spec.year)).width + 40 * s;
-  g.strokeStyle = COLORS.ink;
-  g.lineWidth = 4 * s;
-  roundRect(g, W - yw - 40 * s, 40 * s, yw, 56 * s, 28 * s);
-  g.stroke();
-  g.fillStyle = COLORS.ink;
-  g.fillText(String(spec.year), W - yw - 20 * s, 81 * s);
-
-  ART[spec.art](g, W * 0.64, H * 0.26, W * 0.31, H * 0.54);
 
   const tex = canvasTexture(c, 8);
   cache.set(key, tex);

@@ -4,26 +4,34 @@ import type { PanelId } from '../../data/profile.ts';
 import { car } from '../../state/car.ts';
 import { events, playSound } from '../../state/events.ts';
 import { useStore } from '../../state/store.ts';
-import { Arcade } from './Arcade.tsx';
 import { Bay } from './Bay.tsx';
 import { Entrance } from './Entrance.tsx';
 import { GarageProps } from './GarageProps.tsx';
 import { InspectTeleport } from './InspectTeleport.tsx';
-import { ARCADE, BAYS, ROWS } from './layout.ts';
+import { BAYS, ROWS, TOYS_2022 } from './layout.ts';
 import { Plaza } from './Plaza.tsx';
 import { Props } from './Props.tsx';
+import { StreetSign } from './StreetSign.tsx';
 import { AstToy } from './toys/AstToy.tsx';
+import { CovidToy } from './toys/CovidToy.tsx';
+import { DriveInToy } from './toys/DriveInToy.tsx';
+import { HitTheBallToy } from './toys/HitTheBallToy.tsx';
 import { Scan2ScopeToy } from './toys/Scan2ScopeToy.tsx';
 import { SelfDrivingToy } from './toys/SelfDrivingToy.tsx';
-import { astSignal, scanSignal, setParked } from './toys/signals.ts';
+import { astSignal, ballSignal, cinemaSignal, covidSignal, scanSignal, setParked, shootersSignal } from './toys/signals.ts';
 import type { ToySignal } from './toys/signals.ts';
 import { SignpostToy } from './toys/SignpostToy.tsx';
+import { SpaceShootersToy } from './toys/SpaceShootersToy.tsx';
 import { TurretToy } from './toys/TurretToy.tsx';
 import { WeatherToy } from './toys/WeatherToy.tsx';
 
 const SIGNALS: Partial<Record<PanelId, ToySignal>> = {
   'project-scan2scope': scanSignal,
   'project-rule-engine': astSignal,
+  'project-space-shooters': shootersSignal,
+  'project-hit-the-ball': ballSignal,
+  'project-lightsout': cinemaSignal,
+  'project-covid': covidSignal,
 };
 
 // Parking on every project pad once in a session gets a toast and confetti.
@@ -41,8 +49,8 @@ function onBayParked(panel: PanelId, parked: boolean) {
   events.emit('confetti', { x: car.x, y: car.y + 1.2, z: car.z });
 }
 
-// The projects garage: six project bays in two rows, a toy beside each, and the early-projects
-// arcade at the far end of the boulevard.
+// The projects garage: ten project bays with a toy beside each. Six sit in two rows on either side
+// of the boulevard; the four 2022 projects have a row of their own along the 2022 street.
 export function ProjectsZone() {
   return (
     <ZoneFrame zone="projects">
@@ -57,7 +65,12 @@ export function ProjectsZone() {
       <SignpostToy position={[-18.6, 0, 14]} />
       <WeatherToy position={[7, 0, 10.5]} />
       <TurretToy position={[20.5, 0, 15.6]} />
-      <Arcade x={ARCADE.x} z={ARCADE.z} padZ={ARCADE.padZ} />
+      <SpaceShootersToy position={[TOYS_2022.shooters.x, 0, TOYS_2022.shooters.z]} />
+      <HitTheBallToy position={[TOYS_2022.ball.x, 0, TOYS_2022.ball.z]} />
+      <DriveInToy position={[TOYS_2022.cinema.x, 0, TOYS_2022.cinema.z]} />
+      <CovidToy position={[TOYS_2022.covid.x, 0, TOYS_2022.covid.z]} />
+      <StreetSign position={[23.0, 0, -20.3]} text="2022" />
+      <StreetSign position={[-28.4, 0, -20.3]} text="2022" />
       <Props />
       <GarageProps />
       {INSPECT && <InspectTeleport />}

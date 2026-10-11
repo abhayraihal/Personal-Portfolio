@@ -52,21 +52,31 @@ const CRATE = modelSize('crate-wood')[0];
 const BANDED = modelSize('crate-wood-banded')[0];
 const [CONE_W, CONE_H] = modelSize('traffic-cone');
 
-// A small pyramid near the entrance and a banded crate by the arcade, both in the lane away from
-// the camera so they never cover the car; cones in a slalom.
+// A small pyramid near the entrance and a banded crate near the turn to the 2022 street, both in
+// the lane away from the camera so they never cover the car.
 const CRATES: Place[] = [
   { x: -5.2, y: 0, z: -2.2, yaw: 0.05 },
   { x: -5.2 + CRATE + 0.02, y: 0, z: -2.2, yaw: -0.04 },
   { x: -5.2 + CRATE / 2, y: CRATE + 0.01, z: -2.2, yaw: 0.2 },
 ];
 const BANDED_CRATES: Place[] = [{ x: 16.9, y: 0, z: -1.9, yaw: 0.3 }];
-const CONES: Place[] = [0, 3.2, 6.4, 9.6, 12.8].map((x, i) => ({ x, y: 0, z: i % 2 ? 0.9 : -0.9 }));
+// A slalom on the boulevard, and a row across the dead end of the 2022 street.
+const CONES: Place[] = [
+  ...[0, 3.2, 6.4, 9.6, 12.8].map((x, i) => ({ x, y: 0, z: i % 2 ? 0.9 : -0.9 })),
+  ...[-23.5, -25.5, -27.5].map((z) => ({ x: -27.2, y: 0, z })),
+];
 
-// Garage lamps: [x, z, yaw]; the arm points along the lamp's local +X.
+// Garage lamps: [x, z, yaw]; the arm points along the lamp's local +X. The last four stand on the
+// far side of the 2022 street where a bay meets a toy (a lamp on the near side would cross the
+// street on screen).
 export const LAMPS: Spot[] = [
   [-7, -5.4, -Math.PI / 2],
   [-7, 5.4, Math.PI / 2],
   [17.4, -5.4, -Math.PI / 2],
+  [-21.3, -30.2, -Math.PI / 2],
+  [-6.9, -30.2, -Math.PI / 2],
+  [14.9, -30.2, -Math.PI / 2],
+  [33.4, -30.2, -Math.PI / 2],
 ];
 const LAMP_H = 4.6;
 const ARM = 0.95;

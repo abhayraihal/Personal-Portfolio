@@ -8,7 +8,6 @@ export const ZONE_ID = 'projects' as const;
 export const ZONE = ZONE_BY_ID[ZONE_ID];
 export const [CU, CV] = ZONE.center;
 export const [ORIGIN_X, ORIGIN_Z] = screenToWorld(CU, CV);
-export const ZONE_RADIUS = ZONE.area.kind === 'circle' ? ZONE.area.r : 28;
 
 const COS = Math.cos(FACE_CAMERA_Y);
 const SIN = Math.sin(FACE_CAMERA_Y);
@@ -24,13 +23,24 @@ export const worldYaw = (localYaw: number) => localYaw + FACE_CAMERA_Y;
 export const carX = () => car.u - CU;
 export const carZ = () => -(car.v - CV);
 
-// True when the car is near enough for the zone's animations to matter (it is on screen or about
-// to be). Toys skip their per-frame work otherwise.
+// True when the car is within `margin` metres of the zone's area (it is on screen or about to be).
+// Toys skip their per-frame work otherwise.
 export function carNearZone(margin = 30): boolean {
-  const dx = car.u - CU;
-  const dv = car.v - CV;
-  const r = ZONE_RADIUS + margin;
-  return car.ready && dx * dx + dv * dv < r * r;
+  if (!car.ready) return false;
+  const a = ZONE.area;
+  if (a.kind === 'circle') return (car.u - a.u) ** 2 + (car.v - a.v) ** 2 < (a.r + margin) ** 2;
+  const du = Math.max(a.u0 - car.u, 0, car.u - a.u1);
+  const dv = Math.max(a.v0 - car.v, 0, car.v - a.v1);
+  return du * du + dv * dv < margin * margin;
+}
+
+// True when the car is within r metres of a zone-local point. The toys of the 2022 row use it, so
+// they rest while the car is down at the entrance.
+export function carWithin(lx: number, lz: number, r: number): boolean {
+  if (!car.ready) return false;
+  const dx = car.u - CU - lx;
+  const dz = -(car.v - CV) - lz;
+  return dx * dx + dz * dz < r * r;
 }
 
 // World (x, z) back to zone-local; the inverse of worldX / worldZ.
