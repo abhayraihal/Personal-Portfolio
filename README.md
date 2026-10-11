@@ -37,4 +37,3 @@ npm run build     # type-check, then build to dist/
 
 - 3D models: [Kenney](https://kenney.nl) (CC0). License files are in `public/licenses/`.
 - Fonts: Lilita One and Rubik, under the SIL Open Font License.
-- The idea of a portfolio you drive around comes from [Bruno Simon](https://bruno-simon.com).

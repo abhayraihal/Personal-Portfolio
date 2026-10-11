@@ -1483,7 +1483,7 @@
     2.95
    ],
    "texture": "models/car-kit/Textures/colormap.png",
-   "notes": "Alternative 1: pickup with open bed (closest to the Bruno Simon pickup). Same rig as the jeep: 'body' + 4 root-level wheel nodes, forward +Z.",
+   "notes": "Alternative 1: pickup with open bed (classic toy pickup look). Same rig as the jeep: 'body' + 4 root-level wheel nodes, forward +Z.",
    "wheelNodes": [
     "wheel-front-right",
     "wheel-front-left",

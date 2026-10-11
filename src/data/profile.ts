@@ -15,9 +15,10 @@ export type PanelId =
   | 'amazon-connectors' | 'amazon-oncall' | 'genai-hackathon'
   | 'projects' | 'project-scan2scope' | 'project-self-driving-car' | 'project-trip-planner'
   | 'project-weather' | 'project-rule-engine' | 'project-tower-defense' | 'project-early'
+  | 'project-space-shooters' | 'project-hit-the-ball' | 'project-lightsout' | 'project-covid'
   | 'codeforces' | 'cp-platforms'
   | 'education' | 'school' | 'paper' | 'hackathons' | 'activities'
-  | 'sports' | 'credits';
+  | 'sports' | 'gaming' | 'typing' | 'credits';
 
 export type Panel = {
   title: string;
@@ -122,12 +123,50 @@ export const projects: Project[] = [
   },
 ];
 
-export const earlyProjects: { title: string; year: number; line: string; image?: string; link: Link }[] = [
-  { title: 'Space Shooters', year: 2022, line: 'Pygame alien shooter with sound effects', image: `${BASE}images/projects/Space-Shooters-Game-using-Pygame.jpg`, link: repo('Space-Shooters-Game-using-Pygame') },
-  { title: 'Hit the Ball', year: 2022, line: 'Pygame paddle game with lives and a retry screen', image: `${BASE}images/projects/Hit-The-Ball-game-Using-Pygame.jpg`, link: repo('Hit-The-Ball-game-Using-Pygame') },
-  { title: 'LightsOut', year: 2022, line: 'PHP and MySQL movie-rating site with reviews and an admin page', image: `${BASE}images/projects/LightsOut.jpg`, link: repo('LightsOut') },
-  { title: 'COVID-19 forecasting', year: 2022, line: 'Autoregression models on 612 days of daily case counts', link: repo('Autoregression-on-Covid-data') },
+// The 2022 projects, each with its own bay in the projects garage like the featured ones.
+export const moreProjects: Project[] = [
+  {
+    panel: 'project-space-shooters', title: 'Space Shooters', year: 2022,
+    tagline: 'Pygame alien shooter with sound effects',
+    stack: ['Python', 'Pygame'],
+    image: `${BASE}images/projects/Space-Shooters-Game-using-Pygame.jpg`, links: [repo('Space-Shooters-Game-using-Pygame')],
+  },
+  {
+    panel: 'project-hit-the-ball', title: 'Hit the Ball', year: 2022,
+    tagline: 'Pygame paddle game with lives and a retry screen',
+    stack: ['Python', 'Pygame'],
+    image: `${BASE}images/projects/Hit-The-Ball-game-Using-Pygame.jpg`, links: [repo('Hit-The-Ball-game-Using-Pygame')],
+  },
+  {
+    panel: 'project-lightsout', title: 'LightsOut', year: 2022,
+    tagline: 'Movie-rating site with reviews, genres and an admin page',
+    stack: ['PHP', 'MySQL', 'JavaScript'],
+    image: `${BASE}images/projects/LightsOut.jpg`, links: [repo('LightsOut')],
+  },
+  {
+    panel: 'project-covid', title: 'COVID-19 forecasting', year: 2022,
+    tagline: 'Autoregression models on 612 days of daily cases',
+    stack: ['Python', 'statsmodels', 'pandas'],
+    links: [repo('Autoregression-on-Covid-data')],
+  },
 ];
+
+export const allProjects: Project[] = [...projects, ...moreProjects];
+
+// Older one-line form of moreProjects.
+export const earlyProjects: { title: string; year: number; line: string; image?: string; link: Link }[] = moreProjects.map((p) => ({
+  title: p.title, year: p.year, line: p.tagline, image: p.image, link: p.links[0],
+}));
+
+export const sports = ['Football', 'Table tennis', 'Lawn tennis', 'Volleyball', 'Swimming', 'Running', 'Cycling', 'Trekking', 'Bowling'];
+
+export const gaming = {
+  games: ['CS:GO', 'Valorant', 'Elden Ring', 'Sekiro: Shadows Die Twice', 'Black Myth: Wukong', 'The Last of Us Part I and II', 'Red Dead Redemption 2'],
+  playstation: 'opulentfoxx',
+  steam: 'p1xEL',
+};
+
+export const typing = { wpm: 110 };
 
 // One brick per skill on the skill wall, as listed on the resume.
 export const skillBricks = [
@@ -155,7 +194,7 @@ export const panels: Record<PanelId, Panel> = {
     body: [
       "I'm a software engineer at Amazon in Bengaluru, on the team that lets customers pay with rewards points. I write Java and Python on AWS. The work covers payment options, region migrations, data retention and an AI agent that root-causes oncall tickets.",
       'Before Amazon I worked at LimeRoad on lead generation and a logistics integration, and before that I interned on the RazorpayX Payouts team. I studied Data Science and Engineering at IIT Mandi, in the Kamand valley in the Himalayas.',
-      "I've done competitive programming since 2021 and I'm an Expert on Codeforces. I play football and table tennis, and at IIT Mandi I led rides for the Mountain Biking Club.",
+      "I've done competitive programming since 2021 and I'm an Expert on Codeforces. I play football, table tennis and a handful of other sports, I play a lot of CS:GO, and at IIT Mandi I led rides for the Mountain Biking Club.",
     ],
     image: profile.photo,
     links: [L.email, L.linkedin, L.github],
@@ -295,9 +334,9 @@ export const panels: Record<PanelId, Panel> = {
   projects: {
     title: 'Projects',
     kicker: 'Public work on GitHub',
-    bullets: projects.map((p) => `${p.title} (${p.year}): ${p.tagline}`),
+    bullets: allProjects.map((p) => `${p.title} (${p.year}): ${p.tagline}`),
     links: [L.github],
-    related: projects.map((p) => p.panel),
+    related: allProjects.map((p) => p.panel),
   },
   'project-scan2scope': {
     title: 'scan2scope',
@@ -388,6 +427,56 @@ export const panels: Record<PanelId, Panel> = {
     links: earlyProjects.map((p) => ({ ...p.link, label: p.title })),
     related: ['projects'],
   },
+  'project-space-shooters': {
+    title: 'Space Shooters',
+    kicker: '2022 · Python',
+    body: ["A Pygame shooter: the player's ship fires at six aliens that sweep sideways and drop a row each time they reach the edge."],
+    bullets: [
+      'A hit is a bullet within 27 px of an alien.',
+      'Laser, explosion and background sounds.',
+      "The game ends when an alien gets down to the ship's level.",
+    ],
+    meta: ['Python', 'Pygame'],
+    image: { src: `${BASE}images/projects/Space-Shooters-Game-using-Pygame.jpg`, alt: 'Space Shooters game screenshot: a ship at the bottom firing at aliens' },
+    links: [repo('Space-Shooters-Game-using-Pygame')],
+    related: ['project-hit-the-ball', 'projects'],
+  },
+  'project-hit-the-ball': {
+    title: 'Hit the Ball',
+    kicker: '2022 · Python',
+    body: ['A Pygame paddle game: the ball bounces off the walls, every paddle hit scores a point, and a missed ball costs one of five lives.'],
+    bullets: ['After the last life, a Game Over screen and a retry button restart the round.'],
+    meta: ['Python', 'Pygame'],
+    image: { src: `${BASE}images/projects/Hit-The-Ball-game-Using-Pygame.jpg`, alt: 'Hit the Ball game screenshot: a paddle, a ball and the score' },
+    links: [repo('Hit-The-Ball-game-Using-Pygame')],
+    related: ['project-lightsout', 'projects'],
+  },
+  'project-lightsout': {
+    title: 'LightsOut',
+    kicker: '2022 · PHP',
+    body: ["A PHP and MySQL movie-rating site: users register, rate films from 1 to 5 with a written review, and see each film's average rating."],
+    bullets: [
+      'Films can be browsed on five genre pages or searched by title and plot text.',
+      'Admin accounts get an Add Movie page.',
+      'The SQL script creates the movies, reviews and users tables and seeds 31 films.',
+    ],
+    meta: ['PHP', 'MySQL', 'JavaScript', 'Bootstrap', 'XAMPP'],
+    image: { src: `${BASE}images/projects/LightsOut.jpg`, alt: 'LightsOut logo: a film reel on black' },
+    links: [repo('LightsOut')],
+    related: ['project-covid', 'projects'],
+  },
+  'project-covid': {
+    title: 'COVID-19 forecasting',
+    kicker: '2022 · Python',
+    body: ['Autoregression models fitted to 612 days of daily new COVID-19 cases from 30 January 2020, trained on the first 65% of days and tested on the last 35%.'],
+    bullets: [
+      'One script picks the lag as the last one whose autocorrelation stays above 2/sqrt(N).',
+      'Another compares RMSE% and MAPE% for lags of 1, 5, 10, 15 and 25 days.',
+    ],
+    meta: ['Python', 'statsmodels', 'pandas', 'NumPy', 'matplotlib'],
+    links: [repo('Autoregression-on-Covid-data')],
+    related: ['project-space-shooters', 'projects'],
+  },
   codeforces: {
     title: 'Competitive programming',
     kicker: 'Codeforces · Expert',
@@ -467,17 +556,36 @@ export const panels: Record<PanelId, Panel> = {
     related: ['education'],
   },
   sports: {
-    title: 'Football and table tennis',
+    title: 'Sports',
     kicker: 'Off the keyboard',
     body: ['I play football whenever there is a game, and I picked up table tennis when I joined college.'],
-    related: ['about'],
+    groups: [{ label: 'Sports I play', items: sports }],
+    related: ['gaming', 'typing'],
+  },
+  gaming: {
+    title: 'Gaming',
+    kicker: 'PlayStation and PC',
+    body: ['I play a lot of CS:GO.'],
+    groups: [{ label: 'Games', items: gaming.games }],
+    stats: [
+      { label: 'PlayStation', value: gaming.playstation },
+      { label: 'Steam', value: gaming.steam },
+    ],
+    related: ['sports', 'typing'],
+  },
+  typing: {
+    title: 'Touch typing',
+    kicker: 'Keyboard',
+    body: [`I touch type, with a best speed of ${typing.wpm} words per minute.`],
+    stats: [{ label: 'Best speed', value: `${typing.wpm} WPM` }],
+    related: ['sports', 'gaming'],
   },
   credits: {
     title: 'About this site',
     kicker: 'Credits',
     body: [
       'Built with React Three Fiber, drei, Rapier physics and zustand on Vite, and hosted on GitHub Pages.',
-      "3D models are from Kenney's CC0 kits. Fonts are Lilita One and Rubik (SIL Open Font License). The idea of a portfolio you drive around comes from Bruno Simon's bruno-simon.com.",
+      "3D models are from Kenney's CC0 kits. Fonts are Lilita One and Rubik (SIL Open Font License).",
     ],
     links: [{ label: 'Source on GitHub', url: `${contact.github}/portfolio`, kind: 'github' }],
   },

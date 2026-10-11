@@ -3,7 +3,7 @@
 
 export const DEG = Math.PI / 180;
 
-// Bruno-style camera: fixed azimuth and elevation, it never rotates with the car.
+// Fixed-angle follow camera: fixed azimuth and elevation, it never rotates with the car.
 export const CAMERA = {
   azimuth: 45 * DEG,
   elevation: 45 * DEG,

@@ -42,7 +42,7 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: 'projects', key: '4', title: 'Projects', subtitle: 'Things I built', color: '#7c5cff',
-    center: [80, 26], area: circle(80, 26, 28), respawn: { u: 60, v: 26, du: 1, dv: 0 }, panel: 'projects',
+    center: [80, 26], area: rect(50, -4, 114, 78), respawn: { u: 60, v: 26, du: 1, dv: 0 }, panel: 'projects',
   },
   {
     id: 'ridge', key: '5', title: 'Rating ridge', subtitle: 'Codeforces, 2021 – 2025', color: '#2b59c3',
@@ -53,8 +53,8 @@ export const ZONES: ZoneDef[] = [
     center: [-58, -50], area: circle(-58, -50, 30), respawn: { u: -52, v: -40.5, du: -1, dv: 0 }, panel: 'education',
   },
   {
-    id: 'sports', key: '7', title: 'Sports ground', subtitle: 'Football and table tennis', color: '#4caf50',
-    center: [52, -46], area: circle(52, -46, 22), respawn: { u: 40, v: -36, du: 1, dv: -1 }, panel: 'sports',
+    id: 'sports', key: '7', title: 'Sports park', subtitle: 'Sports, gaming and typing', color: '#4caf50',
+    center: [52, -46], area: rect(26, -90, 114, -14), respawn: { u: 40, v: -36, du: 1, dv: -1 }, panel: 'sports',
   },
 ];
 

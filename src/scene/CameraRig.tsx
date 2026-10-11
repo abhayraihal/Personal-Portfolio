@@ -11,7 +11,7 @@ import { DRIVE } from '../vehicle/tuning.ts';
 
 const DEG = MathUtils.DEG2RAD;
 
-// Bruno-style camera: fixed azimuth and elevation that never rotate with the car. Zones can ask
+// Fixed-angle follow camera: azimuth and elevation never rotate with the car. Zones can ask
 // for a different framing with useStore.setCameraOverride; the rig eases in and out of it.
 const FOLLOW_RATE = 5; // 1/s, exponential smoothing of the look-at point
 const FOLLOW_RATE_Y = 2.5; // softer vertically, so hops and bumps do not shake the view
