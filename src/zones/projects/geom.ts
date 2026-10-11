@@ -1,6 +1,6 @@
 // Merge static parts into one vertex-coloured geometry so a whole prop is one draw call.
-import { Color, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import type { BufferGeometry } from 'three';
+import { Color, Euler, Float32BufferAttribute, Matrix4, Quaternion, Sphere, Vector3 } from 'three';
+import type { BufferGeometry, InstancedMesh } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const _m = new Matrix4();
@@ -41,4 +41,10 @@ export function mergeParts(parts: Part[]): BufferGeometry {
   g.computeBoundingSphere();
   g.computeBoundingBox();
   return g;
+}
+
+// A fixed bounding sphere (local space) for an instanced mesh whose instances move or start hidden,
+// so frustum culling can skip it while it is off screen.
+export function fixBounds(mesh: InstancedMesh | null, center: [number, number, number], radius: number) {
+  if (mesh) mesh.boundingSphere = new Sphere(new Vector3(...center), radius);
 }

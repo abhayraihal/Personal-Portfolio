@@ -1,9 +1,8 @@
-import { use, useMemo, useRef } from 'react';
+import { use, useEffect, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import { ConvexHullCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, SRGBColorSpace } from 'three';
-import type { BufferGeometry, Material, Texture } from 'three';
+import type { BufferGeometry, Texture } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../components/Label.tsx';
@@ -14,7 +13,8 @@ import { loadCanvasFonts, textWidth } from './canvas.ts';
 import { IMAGE_H, IMAGE_W, ROWS } from './layout.ts';
 import type { Bay as BayDef } from './layout.ts';
 import { coverTexture } from './posters.ts';
-import { carNearZone, carX, carZ, ZONE } from './frame.ts';
+import { useBehindFade } from './fade.ts';
+import { worldX, worldZ, ZONE } from './frame.ts';
 import { mergeParts } from './geom.ts';
 
 const FRAME = 0.28; // border around the image
@@ -71,32 +71,8 @@ const billboardFrame = () =>
     { g: new RoundedBoxGeometry(BOARD_W - 0.1, 0.24, BOARD_DEPTH + 0.06, 1, 0.08), color: ZONE.color, at: [0, LIFT + BOARD_H + 0.06, -BOARD_DEPTH / 2] },
   ]));
 
-// From the fixed 45-degree camera a billboard hides the ground behind it for about its own height.
-// While the car is in that strip the board fades, so the car never disappears behind it. The
-// materials stay transparent at full opacity otherwise, so fading never recompiles a shader.
+// The board hides about its own height of ground behind it; it fades while the car is there.
 const HIDES = LIFT + BOARD_H + 0.3;
-const FADED = 0.22;
-
-function useBehindFade(x: number, z: number) {
-  const mats = useRef<(Material | null)[]>([]);
-  const k = useRef(1);
-  useFrame((_, delta) => {
-    const near = carNearZone();
-    const cz = carZ();
-    const behind = near && Math.abs(carX() - x) < BOARD_W / 2 + 1.6 && cz < z - BOARD_DEPTH && cz > z - HIDES - 1;
-    const goal = behind ? FADED : 1;
-    if (k.current === goal) return;
-    // fade while the car is around; snap back once it has left (a teleport out, say)
-    const next = near ? k.current + (goal - k.current) * Math.min(1, delta * 8) : goal;
-    k.current = Math.abs(goal - next) < 0.01 ? goal : next;
-    for (const m of mats.current) {
-      if (!m) continue;
-      m.opacity = k.current;
-      m.depthWrite = k.current === 1;
-    }
-  });
-  return useMemo(() => [0, 1, 2].map((i) => (m: Material | null) => void (mats.current[i] = m)), []);
-}
 
 type Fit = { fit: 'cover' | 'contain'; x: number; z: number; backing?: string; cropTop?: number };
 
@@ -105,7 +81,7 @@ function Billboard({ map, fit, z, x, backing = '#ffffff', cropTop = 0 }: Fit & {
   const aspect = img?.width && img.height ? img.width / img.height : IMAGE_W / IMAGE_H;
   const geometry = useMemo(() => imageGeometry(aspect, fit, cropTop), [aspect, fit, cropTop]);
   const frame = useMemo(billboardFrame, []);
-  const fadeRefs = useBehindFade(x, z);
+  const fadeRefs = useBehindFade(x, z - BOARD_DEPTH, BOARD_W / 2, HIDES - BOARD_DEPTH, 3);
   return (
     <group position={[x, 0, z]}>
       <RigidBody type="fixed" colliders={false}>
@@ -284,9 +260,24 @@ function Lectern({ bay, z }: { bay: BayDef; z: number }) {
   );
 }
 
+// Bays whose toy stands beside the bay frame the two together on portrait screens while parked.
+function frameToy(bay: BayDef, on: boolean) {
+  const store = useStore.getState();
+  const id = `projects-bay-${bay.project.panel}`;
+  if (!on || !bay.view) return store.clearCameraOverride(id);
+  if (typeof window === 'undefined' || window.innerWidth >= window.innerHeight) return;
+  const [x, z] = bay.view;
+  store.setCameraOverride({ id, target: [worldX(x, z), 1, worldZ(x, z)], blend: 1.2 });
+}
+
 export function Bay({ bay, onParked }: { bay: BayDef; onParked?: (parked: boolean) => void }) {
   const row = ROWS[bay.row];
   const p = bay.project;
+  useEffect(() => () => frameToy(bay, false), [bay]);
+  const parked = (on: boolean) => {
+    frameToy(bay, on);
+    onParked?.(on);
+  };
   return (
     <group>
       {p.image ? (
@@ -300,8 +291,8 @@ export function Bay({ bay, onParked }: { bay: BayDef; onParked?: (parked: boolea
         label={p.title}
         action={{ kind: 'panel', panel: p.panel }}
         position={[bay.x, 0, row.pad]}
-        onEnter={onParked ? () => onParked(true) : undefined}
-        onLeave={onParked ? () => onParked(false) : undefined}
+        onEnter={() => parked(true)}
+        onLeave={() => parked(false)}
       />
     </group>
   );

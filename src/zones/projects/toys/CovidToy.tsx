@@ -8,8 +8,9 @@ import { COLORS } from '../../../config/palette.ts';
 import { covid } from '../../../data/covid.ts';
 import { car } from '../../../state/car.ts';
 import { useStore } from '../../../state/store.ts';
+import { useBehindFade } from '../fade.ts';
 import { carWithin, carX, carZ } from '../frame.ts';
-import { mergeParts } from '../geom.ts';
+import { fixBounds, mergeParts } from '../geom.ts';
 import type { Part } from '../geom.ts';
 import { Y } from '../Plaza.tsx';
 import { covidSignal } from './signals.ts';
@@ -32,8 +33,8 @@ const LAGS = covid.lagsCompared;
 const TOP = 400_000;
 const X0 = -3.9; // chart area, toy-local
 const X1 = 4.7;
-const Y0 = 1.55;
-const H = 3.0; // metres for TOP
+const Y0 = 1.42;
+const H = 3.1; // metres for TOP
 const FACE = 0.01; // board face
 const DEPTH = 0.3; // ribbon thickness
 const FRONT = FACE + DEPTH;
@@ -67,7 +68,8 @@ function quarterTicks() {
   return out;
 }
 const TICKS = quarterTicks();
-const NEW_YEAR = TICKS.find((t) => t.label === 'Jan')?.i ?? 337;
+// Every other quarter is labelled with its year; the last one sits flush with the chart's end.
+const AXIS_LABELS = TICKS.filter((_, k) => k % 2 === 0).map((t) => ({ i: t.i, label: `${t.label} ${new Date(START + t.i * 86_400_000).getUTCFullYear()}` }));
 
 // Least squares for y[t] = c + a1 y[t-1] + ... + ap y[t-p] over the training days (Householder QR on
 // values scaled to 1e5, so the columns stay well conditioned), then one-day-ahead predictions over
@@ -153,30 +155,32 @@ function areaShape(i0: number, i1: number): Shape {
 const TRAIN_COLOR = '#2f9fb0';
 const TEST_COLOR = '#e2557f';
 
-// Board, plinth, grid, axes, the ribbon and the split post, as one mesh.
-function chartGeometry() {
+// The board and its plinth (they glow a little at night), and everything drawn on it: grid, axes,
+// the ribbon, the split post and the label bars. Two meshes, so the marks stay dark on the lit board.
+function chartGeometry(legendW: number) {
   const ext = (sh: Shape) => new ExtrudeGeometry(sh, { depth: DEPTH, bevelEnabled: false, curveSegments: 1 });
   const splitX = (dayX(TRAIN - 1) + dayX(TRAIN)) / 2;
-  const parts: Part[] = [
+  const board = mergeParts([
     { g: new BoxGeometry(BOARD.w + 0.3, BOARD.y0, 1.3), color: '#6f7286', at: [BOARD.x, BOARD.y0 / 2, 0.35] },
     { g: new BoxGeometry(BOARD.w, BOARD.h, 0.26), color: COLORS.paper, at: [BOARD.x, BOARD.y0 + BOARD.h / 2, FACE - 0.13] },
-    { g: new BoxGeometry(BOARD.w + 0.12, 0.16, 0.34), color: '#2f9fb0', at: [BOARD.x, BOARD.y0 + BOARD.h + 0.08, FACE - 0.13] },
-    // y axis and x axis
+    { g: new BoxGeometry(BOARD.w + 0.12, 0.16, 0.34), color: TRAIN_COLOR, at: [BOARD.x, BOARD.y0 + BOARD.h + 0.08, FACE - 0.13] },
+  ]);
+  const parts: Part[] = [
     { g: new BoxGeometry(0.05, H + 0.2, 0.03), color: COLORS.ink, at: [X0 - 0.06, Y0 + (H + 0.2) / 2 - 0.05, FACE + 0.015] },
     { g: new BoxGeometry(X1 - X0 + 0.12, 0.05, 0.03), color: COLORS.ink, at: [(X0 + X1) / 2, Y0 - 0.025, FACE + 0.015] },
-    // the training and test days, and a post where the test days start
     { g: ext(areaShape(0, TRAIN - 1)), color: TRAIN_COLOR, at: [0, Y0, FACE] },
     { g: ext(areaShape(TRAIN, N - 1)), color: TEST_COLOR, at: [0, Y0, FACE] },
     { g: new BoxGeometry(0.05, H + 0.12, DEPTH + 0.06), color: COLORS.ink, at: [splitX, Y0 + (H + 0.12) / 2, FACE + DEPTH / 2] },
-    // bars under the axis that carry the Train and Test labels
     { g: new BoxGeometry(splitX - X0 - 0.04, 0.34, 0.03), color: TRAIN_COLOR, at: [(X0 + splitX) / 2 - 0.02, Y0 - 0.27, FACE + 0.015] },
     { g: new BoxGeometry(X1 - splitX - 0.04, 0.34, 0.03), color: TEST_COLOR, at: [(splitX + X1) / 2 + 0.02, Y0 - 0.27, FACE + 0.015] },
+    // the lag tiles' kerb
+    { g: new BoxGeometry(LAGS.length * (TILE.w + TILE.gap) + 0.2, 0.04, TILE.d + 0.3), color: '#9aa0b1', at: [BOARD.x, Y.paint, TILE.z] },
   ];
   for (let k = 1; k <= 4; k++) parts.push({ g: new BoxGeometry(X1 - X0, 0.022, 0.01), color: '#e2d6c1', at: [(X0 + X1) / 2, Y0 + (k / 4) * H, FACE + 0.006] });
-  for (const t of TICKS) parts.push({ g: new BoxGeometry(0.03, t.i === NEW_YEAR ? 0.95 : 0.16, 0.03), color: COLORS.ink, at: [dayX(t.i), Y0 - (t.i === NEW_YEAR ? 0.475 : 0.08), FACE + 0.02] });
-  // the lag tiles' kerb
-  parts.push({ g: new BoxGeometry(LAGS.length * (TILE.w + TILE.gap) + 0.2, 0.04, TILE.d + 0.3), color: '#9aa0b1', at: [BOARD.x, Y.paint, TILE.z] });
-  return mergeParts(parts);
+  for (const t of TICKS) parts.push({ g: new BoxGeometry(0.03, 0.16, 0.03), color: COLORS.ink, at: [dayX(t.i), Y0 - 0.08, FACE + 0.02] });
+  // legend sample for the fit line
+  parts.push({ g: new BoxGeometry(0.4, 0.056, 0.01), color: COLORS.ink, at: [X1 - legendW - 0.32, HEAD_Y, FACE + 0.006] });
+  return { board, marks: mergeParts(parts) };
 }
 
 const _m = new Matrix4();
@@ -198,7 +202,7 @@ export function CovidToy({ position }: { position: [number, number, number] }) {
   const bandLabel = useRef<TextMesh>(null);
   const readoutText = useRef(`${dayLabel(TRAIN)}: ${D[TRAIN].toLocaleString('en-US')}`);
   const bandText = useRef(`${LAGS[1]} days`);
-  const geo = useMemo(() => ({ chart: chartGeometry(), lines: LAGS.map((p) => lineGeometry(arFit(p))) }), []);
+  const geo = useMemo(() => ({ ...chartGeometry(textWidth(LEGEND, 'body', 0.23)), lines: LAGS.map((p) => lineGeometry(arFit(p))) }), []);
   const st = useMemo(() => ({ lag: 1, day: TRAIN, t: -1, shown: -1, label: 0, glow: -1, tile: -1 }), []);
 
   const place = (day: number) => {
@@ -238,6 +242,7 @@ export function CovidToy({ position }: { position: [number, number, number] }) {
     if (m) {
       for (let i = 0; i < LAGS.length; i++) m.setMatrixAt(i, _m.compose(_p.set(tileX(i), Y.paint + 0.025, TILE.z), _q.identity(), _s.setScalar(1)));
       m.instanceMatrix.needsUpdate = true;
+      fixBounds(m, [BOARD.x, 0, TILE.z], 5.2);
     }
     pickLag(st.lag);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -288,14 +293,17 @@ export function CovidToy({ position }: { position: [number, number, number] }) {
   });
 
   const splitX = (dayX(TRAIN - 1) + dayX(TRAIN)) / 2;
-  const legendW = useMemo(() => textWidth(LEGEND, 'body', 0.21), []);
+  const fade = useBehindFade(position[0] + BOARD.x, position[2] + FACE - 0.26, BOARD.w / 2 + 0.15, BOARD.y0 + BOARD.h + 0.5, 2);
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[BOARD.w / 2 + 0.15, (BOARD.y0 + BOARD.h) / 2, 0.45]} position={[BOARD.x, (BOARD.y0 + BOARD.h) / 2, 0.05]} />
       </RigidBody>
-      <mesh geometry={geo.chart} castShadow receiveShadow>
-        <meshStandardMaterial ref={board} vertexColors roughness={0.85} emissive={COLORS.paper} emissiveIntensity={0} />
+      <mesh geometry={geo.board} castShadow receiveShadow>
+        <meshStandardMaterial ref={(m) => { board.current = m; fade[0](m); }} vertexColors roughness={0.85} emissive={COLORS.paper} emissiveIntensity={0} transparent />
+      </mesh>
+      <mesh geometry={geo.marks} castShadow receiveShadow>
+        <meshStandardMaterial ref={fade[1]} vertexColors roughness={0.7} transparent />
       </mesh>
       {geo.lines.map((g, i) => (
         <mesh key={LAGS[i]} ref={(m) => void (lines.current[i] = m)} geometry={g} position={[0, 0, FRONT + 0.012]} visible={i === st.lag}>
@@ -307,7 +315,7 @@ export function CovidToy({ position }: { position: [number, number, number] }) {
         <planeGeometry args={[1, H]} />
         <meshBasicMaterial color="#ffd23f" transparent opacity={0.45} depthWrite={false} toneMapped={false} />
       </mesh>
-      <Label ref={bandLabel} font="bodyBold" size={0.22} color={COLORS.ink} anchorY="top" outlineWidth="12%" outlineColor={COLORS.paper}
+      <Label ref={bandLabel} font="bodyBold" size={0.25} color={COLORS.ink} anchorY="top" outlineWidth="12%" outlineColor={COLORS.paper}
         position={[0, Y0 + H - 0.06, FRONT + 0.02]}>
         {bandText.current}
       </Label>
@@ -321,40 +329,31 @@ export function CovidToy({ position }: { position: [number, number, number] }) {
         <sphereGeometry args={[0.1, 14, 10]} />
         <meshBasicMaterial color={COLORS.ink} toneMapped={false} />
       </mesh>
-      <Label ref={readout} font="bodyBold" size={0.24} color={COLORS.ink} position={[dayX(TRAIN), TAG_Y, FACE + 0.01]}>
+      <Label ref={readout} font="bodyBold" size={0.28} color={COLORS.ink} position={[dayX(TRAIN), TAG_Y, FACE + 0.01]}>
         {readoutText.current}
       </Label>
-      <Label font="display" size={0.36} color={COLORS.ink} anchorX="left" position={[X0 - 0.7, HEAD_Y, FACE + 0.01]}>
+      <Label font="display" size={0.42} color={COLORS.ink} anchorX="left" position={[X0 - 0.7, HEAD_Y, FACE + 0.01]}>
         Daily new cases
       </Label>
-      <Label font="body" size={0.21} color={COLORS.inkSoft} anchorX="right" position={[X1, HEAD_Y, FACE + 0.01]}>
+      <Label font="body" size={0.23} color={COLORS.inkSoft} anchorX="right" position={[X1, HEAD_Y, FACE + 0.01]}>
         {LEGEND}
       </Label>
-      <mesh position={[X1 - legendW - 0.32, HEAD_Y, FACE + 0.012]}>
-        <planeGeometry args={[0.4, 0.056]} />
-        <meshBasicMaterial color={COLORS.ink} toneMapped={false} />
-      </mesh>
-      <Label font="bodyBold" size={0.24} color={COLORS.inkSoft} anchorX="right" lineHeight={(H / 4) / 0.24} position={[X0 - 0.16, Y0 + H / 2, FACE + 0.01]}>
+      <Label font="bodyBold" size={0.27} color={COLORS.inkSoft} anchorX="right" lineHeight={(H / 4) / 0.27} position={[X0 - 0.16, Y0 + H / 2, FACE + 0.01]}>
         {'400k\n300k\n200k\n100k\n0'}
       </Label>
-      <Label font="bodyBold" size={0.22} color={COLORS.paper} position={[(X0 + splitX) / 2, Y0 - 0.27, FACE + 0.035]}>
+      <Label font="bodyBold" size={0.25} color={COLORS.paper} position={[(X0 + splitX) / 2, Y0 - 0.27, FACE + 0.035]}>
         Train 65%
       </Label>
-      <Label font="bodyBold" size={0.22} color={COLORS.paper} position={[(splitX + X1) / 2, Y0 - 0.27, FACE + 0.035]}>
+      <Label font="bodyBold" size={0.25} color={COLORS.paper} position={[(splitX + X1) / 2, Y0 - 0.27, FACE + 0.035]}>
         Test 35%
       </Label>
-      {TICKS.map((t) => (
-        <Label key={t.i} font="body" size={0.22} color={COLORS.inkSoft} position={[dayX(t.i), Y0 - 0.62, FACE + 0.01]}>
+      {AXIS_LABELS.map((t, k) => (
+        <Label key={t.i} font="bodyBold" size={0.26} color={COLORS.inkSoft} anchorX={k === AXIS_LABELS.length - 1 ? 'right' : 'center'}
+          position={[k === AXIS_LABELS.length - 1 ? X1 + 0.05 : dayX(t.i), Y0 - 0.66, FACE + 0.01]}>
           {t.label}
         </Label>
       ))}
-      <Label font="bodyBold" size={0.24} color={COLORS.ink} position={[(dayX(0) + dayX(NEW_YEAR)) / 2, Y0 - 0.95, FACE + 0.01]}>
-        2020
-      </Label>
-      <Label font="bodyBold" size={0.24} color={COLORS.ink} position={[(dayX(NEW_YEAR) + dayX(N - 1)) / 2, Y0 - 0.95, FACE + 0.01]}>
-        2021
-      </Label>
-      <instancedMesh ref={tiles} args={[undefined, undefined, LAGS.length]} receiveShadow frustumCulled={false}>
+      <instancedMesh ref={tiles} args={[undefined, undefined, LAGS.length]} receiveShadow>
         <boxGeometry args={[TILE.w, 0.02, TILE.d]} />
         <meshStandardMaterial roughness={0.8} />
       </instancedMesh>
@@ -363,7 +362,7 @@ export function CovidToy({ position }: { position: [number, number, number] }) {
           {String(p)}
         </Label>
       ))}
-      <Label flat font="bodyBold" size={0.42} color={COLORS.inkSoft} anchorX="right" position={[tileX(0) - TILE.w / 2 - 0.35, Y.paint + 0.004, TILE.z]}>
+      <Label flat font="bodyBold" size={0.5} color={COLORS.inkSoft} anchorX="right" position={[tileX(0) - TILE.w / 2 - 0.35, Y.paint + 0.004, TILE.z]}>
         Lag
       </Label>
     </group>

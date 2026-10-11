@@ -7,8 +7,9 @@ import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { useStore } from '../../../state/store.ts';
 import { canvasTexture, makeCanvas } from '../canvas.ts';
+import { useBehindFade } from '../fade.ts';
 import { carWithin, ZONE } from '../frame.ts';
-import { mergeParts } from '../geom.ts';
+import { fixBounds, mergeParts } from '../geom.ts';
 import type { Part } from '../geom.ts';
 import { shootersSignal } from './signals.ts';
 import { setLabelText } from './text.ts';
@@ -28,8 +29,8 @@ const BACK_Z = -0.95; // backdrop centre
 const FACE_Z = BACK_Z + 0.15; // its front face
 const PLAY_Z = -0.25; // the aliens, ship and bolt move in this plane
 const X_MAX = 2.08; // alien centres sweep between -X_MAX and X_MAX
-const TOP_ROWS = [4.12, 3.72];
-const STEP = 0.36; // drop at each edge
+const TOP_ROWS = [4.15, 3.6];
+const STEP = 0.4; // drop at each edge
 const SHIP_Y = 0.66; // ship base (it hovers over the plinth on its exhaust)
 const LOSE_Y = 1.95; // an alien centre this low has reached the ship
 const ALIEN_SPEED = 1.15; // m/s at full speed
@@ -49,7 +50,6 @@ const _q = new Quaternion();
 const _p = new Vector3();
 const _s = new Vector3();
 const _axis = new Vector3(0.3, 1, 0.5).normalize();
-const _c = new Color();
 const BIT_COLORS = ['#b45be0', '#f2c230', COLORS.accent].map((c) => new Color(c));
 
 function alienGeometry() {
@@ -102,34 +102,30 @@ function stageGeometry() {
   return mergeParts(parts);
 }
 
-// Tiny stars scattered over the backdrop face (fixed seed, so every load looks the same).
-function starGeometry() {
-  let seed = 11;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const parts: Part[] = [];
-  for (let i = 0; i < 46; i++) {
-    const s = 0.035 + rnd() * 0.05;
-    parts.push({ g: new BoxGeometry(s, s, 0.01), color: rnd() < 0.2 ? '#ffe9a8' : '#ffffff', at: [(rnd() - 0.5) * (W - 0.2), BASE_H + 0.15 + rnd() * (BACK_H - 0.3), FACE_Z + 0.01] });
-  }
-  return mergeParts(parts);
-}
-
-// Deep blue to violet, like the game's space background.
+// Deep blue to violet, like the game's space background, with small stars (fixed seed, so every
+// load looks the same).
 function skyTexture() {
-  const [c, g] = makeCanvas(64, 64);
-  const grad = g.createLinearGradient(0, 0, 0, 64);
+  const [c, g] = makeCanvas(256, 208);
+  const grad = g.createLinearGradient(0, 0, 0, 208);
   grad.addColorStop(0, '#23206b');
   grad.addColorStop(0.6, '#1f2f86');
   grad.addColorStop(1, '#3a2a8c');
   g.fillStyle = grad;
-  g.fillRect(0, 0, 64, 64);
-  return canvasTexture(c, 1);
+  g.fillRect(0, 0, 256, 208);
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 70; i++) {
+    const s = 1.5 + rnd() * 2.5;
+    g.fillStyle = rnd() < 0.2 ? '#ffe9a8' : '#ffffff';
+    g.fillRect(4 + rnd() * 248, 4 + rnd() * 200, s, s);
+  }
+  return canvasTexture(c, 4);
 }
 
+// Back to the top at a random spot, still heading the way it was (main.py keeps its direction).
 function spawnAlien(a: Alien, i: number) {
   a.x = (Math.random() * 2 - 1) * X_MAX;
   a.y = TOP_ROWS[i % TOP_ROWS.length];
-  a.dir = 1;
   a.hidden = 0;
   a.grow = 0;
 }
@@ -145,7 +141,7 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
   const score = useRef<TextMesh>(null);
   const over = useRef<Mesh>(null);
   const scoreText = useRef('Score 0');
-  const geo = useMemo(() => ({ alien: alienGeometry(), ship: shipGeometry(), stage: stageGeometry(), stars: starGeometry(), sky: skyTexture() }), []);
+  const geo = useMemo(() => ({ alien: alienGeometry(), ship: shipGeometry(), stage: stageGeometry(), sky: skyTexture() }), []);
   const st = useMemo(() => {
     const list: Alien[] = Array.from({ length: 6 }, () => ({ x: 0, y: 0, dir: 1, hidden: 0, grow: 1 }));
     // a tidy formation to start from (and to hold with reduced motion)
@@ -172,11 +168,12 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
   const writeAliens = () => {
     const m = aliens.current;
     if (!m) return;
-    st.aliens.forEach((a, i) => {
+    for (let i = 0; i < st.aliens.length; i++) {
+      const a = st.aliens[i];
       const k = a.hidden > 0 || st.over > 0 ? 0.0001 : 0.35 + 0.65 * a.grow;
       const bob = Math.sin(st.t * 3 + i) * 0.03;
       m.setMatrixAt(i, _m.compose(_p.set(a.x, a.y + bob, PLAY_Z), _q.identity(), _s.setScalar(k)));
-    });
+    }
     m.instanceMatrix.needsUpdate = true;
   };
 
@@ -191,7 +188,14 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
       const b = st.bits[st.nextBit++ % BITS];
       const a = (k / 8) * Math.PI * 2 + Math.random() * 0.5;
       const sp = 1.4 + Math.random() * 1.6;
-      Object.assign(b, { life: 0.55, x, y, z: PLAY_Z, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: (Math.random() - 0.2) * 1.2, spin: Math.random() * 6 });
+      b.life = 0.55;
+      b.x = x;
+      b.y = y;
+      b.z = PLAY_Z;
+      b.vx = Math.cos(a) * sp;
+      b.vy = Math.sin(a) * sp;
+      b.vz = (Math.random() - 0.2) * 1.2;
+      b.spin = Math.random() * 6;
       bitsMesh.current?.setColorAt((st.nextBit - 1) % BITS, BIT_COLORS[k % BIT_COLORS.length]);
     }
     const m = bitsMesh.current;
@@ -200,11 +204,13 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
 
   useLayoutEffect(() => {
     writeAliens();
+    fixBounds(aliens.current, [0, 2.8, PLAY_Z], 3.2);
+    fixBounds(bitsMesh.current, [0, 2.8, PLAY_Z], 3.8);
     const m = bitsMesh.current;
     if (m) {
       for (let i = 0; i < BITS; i++) {
         m.setMatrixAt(i, _m.compose(_p.set(0, -5, 0), _q.identity(), _s.setScalar(0.0001)));
-        m.setColorAt(i, _c.set(BIT_COLORS[0]));
+        m.setColorAt(i, BIT_COLORS[0]);
       }
       m.instanceMatrix.needsUpdate = true;
     }
@@ -234,7 +240,10 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
       st.over -= real;
       if (over.current) over.current.visible = st.over > 0;
       if (st.over <= 0) {
-        st.aliens.forEach((a, i) => spawnAlien(a, i));
+        st.aliens.forEach((a, i) => {
+          spawnAlien(a, i);
+          a.dir = 1;
+        });
         setScore(0);
       }
     } else {
@@ -330,6 +339,7 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
     }
   });
 
+  const fade = useBehindFade(position[0], position[2] + BACK_Z - 0.15, W / 2 + 0.34, BASE_H + BACK_H + 0.8, 2);
   const faceW = W - 0.04;
   const faceH = BACK_H - 0.04;
   return (
@@ -339,16 +349,13 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
         <CuboidCollider args={[W / 2 + 0.34, (BACK_H + BASE_H + 0.46) / 2, 0.28]} position={[0, (BACK_H + BASE_H + 0.46) / 2, BACK_Z + 0.05]} />
       </RigidBody>
       <mesh geometry={geo.stage} castShadow receiveShadow>
-        <meshStandardMaterial vertexColors roughness={0.7} />
+        <meshStandardMaterial ref={fade[0]} vertexColors roughness={0.7} transparent />
       </mesh>
       <mesh position={[0, BASE_H + BACK_H / 2, FACE_Z + 0.002]} receiveShadow>
         <planeGeometry args={[faceW, faceH]} />
-        <meshStandardMaterial ref={face} map={geo.sky} emissiveMap={geo.sky} emissive="#ffffff" emissiveIntensity={0.35} roughness={1} />
+        <meshStandardMaterial ref={(m) => { face.current = m; fade[1](m); }} map={geo.sky} emissiveMap={geo.sky} emissive="#ffffff" emissiveIntensity={0.35} roughness={1} transparent />
       </mesh>
-      <mesh geometry={geo.stars}>
-        <meshBasicMaterial vertexColors toneMapped={false} />
-      </mesh>
-      <instancedMesh ref={aliens} args={[geo.alien, undefined, 6]} castShadow frustumCulled={false}>
+      <instancedMesh ref={aliens} args={[geo.alien, undefined, 6]} castShadow>
         <meshStandardMaterial ref={alienMat} vertexColors roughness={0.55} emissive="#7a3aa8" emissiveIntensity={0} />
       </instancedMesh>
       <mesh ref={ship} geometry={geo.ship} position={[0, SHIP_Y, PLAY_Z]} castShadow>
@@ -362,7 +369,7 @@ export function SpaceShootersToy({ position }: { position: [number, number, numb
         <capsuleGeometry args={[0.05, 0.28, 4, 8]} />
         <meshBasicMaterial color="#ff6fb1" toneMapped={false} />
       </mesh>
-      <instancedMesh ref={bitsMesh} args={[undefined, undefined, BITS]} frustumCulled={false}>
+      <instancedMesh ref={bitsMesh} args={[undefined, undefined, BITS]}>
         <boxGeometry args={[0.12, 0.12, 0.12]} />
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>

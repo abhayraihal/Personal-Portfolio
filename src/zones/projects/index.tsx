@@ -11,6 +11,7 @@ import { InspectTeleport } from './InspectTeleport.tsx';
 import { BAYS, ROWS, TOYS_2022 } from './layout.ts';
 import { Plaza } from './Plaza.tsx';
 import { Props } from './Props.tsx';
+import { StreetSign } from './StreetSign.tsx';
 import { AstToy } from './toys/AstToy.tsx';
 import { Scan2ScopeToy } from './toys/Scan2ScopeToy.tsx';
 import { SelfDrivingToy } from './toys/SelfDrivingToy.tsx';
@@ -68,6 +69,8 @@ export function ProjectsZone() {
       <HitTheBallToy position={[TOYS_2022.ball.x, 0, TOYS_2022.ball.z]} />
       <DriveInToy position={[TOYS_2022.cinema.x, 0, TOYS_2022.cinema.z]} />
       <CovidToy position={[TOYS_2022.covid.x, 0, TOYS_2022.covid.z]} />
+      <StreetSign position={[23.0, 0, -20.3]} text="2022" />
+      <StreetSign position={[-28.4, 0, -20.3]} text="2022" />
       <Props />
       <GarageProps />
       {INSPECT && <InspectTeleport />}

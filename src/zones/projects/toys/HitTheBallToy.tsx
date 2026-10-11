@@ -4,11 +4,12 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { BoxGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Group, InstancedMesh, Mesh, MeshStandardMaterial } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { useStore } from '../../../state/store.ts';
 import { carWithin, ZONE } from '../frame.ts';
-import { mergeParts } from '../geom.ts';
+import { fixBounds, mergeParts } from '../geom.ts';
 import { ballSignal } from './signals.ts';
 import { setLabelText } from './text.ts';
 import type { TextMesh } from './text.ts';
@@ -26,8 +27,8 @@ const IN_U = 2.05; // inner half width
 const IN_W = 1.5; // inner half depth; +w is the open side (towards the camera)
 const BALL_R = 0.17;
 const PADDLE = { w: 1.05, d: 0.22, at: 1.22 }; // width, depth, w of its centre
-const SPEED = 2.6; // ball speed at full play
-const PADDLE_SPEED = 3.2;
+const SPEED = 3.1; // ball speed at full play
+const PADDLE_SPEED = 3.8;
 const IDLE = 0.35; // time scale while nobody is parked
 const LIVES = 5;
 const BOARD = { y: 2.55, z: -1.9, w: 4.5, h: 1.0 };
@@ -59,8 +60,14 @@ function trayGeometry() {
   ]);
 }
 
-// Legs, the scoreboard and its life-ball ledge (toy-local).
+// Legs, the scoreboard and its life-ball ledge (toy-local), with the tilted tray baked in: the
+// tray never moves, only the ball and paddle on it do.
 function standGeometry() {
+  const tray = trayGeometry().applyMatrix4(new Matrix4().makeRotationX(TILT).setPosition(0, PIVOT_Y, 0));
+  return mergeGeometries([frameGeometry(), tray]);
+}
+
+function frameGeometry() {
   const near = PIVOT_Y - IN_W * Math.sin(TILT); // height of the open edge
   const far = PIVOT_Y + IN_W * Math.sin(TILT);
   const zNear = IN_W * Math.cos(TILT) - 0.2;
@@ -81,7 +88,6 @@ function standGeometry() {
 type Phase = 'play' | 'fall' | 'wait' | 'over';
 
 export function HitTheBallToy({ position }: { position: [number, number, number] }) {
-  const tray = useRef<Group>(null);
   const ball = useRef<Mesh>(null);
   const loose = useRef<Mesh>(null);
   const paddle = useRef<Mesh>(null);
@@ -93,7 +99,6 @@ export function HitTheBallToy({ position }: { position: [number, number, number]
   const scoreText = useRef('Score 0');
   const geo = useMemo(
     () => ({
-      tray: trayGeometry(),
       stand: standGeometry(),
       paddle: new RoundedBoxGeometry(PADDLE.w, 0.2, PADDLE.d, 2, 0.08),
       sign: mergeParts([
@@ -110,7 +115,7 @@ export function HitTheBallToy({ position }: { position: [number, number, number]
       phase: 'play' as Phase,
       u: -IN_U + BALL_R + 0.1, w: -IN_W + BALL_R + 0.1, vu: SPEED * Math.SQRT1_2, vw: SPEED * Math.SQRT1_2,
       pu: 0, kick: 0,
-      hits: 0, missAt: 4, missing: false,
+      hits: 0, missAt: 2, missing: false,
       left: LIVES, score: 0, timer: 0,
       fx: 0, fy: 0, fz: 0, fvx: 0, fvy: 0, fvz: 0, // the ball once it has rolled off
       drop: -1, dropT: 0, // life ball falling off the ledge
@@ -156,6 +161,7 @@ export function HitTheBallToy({ position }: { position: [number, number, number]
 
   useLayoutEffect(() => {
     writeLives();
+    fixBounds(lives.current, [1.1, 2.4, BOARD.z], 2.6);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -215,7 +221,7 @@ export function HitTheBallToy({ position }: { position: [number, number, number]
         st.drop = st.left;
         st.dropT = 0;
         st.hits = 0;
-        st.missAt = 3 + Math.floor(Math.random() * 5);
+        st.missAt = 1 + Math.floor(Math.random() * 4);
       }
       // paddle: follows the ball while it comes in, drifts to the middle otherwise; when it means
       // to miss, it heads for the wrong side
@@ -289,10 +295,7 @@ export function HitTheBallToy({ position }: { position: [number, number, number]
       <mesh geometry={geo.stand} castShadow receiveShadow>
         <meshStandardMaterial vertexColors roughness={0.7} />
       </mesh>
-      <group ref={tray} position={[0, PIVOT_Y, 0]} rotation={[TILT, 0, 0]}>
-        <mesh geometry={geo.tray} castShadow receiveShadow>
-          <meshStandardMaterial vertexColors roughness={0.6} />
-        </mesh>
+      <group position={[0, PIVOT_Y, 0]} rotation={[TILT, 0, 0]}>
         <mesh ref={ball} position={[0, BALL_R, 0]} castShadow>
           <sphereGeometry args={[BALL_R, 18, 12]} />
           <meshStandardMaterial ref={glowRef(0)} color="#f6a53c" emissive="#f6a53c" emissiveIntensity={0.12} roughness={0.45} />
@@ -305,11 +308,11 @@ export function HitTheBallToy({ position }: { position: [number, number, number]
         <sphereGeometry args={[BALL_R, 18, 12]} />
         <meshStandardMaterial color="#f6a53c" roughness={0.45} />
       </mesh>
-      <instancedMesh ref={lives} args={[undefined, undefined, LIVES]} castShadow frustumCulled={false}>
+      <instancedMesh ref={lives} args={[undefined, undefined, LIVES]}>
         <sphereGeometry args={[0.15, 16, 10]} />
         <meshStandardMaterial ref={glowRef(2)} color="#f6a53c" emissive="#f6a53c" emissiveIntensity={0.12} roughness={0.45} />
       </instancedMesh>
-      <Label ref={score} font="bodyBold" size={0.36} color={COLORS.paper} anchorX="left" position={[-BOARD.w / 2 + 0.3, BOARD.y + BOARD.h / 2 - 0.02, BOARD.z + 0.11]}>
+      <Label ref={score} font="bodyBold" size={0.42} color={COLORS.paper} anchorX="left" position={[-BOARD.w / 2 + 0.3, BOARD.y + BOARD.h / 2 - 0.02, BOARD.z + 0.11]}>
         {scoreText.current}
       </Label>
       <Label font="bodyBold" size={0.24} color="#c9c4d8" anchorX="left" position={[LIFE_X(0) - 0.16, BOARD.y + 0.74, BOARD.z + 0.11]}>

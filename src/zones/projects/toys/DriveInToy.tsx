@@ -2,15 +2,16 @@ import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { AdditiveBlending, BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, ExtrudeGeometry, Float32BufferAttribute, Matrix4, Path, Quaternion, Shape, Vector3 } from 'three';
-import type { Group, InstancedMesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import type { InstancedMesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { Label } from '../../../components/Label.tsx';
 import { COLORS } from '../../../config/palette.ts';
 import { car } from '../../../state/car.ts';
 import { playSound } from '../../../state/events.ts';
 import { useStore } from '../../../state/store.ts';
+import { useBehindFade } from '../fade.ts';
 import { carWithin, carX, carZ, ZONE } from '../frame.ts';
-import { mergeParts } from '../geom.ts';
+import { fixBounds, mergeParts } from '../geom.ts';
 import type { Part } from '../geom.ts';
 import { Y } from '../Plaza.tsx';
 import { cinemaSignal } from './signals.ts';
@@ -25,14 +26,14 @@ import type { TextMesh } from './text.ts';
 // steps through the genres while the matching signpost lights up.
 
 // Lot-local x (the toy group sits at the lot's centre); z values are zone-local.
-const SCREEN = { z: -47, w: 5.8, h: 3.2, y0: 1.5 };
+const SCREEN = { z: -47, w: 6.3, h: 3.5, y0: 1.5 };
 const BOOTH = { x: -2.6, z: -32.6, w: 1.7, d: 1.6, h: 2.2 };
 const AISLE = { x: 0.15, w: 2.8, z0: -31.2, tile: 2.1, gap: 0.22 };
-const POSTS = { x: 2.85, z0: -35.0, step: 2.15, sign: 1.34 };
+const POSTS = { x: 2.8, z0: -35.0, step: 2.15, sign: 1.55 };
 // The genre pages linked from the site's Movies menu, in its order.
 const GENRES = ['Horror', 'Comedy', 'Sci-fi', 'Action', 'Romance'];
 const GENRE_COLORS = ['#8c2333', '#d99a14', '#23847f', '#cf5a26', '#c2457c'].map((c) => new Color(c));
-const STAR = { r: 0.42, y: SCREEN.y0 + 1.5, gap: 1.0 };
+const STAR = { r: 0.5, y: SCREEN.y0 + 1.68, gap: 1.14 };
 const TILE_ON = new Color('#ffd23f');
 const TILE_OFF = new Color('#4b3c8f');
 const STAR_ON = new Color('#ffc21a');
@@ -41,6 +42,8 @@ const SIGN_DIM = 0.55;
 const RANGE = 45;
 const RATE_HOLD = 0.6; // seconds stopped on a tile to rate it
 const GENRE_S = 1.6;
+// From the project's SQL script and its admin page, on a board under the screen.
+const MARQUEE = { text: '31 films · Add Movie page for admins', y: 0.86, w: 5.2 };
 
 const tileZ = (k: number) => AISLE.z0 - AISLE.tile / 2 - k * (AISLE.tile + AISLE.gap);
 
@@ -49,6 +52,12 @@ const _q = new Quaternion();
 const _p = new Vector3();
 const _s = new Vector3();
 const _c = new Color();
+const _zAxis = new Vector3(0, 0, 1);
+// The two film reels on the booth roof (centres).
+const REELS: [number, number, number][] = [
+  [BOOTH.x - 0.38, BOOTH.h + 0.78, BOOTH.z + 0.06],
+  [BOOTH.x + 0.42, BOOTH.h + 0.92, BOOTH.z - 0.06],
+];
 
 // The left half of a five-point star (top point up). Right halves are the same mesh mirrored, so
 // half stars can be lit.
@@ -91,7 +100,7 @@ function lotGeometry() {
     { g: new BoxGeometry(sw + 0.3, SCREEN.h + 0.3, 0.2), color: COLORS.ink, at: [0, SCREEN.y0 + SCREEN.h / 2, SCREEN.z - 0.04] },
     { g: new BoxGeometry(0.28, top, 0.28), color: COLORS.inkSoft, at: [-sw / 2 + 0.5, top / 2, SCREEN.z - 0.3] },
     { g: new BoxGeometry(0.28, top, 0.28), color: COLORS.inkSoft, at: [sw / 2 - 0.5, top / 2, SCREEN.z - 0.3] },
-    { g: new BoxGeometry(sw - 0.6, 0.16, 0.16), color: COLORS.inkSoft, at: [0, SCREEN.y0 - 0.25, SCREEN.z - 0.3] },
+    { g: new RoundedBoxGeometry(MARQUEE.w, 0.5, 0.12, 2, 0.05), color: COLORS.ink, at: [0, MARQUEE.y, SCREEN.z - 0.06] },
     { g: new BoxGeometry(sw + 0.5, 0.18, 0.4), color: ZONE.color, at: [0, top + 0.24, SCREEN.z - 0.04] },
     // booth: walls, roof, a door, the lens on the back and a bracket for the reels
     { g: new BoxGeometry(BOOTH.w, BOOTH.h, BOOTH.d), color: '#f1e4cf', at: [BOOTH.x, BOOTH.h / 2, BOOTH.z] },
@@ -128,8 +137,7 @@ export function DriveInToy({ position }: { position: [number, number, number] })
   const stars = useRef<InstancedMesh>(null);
   const tiles = useRef<InstancedMesh>(null);
   const signs = useRef<InstancedMesh>(null);
-  const reelA = useRef<Group>(null);
-  const reelB = useRef<Group>(null);
+  const reels = useRef<InstancedMesh>(null);
   const beam = useRef<MeshBasicMaterial>(null);
   const screen = useRef<MeshStandardMaterial>(null);
   const status = useRef<TextMesh>(null);
@@ -142,7 +150,7 @@ export function DriveInToy({ position }: { position: [number, number, number] })
       beam: beamGeometry(),
       star: halfStar(),
       reel: new ExtrudeGeometry(reelShape(0.46), { depth: 0.08, bevelEnabled: false, curveSegments: 18 }).translate(0, 0, -0.04),
-      sign: new RoundedBoxGeometry(POSTS.sign, 0.44, 0.1, 2, 0.05),
+      sign: new RoundedBoxGeometry(POSTS.sign, 0.52, 0.1, 2, 0.05),
     }),
     [],
   );
@@ -150,7 +158,7 @@ export function DriveInToy({ position }: { position: [number, number, number] })
     () => ({
       sum: 0, count: 0, tile: -1, held: 0, rated: -1, flash: 0,
       lit: -1, half: false, // stars shown: lit whole stars and a half star
-      genre: -1, genreT: 0, reel: 0, glow: -1, statusKey: '', headKey: 'LightsOut',
+      genre: -1, genreT: 0, reel: 0, glow: -1,
     }),
     [],
   );
@@ -199,11 +207,16 @@ export function DriveInToy({ position }: { position: [number, number, number] })
       gm?.setMatrixAt(i, _m.compose(_p.set(POSTS.x, 1.42, POSTS.z0 - i * POSTS.step), _q.identity(), _s.setScalar(1)));
       gm?.setColorAt(i, _c.copy(GENRE_COLORS[i]).multiplyScalar(SIGN_DIM));
     }
-    for (const m of [sm, tm, gm]) {
+    REELS.forEach(([x, y, z], i) => reels.current?.setMatrixAt(i, _m.compose(_p.set(x, y, z), _q.identity(), _s.setScalar(1))));
+    for (const m of [sm, tm, gm, reels.current]) {
       if (!m) continue;
       m.instanceMatrix.needsUpdate = true;
       if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
+    fixBounds(sm, [0, STAR.y, SCREEN.z], 3.2);
+    fixBounds(tm, [AISLE.x, 0, tileZ(2)], 6.4);
+    fixBounds(gm, [POSTS.x, 1.4, POSTS.z0 - 2 * POSTS.step], 5.2);
+    fixBounds(reels.current, [BOOTH.x, BOOTH.h + 0.85, BOOTH.z], 1.2);
     st.lit = 0;
     st.half = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,10 +241,13 @@ export function DriveInToy({ position }: { position: [number, number, number] })
       const base = (night ? 0.2 : 0.07) + (running ? 0.07 : 0);
       beam.current.opacity = base * (running && !reduced ? 0.9 + Math.sin(performance.now() * 0.031) * 0.1 : 1);
     }
-    if (!reduced) {
+    if (!reduced && reels.current) {
       st.reel += dt * (running ? 3.2 : 0.6);
-      if (reelA.current) reelA.current.rotation.z = -st.reel;
-      if (reelB.current) reelB.current.rotation.z = -st.reel * 1.15;
+      for (let i = 0; i < REELS.length; i++) {
+        _q.setFromAxisAngle(_zAxis, -st.reel * (1 + i * 0.15));
+        reels.current.setMatrixAt(i, _m.compose(_p.fromArray(REELS[i]), _q, _s.setScalar(1)));
+      }
+      reels.current.instanceMatrix.needsUpdate = true;
     }
 
     // which rating tile the car is on
@@ -295,13 +311,7 @@ export function DriveInToy({ position }: { position: [number, number, number] })
     }
   });
 
-  const reel = (ref: typeof reelA, x: number, y: number, z: number) => (
-    <group ref={ref} position={[x, y, z]}>
-      <mesh geometry={geo.reel} castShadow>
-        <meshStandardMaterial color="#c9ccd6" roughness={0.4} metalness={0.4} />
-      </mesh>
-    </group>
-  );
+  const fade = useBehindFade(position[0], SCREEN.z - 0.45, SCREEN.w / 2 + 0.25, SCREEN.y0 + SCREEN.h + 0.7, 2);
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders={false}>
@@ -312,44 +322,44 @@ export function DriveInToy({ position }: { position: [number, number, number] })
         ))}
       </RigidBody>
       <mesh geometry={geo.lot} castShadow receiveShadow>
-        <meshStandardMaterial vertexColors roughness={0.75} />
+        <meshStandardMaterial ref={fade[0]} vertexColors roughness={0.75} transparent />
       </mesh>
       <mesh position={[0, SCREEN.y0 + SCREEN.h / 2, SCREEN.z + 0.065]} receiveShadow>
         <planeGeometry args={[SCREEN.w, SCREEN.h]} />
-        <meshStandardMaterial ref={screen} color="#fbf8f1" emissive="#fff6e0" emissiveIntensity={0.08} roughness={0.95} />
+        <meshStandardMaterial ref={(m) => { screen.current = m; fade[1](m); }} color="#fbf8f1" emissive="#fff6e0" emissiveIntensity={0.08} roughness={0.95} transparent />
       </mesh>
       <mesh geometry={geo.beam} renderOrder={2}>
         <meshBasicMaterial ref={beam} color="#fff1c2" transparent opacity={0.07} blending={AdditiveBlending} depthWrite={false} side={DoubleSide} toneMapped={false} />
       </mesh>
-      {reel(reelA, BOOTH.x - 0.38, BOOTH.h + 0.78, BOOTH.z + 0.06)}
-      {reel(reelB, BOOTH.x + 0.42, BOOTH.h + 0.92, BOOTH.z - 0.06)}
+      <instancedMesh ref={reels} args={[geo.reel, undefined, REELS.length]}>
+        <meshStandardMaterial color="#c9ccd6" roughness={0.4} metalness={0.4} />
+      </instancedMesh>
       {/* even instances are left halves, odd ones the mirrored right halves (hence DoubleSide) */}
-      <instancedMesh ref={stars} args={[geo.star, undefined, 10]} frustumCulled={false}>
+      <instancedMesh ref={stars} args={[geo.star, undefined, 10]}>
         <meshBasicMaterial side={DoubleSide} toneMapped={false} />
       </instancedMesh>
-      <Label ref={headline} font="display" size={0.56} color={COLORS.ink} position={[0, SCREEN.y0 + SCREEN.h - 0.55, SCREEN.z + 0.08]}>
+      <Label ref={headline} font="display" size={0.66} color={COLORS.ink} position={[0, SCREEN.y0 + SCREEN.h - 0.6, SCREEN.z + 0.08]}>
         {headText.current}
       </Label>
-      <Label ref={status} font="bodyBold" size={0.27} color={COLORS.inkSoft} position={[0, SCREEN.y0 + 0.5, SCREEN.z + 0.08]}>
+      <Label ref={status} font="bodyBold" size={0.34} color={COLORS.inkSoft} position={[0, SCREEN.y0 + 0.55, SCREEN.z + 0.08]}>
         {statusText.current}
       </Label>
-      <Label font="bodyBold" size={0.2} color={COLORS.inkSoft} position={[BOOTH.x + 0.42, 1.98, BOOTH.z + BOOTH.d / 2 + 0.03]}>
-        31 films
+      <Label font="bodyBold" size={0.25} color={COLORS.paper} position={[0, MARQUEE.y, SCREEN.z + 0.05]}>
+        {MARQUEE.text}
       </Label>
-      <instancedMesh ref={tiles} args={[undefined, undefined, 5]} receiveShadow frustumCulled={false}>
+      <instancedMesh ref={tiles} args={[undefined, undefined, 5]} receiveShadow>
         <boxGeometry args={[AISLE.w, 0.012, AISLE.tile]} />
         <meshStandardMaterial roughness={0.8} />
       </instancedMesh>
-      {[0, 1, 2, 3, 4].map((k) => (
-        <Label key={k} flat font="display" size={1.05} color={COLORS.paper} position={[AISLE.x, Y.paint + 0.016, tileZ(k)]} fillOpacity={0.95}>
-          {String(k + 1)}
-        </Label>
-      ))}
-      <instancedMesh ref={signs} args={[geo.sign, undefined, 5]} castShadow frustumCulled={false}>
+      {/* one flat label for the five tile numbers: its lines are one tile apart, 5 at the top */}
+      <Label flat font="display" size={1.05} color={COLORS.paper} lineHeight={(AISLE.tile + AISLE.gap) / 1.05} position={[AISLE.x, Y.paint + 0.016, tileZ(2)]} fillOpacity={0.95}>
+        {'5\n4\n3\n2\n1'}
+      </Label>
+      <instancedMesh ref={signs} args={[geo.sign, undefined, 5]}>
         <meshStandardMaterial roughness={0.6} />
       </instancedMesh>
       {GENRES.map((g, i) => (
-        <Label key={g} font="bodyBold" size={0.27} color={COLORS.paper} position={[POSTS.x, 1.43, POSTS.z0 - i * POSTS.step + 0.06]}>
+        <Label key={g} font="bodyBold" size={0.32} color={COLORS.paper} position={[POSTS.x, 1.43, POSTS.z0 - i * POSTS.step + 0.06]}>
           {g}
         </Label>
       ))}

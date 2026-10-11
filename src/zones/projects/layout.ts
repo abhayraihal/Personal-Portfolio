@@ -19,6 +19,7 @@ export type Bay = {
   backing?: string; // colour behind a 'contain' image (default white)
   cropTop?: number; // share of the image height cut off the top (a window title bar)
   art?: PosterArt; // drawn poster when the project has no screenshot
+  view?: [number, number]; // point a portrait screen frames while the car is parked on the pad
 };
 
 // Billboard face, lectern centre and pad centre (z) for each row.
@@ -47,10 +48,10 @@ export const BAYS: Bay[] = [
   { project: byPanel('project-trip-planner'), row: 'front', x: BAY_X[0], fit: 'cover', floor: '#cfe6c4', art: 'map' },
   { project: byPanel('project-weather'), row: 'front', x: BAY_X[1], fit: 'cover', floor: '#c6e3ee', art: 'weather' },
   { project: byPanel('project-tower-defense'), row: 'front', x: BAY_X[2], fit: 'cover', floor: '#f2cfd6' },
-  { project: byPanel('project-space-shooters'), row: 'y2022', x: -25.6, fit: 'contain', backing: '#22206b', cropTop: 0.052, floor: '#d9d3f2', floorW: 8.6 },
-  { project: byPanel('project-hit-the-ball'), row: 'y2022', x: -11.2, fit: 'contain', backing: '#141414', cropTop: 0.05, floor: '#f4d9c6', floorW: 8.6 },
-  { project: byPanel('project-lightsout'), row: 'y2022', x: 3.0, fit: 'contain', backing: '#000000', floor: '#e4d6ef', floorW: 8.6 },
-  { project: byPanel('project-covid'), row: 'y2022', x: 19.2, fit: 'cover', floor: '#cfe5dd', floorW: 8.6, art: 'covid' },
+  { project: byPanel('project-space-shooters'), row: 'y2022', x: -25.6, fit: 'contain', backing: '#22206b', cropTop: 0.052, floor: '#d9d3f2', floorW: 8.6, view: [-21.6, -37] },
+  { project: byPanel('project-hit-the-ball'), row: 'y2022', x: -11.2, fit: 'contain', backing: '#141414', cropTop: 0.05, floor: '#f4d9c6', floorW: 8.6, view: [-7.6, -37] },
+  { project: byPanel('project-lightsout'), row: 'y2022', x: 3.0, fit: 'contain', backing: '#000000', floor: '#e4d6ef', floorW: 8.6, view: [7.6, -39] },
+  { project: byPanel('project-covid'), row: 'y2022', x: 19.2, fit: 'cover', floor: '#cfe5dd', floorW: 8.6, art: 'covid', view: [24.6, -38.5] },
 ];
 
 export const bayFor = (id: PanelId): Bay => {
