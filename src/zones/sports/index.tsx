@@ -7,7 +7,7 @@ import { Bowling } from './Bowling.tsx';
 import { Dressing } from './Dressing.tsx';
 import { Gaming } from './Gaming.tsx';
 import { Mountain } from './Mountain.tsx';
-import { BIKE_RACK, BOWL_PAD, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TABLE_PAD, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
+import { BIKE_RACK, BOWL_PAD, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TABLE_PAD, TENNIS, TENNIS_PAD, TENNIS_SIGN, TREK_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
 import { PumpTrack } from './PumpTrack.tsx';
 import { Pool } from './Pool.tsx';
 import { Tennis } from './Tennis.tsx';
@@ -31,7 +31,7 @@ export function SportsZone() {
       <Scoreboard position={[SCOREBOARD.x, 0, SCOREBOARD.z]} />
       <VenueSign id="sports-football" title="Football" lines={['Whenever there is a game']} sign={[FOOTBALL_PAD.x, FOOTBALL_PAD.z - 3.4]}
         pad={[FOOTBALL_PAD.x, FOOTBALL_PAD.z]} label="Read about football" icon="Football" />
-      <VenueSign id="sports-running" title="Running" lines={['The clock starts at the white line']} sign={[RUNNING_PAD.x, RUNNING_PAD.z - 3.4]}
+      <VenueSign id="sports-running" title="Running" lines={['Laps start at the white line']} sign={[RUNNING_PAD.x, RUNNING_PAD.z - 3.4]}
         pad={[RUNNING_PAD.x, RUNNING_PAD.z]} label="Read about running" icon="Running" />
       <TableTennis position={[TABLE.x, 0, TABLE.z]} />
       <VenueSign id="sports-table-tennis" title="Table tennis" lines={['Since joining college']} sign={[TABLE.x, TABLE.z - 3.3]} pad={[TABLE_PAD.x, TABLE_PAD.z]}
@@ -39,7 +39,7 @@ export function SportsZone() {
       <Gaming />
       <Typing />
       <Tennis position={[TENNIS.x, 0, TENNIS.z]} />
-      <VenueSign id="sports-tennis" title="Lawn tennis" sign={[TENNIS_PAD.x, TENNIS_PAD.z - 3.6]} pad={[TENNIS_PAD.x, TENNIS_PAD.z]}
+      <VenueSign id="sports-tennis" title="Lawn tennis" sign={[TENNIS_SIGN.x, TENNIS_SIGN.z]} pad={[TENNIS_PAD.x, TENNIS_PAD.z]}
         label="Read about lawn tennis" icon="Tennis" />
       <Volleyball position={[VOLLEY.x, 0, VOLLEY.z]} />
       <VenueSign id="sports-volleyball" title="Volleyball" sign={[VOLLEY_PAD.x, VOLLEY_PAD.z - 3.6]} pad={[VOLLEY_PAD.x, VOLLEY_PAD.z]}

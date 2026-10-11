@@ -70,14 +70,16 @@ export const TREK_PAD = { x: 52.8, z: -9.6 };
 
 export const TENNIS = { x: 49, z: 1.5 };
 export const TENNIS_PAD = { x: 36.8, z: -1.2 };
+// Beside the court's top-left corner, clear of the right path.
+export const TENNIS_SIGN = { x: 41.0, z: -6.3 };
 // The pump track runs up the screen (turned a quarter), between the right path and the bowling lane.
 export const PUMP = { x: 46.6, z: 24.4 };
-export const PUMP_PAD = { x: 37.6, z: 27.6 };
+export const PUMP_PAD = { x: 38.4, z: 27.6 };
 export const BIKE_RACK = { x: 44.6, z: 9.9 }; // above the pump track, in view from its pad
 // Bowling lane along the right edge, bowled up the screen: the camera looks down it from behind the
 // ball. z falls towards the pins.
 export const BOWL = { x: 58.6, width: 4.6, approachZ: 43.4, foulZ: 38.6, headZ: 21.2, backZ: 15.4 };
-export const BOWL_PAD = { x: 53.4, z: 42.4 };
+export const BOWL_PAD = { x: 52.6, z: 42.4 };
 
 export const POOL = { x: -14.25, z: 38.2 };
 export const POOL_PAD = { x: -0.9, z: 40.4 };

@@ -29,7 +29,7 @@ const LANTERNS: [number, number][] = [
   [-17.5, -6.5], [-1.5, -11.0], [20.6, -11.4], // near side, clear of the signs and the respawn
   [32.3, 2.4], [32.3, 19.6], [37.0, 9.6], // along the right path
   [-25.4, 33.6], [29.2, 33.8], [32.0, 44.2], // by the pool, the volleyball and the bowling approach
-  [-23.4, -21.6], [-8.2, -21.8], // either side of the plaza
+  [-8.2, -21.8], // right of the plaza; the dirt road has the valley's own lanterns
 ];
 addLamps(LANTERNS.map(([x, z]) => ({ kind: 'lantern' as const, ...screen(x, z) })));
 
@@ -147,10 +147,10 @@ function StadiumWash() {
 // Benches face the camera unless turned; bins beside some of them.
 const BENCHES: Placement[] = [
   { position: [17.6, 0, -16.9] }, { position: [31.2, 0, -16.9] },
-  { position: [-21.2, 0, -12.6], rotationY: Math.PI / 2 }, { position: [32.4, 0, 26.0], rotationY: Math.PI / 2 },
+  { position: [-23.0, 0, -12.0], rotationY: Math.PI / 2 }, { position: [31.6, 0, 25.4], rotationY: Math.PI / 2 },
   { position: [-9.4, 0, 33.85] }, { position: [28.6, 0, 37.6] }, { position: [51.6, 0, 9.7] },
 ];
-const BINS: V3[] = [[19.3, 0, -16.9], [-19.9, 0, -14.6], [-7.6, 0, 33.9], [33.6, 0, 27.8]];
+const BINS: V3[] = [[19.3, 0, -16.9], [-23.0, 0, -9.9], [-7.6, 0, 33.9], [31.6, 0, 27.4]];
 const benchBoxes: BoxCollider[] = BENCHES.map((b) => ({ position: [b.position[0], 0.5, b.position[2]] as V3, half: [1.15, 0.5, 0.55] as V3, rotationY: b.rotationY }));
 
 function binGeometry() {
