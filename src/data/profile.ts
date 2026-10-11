@@ -418,7 +418,7 @@ export const panels: Record<PanelId, Panel> = {
     meta: ['Python', 'Pygame', 'NumPy'],
     image: { src: `${BASE}images/projects/Tower_defense_ai1.jpg`, alt: 'Tower defense game screenshot with towers along a path' },
     links: [repo('Tower_defense_ai1')],
-    related: ['project-early', 'projects'],
+    related: ['project-space-shooters', 'projects'],
   },
   'project-early': {
     title: 'Early projects',

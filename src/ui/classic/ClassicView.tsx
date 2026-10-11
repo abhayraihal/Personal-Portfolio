@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react';
 import { COLORS } from '../../config/palette.ts';
 import { codeforces, otherPlatforms } from '../../data/codeforces.ts';
-import { coursework, earlyProjects, jobs, panels, paper, profile, projects } from '../../data/profile.ts';
+import { allProjects, coursework, gaming, jobs, panels, paper, profile, sports, typing } from '../../data/profile.ts';
 import type { Link } from '../../data/profile.ts';
 import { CarIcon, ExternalIcon, LinkIcon, PrintIcon } from '../icons.tsx';
 import { linkProps, shortUrl } from '../lib.ts';
@@ -35,7 +35,7 @@ const SECTIONS = [
   ['education', 'Education'],
   ['cp', 'Competitive programming'],
   ['skills', 'Skills'],
-  ['activities', 'Activities'],
+  ['activities', 'Activities and interests'],
   ['contact', 'Contact'],
 ] as const;
 
@@ -163,10 +163,9 @@ function Experience() {
 }
 
 function Projects() {
-  const early = panels['project-early'];
   return (
     <Section id="projects">
-      {projects.map((pr) => {
+      {allProjects.map((pr) => {
         const p = panels[pr.panel];
         return (
           <article className="cv-item cv-project" key={pr.panel}>
@@ -185,16 +184,6 @@ function Projects() {
           </article>
         );
       })}
-      <article className="cv-item">
-        <ItemHead title={early.title} when={early.kicker} />
-        <ul className="cv-bullets">
-          {earlyProjects.map((e) => (
-            <li key={e.title}>
-              <CvLink link={e.link} label={e.title} />: {e.line}
-            </li>
-          ))}
-        </ul>
-      </article>
     </Section>
   );
 }
@@ -390,6 +379,23 @@ export function ClassicView({ mode, enter, onClose, onPrint, headingRef }: Props
                 {t}
               </p>
             ))}
+            <div className="cv-skills">
+              <div className="cv-skill">
+                <h3 className="cv-skill__title">Sports</h3>
+                <Chips items={sports} small />
+              </div>
+              <div className="cv-skill">
+                <h3 className="cv-skill__title">Gaming</h3>
+                <Chips items={gaming.games} small />
+                <p className="cv-text">
+                  PlayStation: {gaming.playstation} · Steam: {gaming.steam} · I play a lot of CS:GO.
+                </p>
+              </div>
+              <div className="cv-skill">
+                <h3 className="cv-skill__title">Touch typing</h3>
+                <p className="cv-text">Best speed {typing.wpm} WPM.</p>
+              </div>
+            </div>
           </Section>
 
           <Section id="contact">
