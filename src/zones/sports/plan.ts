@@ -65,7 +65,9 @@ export const TENNIS = { x: 49, z: 1.5 };
 export const TENNIS_PAD = { x: 36.8, z: -1.2 };
 export const VOLLEY = { x: 49, z: 16.5 };
 export const VOLLEY_PAD = { x: 37, z: 17.6 };
-export const PUMP = { x: 49, z: 33 };
+export const PUMP = { x: 50, z: 33.6 };
+export const BIKE_RACK = { x: 39.2, z: 24.6 };
+export const PUMP_PAD = { x: 36.9, z: 36.4 };
 
 export const POOL = { x: -14.25, z: 38.2 };
 export const POOL_PAD = { x: -1.5, z: 40 };

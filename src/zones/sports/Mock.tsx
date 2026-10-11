@@ -26,7 +26,6 @@ export function Mock() {
         <coneGeometry args={[P.MOUNTAIN.r, P.MOUNTAIN.h, 9]} />
         <meshStandardMaterial color="#8c8fa3" flatShading />
       </mesh>
-      <Slab x={P.PUMP.x} z={P.PUMP.z} w={26} d={15} h={1} color="#b58b5e" name="pump" />
       <Slab x={P.BOWLING.x} z={P.BOWLING.z} w={26} d={6} h={0.3} color="#d9b37a" name="bowling" />
     </group>
   );

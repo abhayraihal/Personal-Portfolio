@@ -110,29 +110,21 @@ function barrierGeometry(): BufferGeometry {
   return paint(parts);
 }
 
-// Umbrella canopy with alternating panels.
-function canopy(r: number, h: number, a: string, b: string): BufferGeometry {
-  const g = new ConeGeometry(r, h, 10, 1, true).toNonIndexed();
-  const pos = g.attributes.position;
-  const col = new Float32Array(pos.count * 3);
-  const ca = new Color(a);
-  const cb = new Color(b);
-  for (let t = 0; t < pos.count; t += 3) {
-    const x = (pos.getX(t) + pos.getX(t + 1) + pos.getX(t + 2)) / 3;
-    const z = (pos.getZ(t) + pos.getZ(t + 1) + pos.getZ(t + 2)) / 3;
-    const seg = Math.floor(((Math.atan2(z, x) + Math.PI) / (Math.PI * 2)) * 10);
-    for (let k = 0; k < 3; k++) (seg % 2 ? ca : cb).toArray(col, (t + k) * 3);
-  }
-  g.setAttribute('color', new BufferAttribute(col, 3));
-  g.deleteAttribute('uv');
-  return g;
+// Umbrella canopy: ten panels in two colours, each its own painted part.
+function canopy(r: number, h: number, a: string, b: string, at: V3, rot: V3): Part[] {
+  return Array.from({ length: 10 }, (_, k) => ({
+    geo: new ConeGeometry(r, h, 1, 1, true, (k / 10) * Math.PI * 2, Math.PI / 5),
+    color: k % 2 ? a : b,
+    at,
+    rot,
+  }));
 }
 
 function beachGeometry(): BufferGeometry {
   const x = 8.4;
   const parts: Part[] = [
     { geo: cyl(0.04, 0.05, 2.6, 8), color: '#f2efe6', at: [x, 1.3, -2.2], rot: [0.12, 0, -0.08] },
-    { geo: canopy(1.7, 0.7, '#e2557f', '#f6f4ee'), color: '#ffffff', at: [x + 0.2, 2.7, -2.05], rot: [0.12, 0, -0.08] },
+    ...canopy(1.7, 0.7, '#e2557f', '#f6f4ee', [x + 0.2, 2.7, -2.05], [0.12, 0, -0.08]),
     // Towel with stripes.
     ...['#2f6fd6', '#f6f4ee', '#2f6fd6', '#f2c230', '#2f6fd6'].map((c, i) => rect(x - 0.2, -1.5 + i * 0.38, 1.1, 0.38, 0.08, c, 0.15)),
     // Cool box.
