@@ -14,7 +14,7 @@ export type PanelId =
   | 'amazon' | 'amazon-rewards' | 'amazon-oncall-agent' | 'amazon-migration' | 'amazon-retention'
   | 'amazon-connectors' | 'amazon-oncall' | 'genai-hackathon'
   | 'projects' | 'project-scan2scope' | 'project-self-driving-car' | 'project-trip-planner'
-  | 'project-weather' | 'project-rule-engine' | 'project-tower-defense' | 'project-early'
+  | 'project-weather' | 'project-rule-engine' | 'project-tower-defense'
   | 'project-space-shooters' | 'project-hit-the-ball' | 'project-lightsout' | 'project-covid'
   | 'codeforces' | 'cp-platforms'
   | 'education' | 'school' | 'paper' | 'hackathons' | 'activities'
@@ -152,11 +152,6 @@ export const moreProjects: Project[] = [
 ];
 
 export const allProjects: Project[] = [...projects, ...moreProjects];
-
-// Older one-line form of moreProjects.
-export const earlyProjects: { title: string; year: number; line: string; image?: string; link: Link }[] = moreProjects.map((p) => ({
-  title: p.title, year: p.year, line: p.tagline, image: p.image, link: p.links[0],
-}));
 
 export const sports = ['Football', 'Table tennis', 'Lawn tennis', 'Volleyball', 'Swimming', 'Running', 'Cycling', 'Trekking', 'Bowling'];
 
@@ -419,13 +414,6 @@ export const panels: Record<PanelId, Panel> = {
     image: { src: `${BASE}images/projects/Tower_defense_ai1.jpg`, alt: 'Tower defense game screenshot with towers along a path' },
     links: [repo('Tower_defense_ai1')],
     related: ['project-space-shooters', 'projects'],
-  },
-  'project-early': {
-    title: 'Early projects',
-    kicker: '2022',
-    bullets: earlyProjects.map((p) => `${p.title}: ${p.line}`),
-    links: earlyProjects.map((p) => ({ ...p.link, label: p.title })),
-    related: ['projects'],
   },
   'project-space-shooters': {
     title: 'Space Shooters',
