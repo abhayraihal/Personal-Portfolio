@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BallCollider, CuboidCollider, RigidBody } from '@react-three/rapier';
 import type { IntersectionEnterPayload, RapierRigidBody } from '@react-three/rapier';
-import { BufferAttribute, Color, IcosahedronGeometry, Vector3 } from 'three';
-import type { BufferGeometry } from 'three';
 import { INSPECT } from '../../config/world.ts';
 import { car } from '../../state/car.ts';
 import { events, playSound } from '../../state/events.ts';
@@ -11,40 +9,8 @@ import { useStore } from '../../state/store.ts';
 import { localToWorld } from '../career/kit/frame.ts';
 import { impactReporter } from '../career/kit/impact.ts';
 import { paintMaterial } from '../career/kit/paint.ts';
+import { footballGeometry } from './balls.ts';
 import { BALL_RADIUS, CENTRE_SPOT, GOAL, PITCH, ZONE, goalLineX } from './plan.ts';
-
-// Low-poly football: a twice-subdivided icosahedron whose 60 triangles around the 12 original
-// vertices are black, which draws the 12 pentagons of a real ball.
-function footballGeometry(r: number): BufferGeometry {
-  const geo = new IcosahedronGeometry(r, 2);
-  const pos = geo.attributes.position;
-  const base = new IcosahedronGeometry(1, 0);
-  const dirs: Vector3[] = [];
-  for (let i = 0; i < base.attributes.position.count; i++) {
-    const v = new Vector3().fromBufferAttribute(base.attributes.position, i).normalize();
-    if (!dirs.some((d) => d.distanceTo(v) < 1e-3)) dirs.push(v);
-  }
-  base.dispose();
-  const white = new Color('#f7f7f3');
-  const black = new Color('#25282f');
-  const colors = new Float32Array(pos.count * 3);
-  const a = new Vector3();
-  const b = new Vector3();
-  const c = new Vector3();
-  for (let t = 0; t < pos.count; t += 3) {
-    a.fromBufferAttribute(pos, t);
-    b.fromBufferAttribute(pos, t + 1);
-    c.fromBufferAttribute(pos, t + 2);
-    const centre = a.add(b).add(c).normalize();
-    let best = -1;
-    for (const d of dirs) best = Math.max(best, d.dot(centre));
-    const col = best > 0.95 ? black : white;
-    for (let k = 0; k < 3; k++) col.toArray(colors, (t + k) * 3);
-  }
-  geo.setAttribute('color', new BufferAttribute(colors, 3));
-  geo.deleteAttribute('uv');
-  return geo;
-}
 
 // Sensor inside each goal, behind the line: the ball has to be most of the way in.
 const SENSOR_FROM = 1.2; // m behind the goal line
