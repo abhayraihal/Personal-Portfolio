@@ -56,9 +56,15 @@ export const PATHS: [number, number][][] = [
   [[-23.5, NEAR_PATH_Z], [RIGHT_PATH_X, NEAR_PATH_Z]],
 ];
 
-export const TABLE = { x: -2.5, z: -22.5 };
-export const GAMING = { x: 10.5, z: -25.5 };
-export const TYPING = { x: 33.5, z: -23.5 };
+export const TABLE = { x: -4.6, z: -22.6 };
+export const TABLE_PAD = { x: -4.6, z: -18.4 };
+// Gaming: the board, the den and the game shelf in a row, the pad in front of the den.
+export const GAME_BOARD = { x: 2.6, z: -22.4 };
+export const DEN = { x: 9.6, z: -27.4 };
+export const GAME_SHELF = { x: 20.1, z: -27.2 };
+export const GAMING_PAD = { x: 9.6, z: -20.4 };
+export const TYPING = { x: 34.6, z: -23.2 };
+export const TYPING_PAD = { x: 34.6, z: -18.6 };
 export const MOUNTAIN = { x: 53.5, z: -23, r: 8.2, h: 7.2 };
 export const TREK_PAD = { x: 52.8, z: -9.6 };
 

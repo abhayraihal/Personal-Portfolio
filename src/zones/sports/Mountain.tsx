@@ -152,8 +152,8 @@ function campGeometry(markers: V3[]): BufferGeometry {
     parts.push({ geo: cyl(0.07, 0.07, 0.16, 8), color: '#d94141', at: [x, y + 0.52, z] });
   }
   // Tent (A-frame) at the left foot, door facing the camera.
-  const tx = -9.8;
-  const tz = 2.6;
+  const tx = 8.9;
+  const tz = 4.6;
   const tw = 2.2;
   const th = 1.6;
   const td = 2.4;
@@ -169,15 +169,15 @@ function campGeometry(markers: V3[]): BufferGeometry {
     parts.push({ geo: box(tw + 0.1, 0.04, 0.04, 0.01), color: '#c76a1c', at: [tx, 0.02, tz + (td / 2) * s] });
   }
   // Backpack leaning on a rock by the tent.
-  const bx = -8.0;
-  const bz = 4.7;
+  const bx = 6.7;
+  const bz = 6.6;
   parts.push({ geo: box(0.62, 0.86, 0.42, 0.14), color: '#2f6fd6', at: [bx, 0.43, bz], rot: [-0.18, 0.4, 0] });
   parts.push({ geo: box(0.64, 0.24, 0.44, 0.1), color: '#244f9e', at: [bx, 0.86, bz - 0.05], rot: [-0.18, 0.4, 0] });
   parts.push({ geo: box(0.36, 0.3, 0.14, 0.06), color: '#f2c230', at: [bx + 0.08, 0.36, bz + 0.22], rot: [-0.18, 0.4, 0] });
   parts.push({ geo: cyl(0.12, 0.12, 0.7, 10), color: '#4caf50', at: [bx - 0.05, 1.02, bz - 0.12], rot: [0, 0.4, Math.PI / 2] });
   // Fire ring: stones round a little pile of logs.
-  const fx = -6.6;
-  const fz = 5.6;
+  const fx = 5.0;
+  const fz = 7.8;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2;
     parts.push({ geo: new SphereGeometry(0.17, 6, 4), color: '#8c8fa3', at: [fx + Math.cos(a) * 0.55, 0.08, fz + Math.sin(a) * 0.55], scale: [1, 0.6, 1] });
@@ -215,7 +215,7 @@ export function Mountain() {
         <mesh geometry={camp} material={paintMaterial} castShadow receiveShadow />
         <RigidBody type="fixed" colliders={false}>
           <ConvexHullCollider args={[hull]} />
-          <CuboidCollider args={[1.15, 0.8, 1.3]} position={[-9.8, 0.8, 2.6]} />
+          <CuboidCollider args={[1.15, 0.8, 1.3]} position={[8.9, 0.8, 4.6]} />
         </RigidBody>
       </group>
       <InstancedModel name="tree-pine-snow" items={TREES} />

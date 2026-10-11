@@ -2,11 +2,11 @@ import { ZoneFrame } from '../../components/ZoneFrame.tsx';
 import { Entrance } from './Entrance.tsx';
 import { Football } from './Football.tsx';
 import { Ground } from './Ground.tsx';
-import { Mock } from './Mock.tsx';
 import { Pitch } from './Pitch.tsx';
 import { Bowling } from './Bowling.tsx';
+import { Gaming } from './Gaming.tsx';
 import { Mountain } from './Mountain.tsx';
-import { BIKE_RACK, BOWL_PAD, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
+import { BIKE_RACK, BOWL_PAD, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TABLE_PAD, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
 import { PumpTrack } from './PumpTrack.tsx';
 import { Pool } from './Pool.tsx';
 import { Tennis } from './Tennis.tsx';
@@ -14,6 +14,7 @@ import { Volleyball } from './Volleyball.tsx';
 import { Scoreboard } from './Scoreboard.tsx';
 import { TableTennis } from './TableTennis.tsx';
 import { Track } from './Track.tsx';
+import { Typing } from './Typing.tsx';
 import { VenueSign } from './Venue.tsx';
 
 // The sports park.
@@ -31,6 +32,10 @@ export function SportsZone() {
       <VenueSign id="sports-running" title="Running" lines={['The clock starts at the white line']} sign={[RUNNING_PAD.x, RUNNING_PAD.z - 3.4]}
         pad={[RUNNING_PAD.x, RUNNING_PAD.z]} label="Read about running" icon="Running" />
       <TableTennis position={[TABLE.x, 0, TABLE.z]} />
+      <VenueSign id="sports-table-tennis" title="Table tennis" lines={['Since joining college']} sign={[TABLE.x, TABLE.z - 3.3]} pad={[TABLE_PAD.x, TABLE_PAD.z]}
+        label="Read about table tennis" icon="Table tennis" lift={0.6} />
+      <Gaming />
+      <Typing />
       <Tennis position={[TENNIS.x, 0, TENNIS.z]} />
       <VenueSign id="sports-tennis" title="Lawn tennis" sign={[TENNIS_PAD.x, TENNIS_PAD.z - 3.6]} pad={[TENNIS_PAD.x, TENNIS_PAD.z]}
         label="Read about lawn tennis" icon="Tennis" />
@@ -49,7 +54,6 @@ export function SportsZone() {
       <Pool position={[POOL.x, 0, POOL.z]} />
       <VenueSign id="sports-swimming" title="Swimming" sign={[POOL_PAD.x, POOL_PAD.z - 3.6]} pad={[POOL_PAD.x, POOL_PAD.z]}
         label="Read about swimming" icon="Swimming" />
-      <Mock />
     </ZoneFrame>
   );
 }
