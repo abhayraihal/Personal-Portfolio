@@ -1,12 +1,20 @@
-// Sports ground layout, in the zone frame (x = screen right, -z = screen up, origin at the zone
-// centre, screen (52, -46)). The dirt road from the hub ends at the top-left, near screen (34, -30).
-// The respawn, screen (40, -36), faces down-right into the zone just above the pitch's top-left
-// corner, with the sign and its pad to its upper right.
+// Sports park layout, in the zone frame (x = screen right, -z = screen up, origin at the zone
+// centre, screen (52, -46)). The zone is the screen rect u 26..114, v -90..-14, so local x runs
+// -26..62 and z -32..44. The dirt road from the hub ends at the top-left, near local (-18, -16).
+//
+// The stadium (running track around the football pitch) fills the left and middle. Above it, along
+// the far edge: the entrance plaza, table tennis, the gaming den, the typing keyboard and the
+// trekking mountain. Down the right: tennis, beach volleyball and the pump track. Along the near
+// edge: the pool and the bowling lane. Tall things sit at the far edge so they hide nothing.
 
 export const ZONE = 'sports' as const;
+export const BOUNDS = { x0: -26, x1: 62, z0: -32, z1: 44 };
+
+// Stadium centre; the pitch and the track share it.
+export const STADIUM = { x: 4, z: 11 };
 
 // Pitch: 28 m goal line to goal line, 17 m wide, with a mown border around it.
-export const PITCH = { x: 0.5, z: 1.5, length: 28, width: 17, border: 1.2 };
+export const PITCH = { x: STADIUM.x, z: STADIUM.z, length: 28, width: 17, border: 1.2 };
 export const GOAL = { width: 6, height: 2.6, depth: 2.2 };
 export const BALL_RADIUS = 0.7;
 export const CENTRE_SPOT: [number, number] = [PITCH.x, PITCH.z];
@@ -14,7 +22,48 @@ export const CENTRE_SPOT: [number, number] = [PITCH.x, PITCH.z];
 // Goal lines; side -1 is the left goal (screen left), +1 the right one.
 export const goalLineX = (side: -1 | 1) => PITCH.x + side * (PITCH.length / 2);
 
-export const SIGN = { x: -6.4, z: -17.6 };
-export const PAD = { x: -7.2, z: -14.6 };
-export const SCOREBOARD = { x: PITCH.x, z: -11.6 }; // on the halfway line
-export const TABLE = { x: 11.6, z: -13.4 };
+// Running track: two straights joined by half circles, four lanes, run anticlockwise seen from above
+// (screen: along the far straight to the left). The start line crosses the far straight at x.
+export const TRACK = {
+  x: STADIUM.x,
+  z: STADIUM.z,
+  straight: 22, // length of each straight
+  rIn: 11.5, // inner edge radius of the bends
+  lanes: 4,
+  lane: 1.25,
+  startX: STADIUM.x,
+};
+export const TRACK_R_OUT = TRACK.rIn + TRACK.lanes * TRACK.lane;
+
+// Stadium front along the far straight: football and running pads either side of the scoreboard.
+export const SCOREBOARD = { x: STADIUM.x, z: STADIUM.z - TRACK_R_OUT - 3.2 };
+export const FOOTBALL_PAD = { x: STADIUM.x - 11.4, z: SCOREBOARD.z + 0.6 };
+export const RUNNING_PAD = { x: STADIUM.x + 11.4, z: SCOREBOARD.z + 0.6 };
+
+// Entrance plaza at the end of the road, with the park sign behind it.
+export const PLAZA = { x: -15, z: -14, r: 7 };
+export const ENTRANCE_SIGN = { x: -15.5, z: -24.5 };
+export const ENTRANCE_PAD = { x: -19.5, z: -17.5 };
+
+// Promenade along the far edge of the stadium, and paths down the right and along the near edge.
+export const PROMENADE_Z = -14;
+export const RIGHT_PATH_X = 34.6;
+export const NEAR_PATH_Z = 30.6;
+export const PATH_W = 3.4;
+export const PATHS: [number, number][][] = [
+  [[PLAZA.x + 5, PROMENADE_Z], [46.5, PROMENADE_Z]],
+  [[RIGHT_PATH_X, PROMENADE_Z], [RIGHT_PATH_X, 41.5]],
+  [[-23.5, NEAR_PATH_Z], [RIGHT_PATH_X, NEAR_PATH_Z]],
+];
+
+export const TABLE = { x: -2.5, z: -22.5 };
+export const GAMING = { x: 10.5, z: -25.5 };
+export const TYPING = { x: 33.5, z: -23.5 };
+export const MOUNTAIN = { x: 53.5, z: -23, r: 8.2, h: 7.2 };
+
+export const TENNIS = { x: 49, z: 1.5 };
+export const VOLLEY = { x: 49, z: 16.5 };
+export const PUMP = { x: 49, z: 33 };
+
+export const POOL = { x: -13, z: 37.5 };
+export const BOWLING = { x: 17.5, z: 38.2 };

@@ -4,7 +4,7 @@ import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier
 import { BufferAttribute, BufferGeometry, CanvasTexture, DoubleSide, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 import { useStore } from '../../state/store.ts';
 import type { V3 } from '../career/kit/frame.ts';
-import { DynamicInstances, InstancedModel, useScaledMerged } from '../career/kit/instances.tsx';
+import { DynamicInstances, useScaledMerged } from '../career/kit/instances.tsx';
 import type { Placement } from '../career/kit/instances.tsx';
 import { cyl, paint, paintMaterial } from '../career/kit/paint.ts';
 import type { Part } from '../career/kit/paint.ts';
@@ -184,10 +184,6 @@ const corner = (sx: number, sz: number): Placement => ({
   rotationY: sx < 0 ? 0 : Math.PI,
 });
 const flags: Placement[] = [corner(-1, -1), corner(1, -1), corner(-1, 1), corner(1, 1)];
-const benches: Placement[] = [
-  { position: [PITCH.x - 6.5, 0, PITCH.z - PITCH.width / 2 - 1.9] },
-  { position: [PITCH.x + 6.5, 0, PITCH.z - PITCH.width / 2 - 1.9] },
-];
 
 export function Pitch() {
   const gl = useThree((s) => s.gl);
@@ -211,12 +207,6 @@ export function Pitch() {
       <Goal side={1} />
       <DynamicInstances geometry={flag.geometry} material={flag.material} items={flags} collider={flagCollider} impact="metal"
         linearDamping={0.5} angularDamping={0.8} shadows={!low} />
-      <InstancedModel name="bench-wood" items={benches} shadows={!low} />
-      <RigidBody type="fixed" colliders={false}>
-        {benches.map((b, i) => (
-          <CuboidCollider key={i} args={[1.15, 0.5, 0.55]} position={[b.position[0], 0.5, b.position[2]]} />
-        ))}
-      </RigidBody>
     </group>
   );
 }
