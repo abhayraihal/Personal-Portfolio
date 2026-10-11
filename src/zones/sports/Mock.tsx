@@ -22,7 +22,6 @@ export function Mock() {
       <Slab x={P.TYPING.x} z={P.TYPING.z + 1.5} w={10.5} d={4} h={0.6} color="#eeeeee" name="keys" />
       <Slab x={P.TYPING.x - 2} z={P.TYPING.z - 2.5} w={5} d={0.3} h={2.6} color="#333" name="screen" />
       <Slab x={P.TYPING.x + 4.5} z={P.TYPING.z - 2.5} w={2.6} d={0.3} h={2.8} color="#444" name="gauge" />
-      <Slab x={P.BOWLING.x} z={P.BOWLING.z} w={26} d={6} h={0.3} color="#d9b37a" name="bowling" />
     </group>
   );
 }

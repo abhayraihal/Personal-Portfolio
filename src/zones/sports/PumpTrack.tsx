@@ -127,7 +127,7 @@ function rackGeometry() {
   return paint(parts);
 }
 
-export function PumpTrack({ position, rack }: { position: V3; rack: V3 }) {
+export function PumpTrack({ position, rack, yaw = 0 }: { position: V3; rack: V3; yaw?: number }) {
   const { rapier } = useRapier();
   const surface = useMemo(trackSurface, []);
   const rackGeo = useMemo(rackGeometry, []);
@@ -139,7 +139,7 @@ export function PumpTrack({ position, rack }: { position: V3; rack: V3 }) {
   useEffect(() => () => surface.geometry.dispose(), [surface]);
   return (
     <group>
-      <group position={position}>
+      <group position={position} rotation={[0, yaw, 0]}>
         <mesh geometry={surface.geometry} material={paintMaterial} castShadow receiveShadow />
         <RigidBody type="fixed" colliders={false}>
           <TrimeshCollider args={args} friction={1} />

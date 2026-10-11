@@ -64,12 +64,17 @@ export const TREK_PAD = { x: 52.8, z: -9.6 };
 
 export const TENNIS = { x: 49, z: 1.5 };
 export const TENNIS_PAD = { x: 36.8, z: -1.2 };
-export const VOLLEY = { x: 49, z: 16.5 };
-export const VOLLEY_PAD = { x: 37, z: 17.6 };
-export const PUMP = { x: 50, z: 33.6 };
-export const BIKE_RACK = { x: 39.2, z: 24.6 };
-export const PUMP_PAD = { x: 36.9, z: 36.4 };
+// The pump track runs up the screen (turned a quarter), between the right path and the bowling lane.
+export const PUMP = { x: 46.6, z: 24.4 };
+export const PUMP_PAD = { x: 37.6, z: 27.6 };
+export const BIKE_RACK = { x: 38.3, z: 39.6 };
+// Bowling lane along the right edge, bowled up the screen: the camera looks down it from behind the
+// ball. z falls towards the pins.
+export const BOWL = { x: 58.6, width: 4.6, approachZ: 43.4, foulZ: 38.6, headZ: 21.2, backZ: 15.4 };
+export const BOWL_PAD = { x: 53.4, z: 42.4 };
 
 export const POOL = { x: -14.25, z: 38.2 };
-export const POOL_PAD = { x: -1.5, z: 40 };
-export const BOWLING = { x: 17.5, z: 38.2 };
+export const POOL_PAD = { x: -0.9, z: 40.4 };
+// Beach volleyball beside the pool.
+export const VOLLEY = { x: 12.2, z: 37.9 };
+export const VOLLEY_PAD = { x: 25.4, z: 40.4 };

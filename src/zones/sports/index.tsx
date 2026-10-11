@@ -4,8 +4,9 @@ import { Football } from './Football.tsx';
 import { Ground } from './Ground.tsx';
 import { Mock } from './Mock.tsx';
 import { Pitch } from './Pitch.tsx';
+import { Bowling } from './Bowling.tsx';
 import { Mountain } from './Mountain.tsx';
-import { BIKE_RACK, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
+import { BIKE_RACK, BOWL_PAD, FOOTBALL_PAD, POOL, POOL_PAD, PUMP, PUMP_PAD, RUNNING_PAD, SCOREBOARD, TABLE, TENNIS, TREK_PAD, TENNIS_PAD, VOLLEY, VOLLEY_PAD } from './plan.ts';
 import { PumpTrack } from './PumpTrack.tsx';
 import { Pool } from './Pool.tsx';
 import { Tennis } from './Tennis.tsx';
@@ -36,9 +37,12 @@ export function SportsZone() {
       <Volleyball position={[VOLLEY.x, 0, VOLLEY.z]} />
       <VenueSign id="sports-volleyball" title="Volleyball" sign={[VOLLEY_PAD.x, VOLLEY_PAD.z - 3.6]} pad={[VOLLEY_PAD.x, VOLLEY_PAD.z]}
         label="Read about volleyball" icon="Volleyball" />
-      <PumpTrack position={[PUMP.x, 0, PUMP.z]} rack={[BIKE_RACK.x, 0, BIKE_RACK.z]} />
+      <PumpTrack position={[PUMP.x, 0, PUMP.z]} rack={[BIKE_RACK.x, 0, BIKE_RACK.z]} yaw={Math.PI / 2} />
       <VenueSign id="sports-cycling" title="Cycling" sign={[PUMP_PAD.x, PUMP_PAD.z - 3.6]} pad={[PUMP_PAD.x, PUMP_PAD.z]}
         label="Read about cycling" icon="Cycling" />
+      <Bowling />
+      <VenueSign id="sports-bowling" title="Bowling" lines={['Push the ball up the lane']} sign={[BOWL_PAD.x, BOWL_PAD.z - 3.5]} pad={[BOWL_PAD.x, BOWL_PAD.z]}
+        label="Read about bowling" icon="Bowling" />
       <Mountain />
       <VenueSign id="sports-trekking" title="Trekking" sign={[TREK_PAD.x, TREK_PAD.z - 3.5]} pad={[TREK_PAD.x, TREK_PAD.z]}
         label="Read about trekking" icon="Trekking" />
